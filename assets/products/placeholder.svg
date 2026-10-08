@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eef2ff"/>
+      <stop offset="100%" stop-color="#e0e7ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <g transform="translate(200,180)">
+    <rect x="-70" y="-50" width="140" height="100" rx="14" fill="none" stroke="#94a3b8" stroke-width="4"/>
+    <circle cx="-20" cy="-10" r="10" fill="#94a3b8"/>
+    <path d="M -70 30 L -20 -15 L 20 20 L 50 0 L 70 20" fill="none" stroke="#94a3b8" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+  <text x="200" y="300" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#64748b" font-weight="600">Product Image</text>
+  <text x="200" y="326" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#94a3b8">Add real photo in assets/products/</text>
+</svg>
