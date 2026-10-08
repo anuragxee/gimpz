@@ -1,0 +1,268 @@
+/* ============================================================
+   GIMPZ — PRODUCT DATABASE
+   ============================================================
+   HOW TO EDIT:
+   - Copy any block and paste it below to add a new product
+   - Change: id (must be unique), name, price, mrp, category,
+     image, description, stock, rating, brand
+   - Categories must match one of: Electronics, Fashion,
+     Home & Kitchen, Beauty, Sports, Toys, Books, Grocery
+   ============================================================ */
+
+var PRODUCTS = [
+
+  /* ---------- ELECTRONICS ---------- */
+  {
+    id: 1,
+    name: "Wireless Bluetooth Earbuds",
+    brand: "SoundPro",
+    category: "Electronics",
+    price: 1299,
+    mrp: 2499,
+    rating: 4.4,
+    stock: 25,
+    image: "assets/products/earbuds.svg",
+    description: "True wireless earbuds with deep bass, 30-hour battery life, touch controls and noise isolation. Perfect for calls, music and workouts."
+  },
+  {
+    id: 2,
+    name: "Smart Fitness Watch",
+    brand: "FitTrack",
+    category: "Electronics",
+    price: 1899,
+    mrp: 3999,
+    rating: 4.2,
+    stock: 18,
+    image: "assets/products/watch.svg",
+    description: "Track your steps, heart rate, sleep and workouts. IP68 waterproof with 10-day battery life and a bright 1.4-inch display."
+  },
+  {
+    id: 3,
+    name: "20000mAh Power Bank",
+    brand: "VoltMax",
+    category: "Electronics",
+    price: 999,
+    mrp: 1799,
+    rating: 4.5,
+    stock: 40,
+    image: "assets/products/powerbank.svg",
+    description: "Fast-charging power bank with dual USB ports, USB-C input and LED charge indicator. Charges your phone up to 4 times."
+  },
+  {
+    id: 4,
+    name: "Wireless Mouse",
+    brand: "ClickPro",
+    category: "Electronics",
+    price: 599,
+    mrp: 1199,
+    rating: 4.3,
+    stock: 35,
+    image: "assets/products/mouse.svg",
+    description: "Ergonomic 2.4GHz wireless mouse with silent clicks, adjustable DPI and long battery life. Works with laptop, PC and tablet."
+  },
+  {
+    id: 5,
+    name: "USB-C Fast Charging Cable",
+    brand: "VoltMax",
+    category: "Electronics",
+    price: 249,
+    mrp: 599,
+    rating: 4.6,
+    stock: 100,
+    image: "assets/products/cable.svg",
+    description: "Nylon-braided 1.5m USB-C cable. Supports 65W fast charging and 480Mbps data transfer. Durable and tangle-free."
+  },
+
+  /* ---------- FASHION ---------- */
+  {
+    id: 6,
+    name: "Premium Cotton T-Shirt",
+    brand: "UrbanWear",
+    category: "Fashion",
+    price: 499,
+    mrp: 999,
+    rating: 4.2,
+    stock: 60,
+    image: "assets/products/tshirt.svg",
+    description: "100% cotton crew-neck t-shirt. Soft, breathable and machine washable. Available in multiple colours and sizes."
+  },
+  {
+    id: 7,
+    name: "Casual Denim Jeans",
+    brand: "UrbanWear",
+    category: "Fashion",
+    price: 899,
+    mrp: 1899,
+    rating: 4.1,
+    stock: 45,
+    image: "assets/products/jeans.svg",
+    description: "Slim-fit stretchable denim jeans with a classic 5-pocket design. Comfortable for all-day wear."
+  },
+  {
+    id: 8,
+    name: "Running Sports Shoes",
+    brand: "StrideX",
+    category: "Fashion",
+    price: 1499,
+    mrp: 2999,
+    rating: 4.4,
+    stock: 30,
+    image: "assets/products/shoes.svg",
+    description: "Lightweight running shoes with memory foam cushioning and breathable mesh upper. Ideal for gym, running and casual wear."
+  },
+  {
+    id: 9,
+    name: "Leather Wallet",
+    brand: "UrbanWear",
+    category: "Fashion",
+    price: 399,
+    mrp: 899,
+    rating: 4.3,
+    stock: 55,
+    image: "assets/products/wallet.svg",
+    description: "Compact genuine leather wallet with RFID protection. 6 card slots, 2 currency pockets and a coin pocket."
+  },
+
+  /* ---------- HOME & KITCHEN ---------- */
+  {
+    id: 10,
+    name: "Stainless Steel Water Bottle",
+    brand: "PureFlow",
+    category: "Home & Kitchen",
+    price: 349,
+    mrp: 699,
+    rating: 4.5,
+    stock: 70,
+    image: "assets/products/bottle.svg",
+    description: "1-litre double-wall insulated bottle. Keeps water hot for 12 hours or cold for 24 hours. BPA-free and leakproof."
+  },
+  {
+    id: 11,
+    name: "LED Desk Lamp",
+    brand: "BrightHome",
+    category: "Home & Kitchen",
+    price: 699,
+    mrp: 1499,
+    rating: 4.4,
+    stock: 22,
+    image: "assets/products/lamp.svg",
+    description: "Adjustable LED desk lamp with 3 colour modes and 5 brightness levels. Touch control and USB charging port."
+  },
+  {
+    id: 12,
+    name: "Non-Stick Frying Pan",
+    brand: "ChefPro",
+    category: "Home & Kitchen",
+    price: 549,
+    mrp: 1199,
+    rating: 4.3,
+    stock: 40,
+    image: "assets/products/pan.svg",
+    description: "24cm non-stick frying pan with a heat-resistant handle. Induction and gas compatible. Easy to clean."
+  },
+
+  /* ---------- BEAUTY ---------- */
+  {
+    id: 13,
+    name: "Vitamin C Face Serum",
+    brand: "GlowUp",
+    category: "Beauty",
+    price: 449,
+    mrp: 999,
+    rating: 4.6,
+    stock: 50,
+    image: "assets/products/serum.svg",
+    description: "Brightening Vitamin C serum with hyaluronic acid. Reduces dark spots and gives a natural glow. Suitable for all skin types."
+  },
+  {
+    id: 14,
+    name: "Herbal Shampoo",
+    brand: "GlowUp",
+    category: "Beauty",
+    price: 299,
+    mrp: 599,
+    rating: 4.2,
+    stock: 65,
+    image: "assets/products/shampoo.svg",
+    description: "Sulphate-free herbal shampoo with aloe vera and coconut oil. Strengthens hair and reduces hair fall."
+  },
+
+  /* ---------- SPORTS ---------- */
+  {
+    id: 15,
+    name: "Yoga Mat",
+    brand: "FitTrack",
+    category: "Sports",
+    price: 599,
+    mrp: 1299,
+    rating: 4.4,
+    stock: 35,
+    image: "assets/products/yogamat.svg",
+    description: "6mm anti-slip yoga mat with carry strap. Cushioned for comfort, easy to roll and clean."
+  },
+  {
+    id: 16,
+    name: "Adjustable Dumbbell Set",
+    brand: "FitTrack",
+    category: "Sports",
+    price: 1899,
+    mrp: 3999,
+    rating: 4.5,
+    stock: 12,
+    image: "assets/products/dumbbell.svg",
+    description: "Adjustable dumbbells from 2kg to 10kg each. Perfect for home workouts. Includes locking collars."
+  },
+
+  /* ---------- TOYS ---------- */
+  {
+    id: 17,
+    name: "Building Blocks Set",
+    brand: "PlayKids",
+    category: "Toys",
+    price: 699,
+    mrp: 1499,
+    rating: 4.6,
+    stock: 28,
+    image: "assets/products/blocks.svg",
+    description: "200-piece colourful building blocks set. Safe, non-toxic material. Sparks creativity and improves motor skills."
+  },
+  {
+    id: 18,
+    name: "Remote Control Car",
+    brand: "PlayKids",
+    category: "Toys",
+    price: 899,
+    mrp: 1999,
+    rating: 4.3,
+    stock: 20,
+    image: "assets/products/rccar.svg",
+    description: "Rechargeable RC car with 2.4GHz remote. Speed up to 15 km/h. All-terrain wheels. Suitable for ages 5+."
+  },
+
+  /* ---------- BOOKS ---------- */
+  {
+    id: 19,
+    name: "Notebook Set (Pack of 3)",
+    brand: "PaperMate",
+    category: "Books",
+    price: 249,
+    mrp: 499,
+    rating: 4.5,
+    stock: 80,
+    image: "assets/products/notebook.svg",
+    description: "Set of 3 ruled notebooks, 200 pages each. Thick paper, sturdy binding. Ideal for school, college and office."
+  },
+  {
+    id: 20,
+    name: "Ballpoint Pen Set (Pack of 10)",
+    brand: "PaperMate",
+    category: "Books",
+    price: 149,
+    mrp: 349,
+    rating: 4.4,
+    stock: 120,
+    image: "assets/products/pens.svg",
+    description: "Smooth-writing ballpoint pens with blue ink. Comfortable grip. Long-lasting and smudge-free."
+  }
+
+];
