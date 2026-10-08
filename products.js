@@ -21,7 +21,7 @@ var PRODUCTS = [
     mrp: 2499,
     rating: 4.4,
     stock: 25,
-    image: "assets/products/earbuds.svg",
+    image: "assets/products/placeholder.svg",
     description: "True wireless earbuds with deep bass, 30-hour battery life, touch controls and noise isolation. Perfect for calls, music and workouts."
   },
   {
