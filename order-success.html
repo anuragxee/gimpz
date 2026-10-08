@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a2540">
+<title>Order Placed — GIMPZ</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="logo" href="index.html"><span class="logo-mark">G</span><span class="logo-text">GIMPZ</span></a>
+    <nav class="header-actions">
+      <a class="icon-btn" href="index.html" aria-label="Home">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="page-success">
+  <div class="container">
+    <div id="orderSuccessContent" class="success-wrap">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h1>Thank you for your order!</h1>
+      <p class="success-lead">
+        Hi <b id="orderCustomerName">there</b>! Your order of
+        <b id="orderTotalAmount">₹0</b> has been sent to us on WhatsApp.
+        We'll confirm it and get back to you shortly.
+      </p>
+
+      <div class="success-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div><strong>We received your order</strong><span>You'll see it in WhatsApp now</span></div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div><strong>We confirm & share payment details</strong><span>Usually within a few hours</span></div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div><strong>We ship your order</strong><span>You'll get tracking info</span></div>
+        </div>
+      </div>
+
+      <div class="success-actions">
+        <a class="btn btn-primary" href="index.html">Continue Shopping</a>
+        <a class="btn btn-outline" href="https://wa.me/917061086068" target="_blank" rel="noopener">Open WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-bottom">
+    <p>&copy; <span id="year">2026</span> GIMPZ. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="products.js"></script>
+<script src="script.js"></script>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+
+</body>
+</html>
