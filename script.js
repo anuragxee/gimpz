@@ -452,6 +452,7 @@
 
 /* ============================================================
    SMOOTH SCROLL FOR SAME-PAGE ANCHOR LINKS
+   Fixes footer links like index.html#products when already on homepage
    ============================================================ */
 (function () {
   'use strict';
@@ -463,7 +464,6 @@
     var path = window.location.pathname;
     var isHome = path === '/' ||
                  path.endsWith('/') ||
-                 path.endsWith('index.html') ||
                  path.indexOf('index.html') !== -1;
     if (!isHome) return;
 
@@ -479,4 +479,5 @@
     window.scrollTo({ top: top, behavior: 'smooth' });
     history.pushState(null, '', '#' + hash);
   });
+
 })();
