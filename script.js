@@ -331,7 +331,7 @@
     if (!subEl || !totalEl) return;
 
     var subtotal = cartTotal();
-    var shipping = subtotal > 0 && subtotal < 500 ? 49 : 0;
+    var shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
     var total = subtotal + shipping;
 
     subEl.textContent = '₹' + subtotal.toLocaleString('en-IN');
@@ -387,7 +387,7 @@
         subtotal += lineTotal;
         lines.push('• ' + p.name + ' × ' + item.qty + ' = ₹' + lineTotal.toLocaleString('en-IN'));
       });
-      var shipping = subtotal > 0 && subtotal < 500 ? 49 : 0;
+      var shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
       var total = subtotal + shipping;
       lines.push('');
       lines.push('Subtotal: ₹' + subtotal.toLocaleString('en-IN'));
