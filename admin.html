@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a2540">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin Panel — GIMPZ</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+
+<!-- ===================== LOGIN SCREEN ===================== -->
+<div id="loginScreen" class="admin-login">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-mark">G</span>
+    </div>
+    <h1>Admin Login</h1>
+    <p class="login-sub">Sign in to manage GIMPZ</p>
+
+    <form id="loginForm">
+      <div class="admin-field">
+        <label for="adminEmail">Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@example.com" autocomplete="username" required>
+      </div>
+      <div class="admin-field">
+        <label for="adminPassword">Password</label>
+        <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg btn-block" id="loginBtn">Sign In</button>
+      <p class="login-status" id="loginStatus"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== DASHBOARD ===================== -->
+<div id="dashboard" class="admin-dashboard" style="display:none;">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <span class="logo-mark">G</span>
+      <div>
+        <strong>GIMPZ</strong>
+        <span>Admin Panel</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <button class="admin-nav-btn active" data-tab="overview">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Overview
+      </button>
+      <button class="admin-nav-btn" data-tab="products">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>
+        Products
+      </button>
+      <button class="admin-nav-btn" data-tab="orders">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+        Orders <span class="nav-badge" id="ordersCount">0</span>
+      </button>
+    </nav>
+
+    <div class="admin-sidebar-footer">
+      <div class="admin-user">
+        <div class="admin-avatar" id="adminAvatar">A</div>
+        <div class="admin-user-info">
+          <strong id="adminEmailDisplay">admin</strong>
+          <span>Administrator</span>
+        </div>
+      </div>
+      <button class="admin-logout" id="logoutBtn">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+
+    <!-- Top bar -->
+    <header class="admin-topbar">
+      <h1 id="pageTitle">Overview</h1>
+      <div class="admin-topbar-actions">
+        <a class="admin-btn-ghost" href="index.html" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14L21 3"/></svg>
+          View Store
+        </a>
+      </div>
+    </header>
+
+    <!-- ============ TAB: OVERVIEW ============ -->
+    <section class="admin-tab" id="tab-overview">
+      <div class="stats-grid-admin">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div>
+            <span class="stat-label-admin">Total Products</span>
+            <strong class="stat-value" id="statProducts">—</strong>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+          </div>
+          <div>
+            <span class="stat-label-admin">Total Orders</span>
+            <strong class="stat-value" id="statOrders">—</strong>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div>
+            <span class="stat-label-admin">Total Revenue</span>
+            <strong class="stat-value" id="statRevenue">—</strong>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <div>
+            <span class="stat-label-admin">Pending Orders</span>
+            <strong class="stat-value" id="statPending">—</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <h2>Recent Orders</h2>
+          <button class="admin-btn-sm" data-goto="orders">View All</button>
+        </div>
+        <div id="recentOrders" class="recent-orders">
+          <p class="admin-empty">Loading...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: PRODUCTS ============ -->
+    <section class="admin-tab" id="tab-products" style="display:none;">
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <h2>All Products</h2>
+          <button class="btn btn-primary admin-btn-sm" id="addProductBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Add Product
+          </button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="productsTable">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productsBody">
+              <tr><td colspan="6" class="admin-empty">Loading products...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: ORDERS ============ -->
+    <section class="admin-tab" id="tab-orders" style="display:none;">
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <h2>All Orders</h2>
+          <button class="admin-btn-sm" id="refreshOrdersBtn">Refresh</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="ordersTable">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ordersBody">
+              <tr><td colspan="6" class="admin-empty">Loading orders...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===================== PRODUCT MODAL ===================== -->
+<div class="admin-modal" id="productModal">
+  <div class="admin-modal-inner">
+    <div class="admin-modal-head">
+      <h2 id="modalTitle">Add Product</h2>
+      <button class="modal-close" id="modalClose">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <form id="productForm" class="admin-form">
+      <input type="hidden" id="pf-id">
+
+      <div class="admin-form-row">
+        <div class="admin-field">
+          <label for="pf-name">Product Name *</label>
+          <input type="text" id="pf-name" placeholder="Wireless Bluetooth Earbuds" required>
+        </div>
+        <div class="admin-field">
+          <label for="pf-brand">Brand *</label>
+          <input type="text" id="pf-brand" placeholder="SoundPro" required>
+        </div>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-field">
+          <label for="pf-category">Category *</label>
+          <select id="pf-category" required>
+            <option value="">Choose category</option>
+            <option>Electronics</option>
+            <option>Fashion</option>
+            <option>Home &amp; Kitchen</option>
+            <option>Beauty</option>
+            <option>Sports</option>
+            <option>Toys</option>
+            <option>Books</option>
+            <option>Grocery</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label for="pf-stock">Stock *</label>
+          <input type="number" id="pf-stock" placeholder="25" min="0" required>
+        </div>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-field">
+          <label for="pf-price">Selling Price (₹) *</label>
+          <input type="number" id="pf-price" placeholder="1299" min="0" required>
+        </div>
+        <div class="admin-field">
+          <label for="pf-mrp">MRP (₹) *</label>
+          <input type="number" id="pf-mrp" placeholder="2499" min="0" required>
+        </div>
+      </div>
+
+      <div class="admin-form-row">
+        <div class="admin-field">
+          <label for="pf-rating">Rating (0-5)</label>
+          <input type="number" id="pf-rating" placeholder="4.5" min="0" max="5" step="0.1" value="4.5">
+        </div>
+        <div class="admin-field">
+          <label for="pf-folder">Image Folder Slug</label>
+          <input type="text" id="pf-folder" placeholder="earbuds" pattern="[a-z0-9\-]+">
+          <small>Lowercase letters, numbers, dashes only</small>
+        </div>
+      </div>
+
+      <div class="admin-field">
+        <label for="pf-description">Description *</label>
+        <textarea id="pf-description" rows="4" placeholder="Describe the product..." required></textarea>
+      </div>
+
+      <div class="admin-field">
+        <label>Product Images (optional)</label>
+        <div class="admin-upload" id="adminUpload">
+          <input type="file" id="pf-images" accept="image/*" multiple style="display:none">
+          <div class="upload-inner">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
+            <span>Click to upload images</span>
+            <small>Or drag &amp; drop. They'll be named 1.jpg, 2.jpg...</small>
+          </div>
+        </div>
+        <div class="upload-preview" id="uploadPreview"></div>
+      </div>
+
+      <div class="admin-form-actions">
+        <button type="button" class="admin-btn-ghost" id="cancelFormBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveProductBtn">Save Product</button>
+      </div>
+      <p class="admin-form-status" id="formStatus"></p>
+    </form>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
