@@ -13,8 +13,7 @@
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5emV2eWRwcnBranNsbmVzcnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTk2NDksImV4cCI6MjEwNzA5NTY0OX0.BE-ijSGGNmkQjaeSZ8RX6mQGMW5dY2Y2Gzj9vitRK0g';
 
   /* ============================================================
-     PRODUCTS ARRAY
-     Populated from products.js (fallback) or Supabase (live)
+     PRODUCTS ARRAY (populated from Supabase)
      ============================================================ */
   var PRODUCTS = (typeof window.PRODUCTS !== 'undefined') ? window.PRODUCTS : [];
 
@@ -22,7 +21,7 @@
   var MAX_IMAGES_PER_PRODUCT = 10;
 
   /* ============================================================
-     SUPABASE FETCH
+     FETCH PRODUCTS FROM SUPABASE
      ============================================================ */
   function fetchProductsFromSupabase() {
     var url = SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=id.asc';
@@ -534,7 +533,8 @@
   }
 
   /* ============================================================
-     CHECKOUT — saves order to Supabase + opens WhatsApp
+     SAVE ORDER TO SUPABASE
+     Uses keepalive:true so request survives page navigation
      ============================================================ */
   function saveOrderToSupabase(orderData, items) {
     var orderUrl = SUPABASE_URL + '/rest/v1/orders';
@@ -547,17 +547,26 @@
       'Prefer': 'return=representation'
     };
 
+    console.log('[GIMPZ] Saving order to database...', orderData.order_number);
+
     return fetch(orderUrl, {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify(orderData)
+      body: JSON.stringify(orderData),
+      keepalive: true
     })
       .then(function (res) {
-        if (!res.ok) throw new Error('Order save failed: ' + res.status);
+        console.log('[GIMPZ] Order response status:', res.status);
+        if (!res.ok) {
+          return res.text().then(function (t) {
+            throw new Error('Status ' + res.status + ' — ' + t);
+          });
+        }
         return res.json();
       })
       .then(function (rows) {
         var orderId = rows[0] && rows[0].id;
+        console.log('[GIMPZ] Order ID created:', orderId);
         if (!orderId) return null;
 
         var itemsPayload = items.map(function (it) {
@@ -575,15 +584,15 @@
         return fetch(itemsUrl, {
           method: 'POST',
           headers: headers,
-          body: JSON.stringify(itemsPayload)
+          body: JSON.stringify(itemsPayload),
+          keepalive: true
         });
       })
       .then(function () {
-        console.log('[GIMPZ] Order saved to database');
+        console.log('[GIMPZ] Order saved to database ✅');
       })
       .catch(function (err) {
-        console.warn('[GIMPZ] Could not save order to database:', err);
-        /* Silently fail — order still goes to WhatsApp */
+        console.error('[GIMPZ] Could not save order:', err.message || err);
       });
   }
 
@@ -598,6 +607,9 @@
     return 'GIMPZ-' + stamp + '-' + rand;
   }
 
+  /* ============================================================
+     CHECKOUT
+     ============================================================ */
   function setupCheckout() {
     var form = document.getElementById('checkoutForm');
     if (!form) return;
@@ -647,8 +659,8 @@
       var shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
       var total = subtotal + shipping;
 
-      /* Save to Supabase (fire and forget — don't block WhatsApp flow) */
-      saveOrderToSupabase({
+      /* Save order to database — keepalive:true so it survives navigation */
+      var savePromise = saveOrderToSupabase({
         order_number: orderNumber,
         customer_name: name,
         phone: phone,
@@ -700,12 +712,20 @@
         }));
       } catch (err) {}
 
+      /* Open WhatsApp */
       var waNumber = '917061086068';
       var waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(orderText);
       window.open(waUrl, '_blank');
 
       clearCart();
-      window.location.href = 'order-success.html';
+
+      /* Wait for save to finish (max 3 sec) then go to success page */
+      Promise.race([
+        savePromise,
+        new Promise(function (resolve) { setTimeout(resolve, 3000); })
+      ]).then(function () {
+        window.location.href = 'order-success.html';
+      });
     });
   }
 
@@ -729,7 +749,6 @@
      INIT
      ============================================================ */
   function init() {
-    /* Show loading state */
     var grid = document.getElementById('productGrid');
     if (grid) grid.innerHTML = '<div class="no-products">Loading products…</div>';
 
@@ -744,7 +763,6 @@
     setupSort();
     setupCheckout();
 
-    /* Fetch products from Supabase, then render */
     fetchProductsFromSupabase().then(function (supaProducts) {
       if (supaProducts && supaProducts.length > 0) {
         PRODUCTS.length = 0;
