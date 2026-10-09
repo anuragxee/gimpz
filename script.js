@@ -1,31 +1,26 @@
 /* ============================================================
    GIMPZ — MAIN SCRIPT
-   Reads products from Supabase database
-   Falls back to products.js if Supabase is unreachable
+   Reads products from Supabase
+   In-site checkout (no WhatsApp) with Firebase Auth
    ============================================================ */
 (function () {
   'use strict';
 
   /* ============================================================
-     SUPABASE CONFIGURATION
+     SUPABASE CONFIG
      ============================================================ */
   var SUPABASE_URL = 'https://qyzevydprpkjslnesrxq.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5emV2eWRwcnBranNsbmVzcnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTk2NDksImV4cCI6MjEwNzA5NTY0OX0.BE-ijSGGNmkQjaeSZ8RX6mQGMW5dY2Y2Gzj9vitRK0g';
 
-  /* ============================================================
-     PRODUCTS ARRAY (populated from Supabase)
-     ============================================================ */
   var PRODUCTS = (typeof window.PRODUCTS !== 'undefined') ? window.PRODUCTS : [];
-
   var CART_KEY = 'gimpz_cart';
   var MAX_IMAGES_PER_PRODUCT = 10;
 
   /* ============================================================
-     FETCH PRODUCTS FROM SUPABASE
+     FETCH PRODUCTS
      ============================================================ */
   function fetchProductsFromSupabase() {
     var url = SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=id.asc';
-
     return fetch(url, {
       headers: {
         'apikey': SUPABASE_ANON_KEY,
@@ -137,9 +132,7 @@
      IMAGES
      ============================================================ */
   function getCoverImage(product) {
-    if (product && product.folder) {
-      return product.folder + '/1.jpg';
-    }
+    if (product && product.folder) return product.folder + '/1.jpg';
     return 'assets/products/placeholder.svg';
   }
 
@@ -152,15 +145,8 @@
       img.addEventListener('error', function () {
         var src = img.getAttribute('src') || '';
         if (src.indexOf('placeholder.svg') !== -1) return;
-
-        if (src.indexOf('.jpg') !== -1) {
-          img.setAttribute('src', src.replace('.jpg', '.png'));
-          return;
-        }
-        if (src.indexOf('.png') !== -1) {
-          img.setAttribute('src', src.replace('.png', '.webp'));
-          return;
-        }
+        if (src.indexOf('.jpg') !== -1) { img.setAttribute('src', src.replace('.jpg', '.png')); return; }
+        if (src.indexOf('.png') !== -1) { img.setAttribute('src', src.replace('.png', '.webp')); return; }
         img.setAttribute('src', 'assets/products/placeholder.svg');
       });
     });
@@ -169,11 +155,7 @@
   function detectProductImages(product, onImage, onComplete) {
     var folder = product && product.folder;
     var found = [];
-
-    if (!folder) {
-      onComplete(found);
-      return;
-    }
+    if (!folder) { onComplete(found); return; }
 
     var index = 1;
     var consecutiveMisses = 0;
@@ -181,10 +163,7 @@
 
     function tryFormat(formats, formatIdx) {
       if (formatIdx >= formats.length) {
-        consecutiveMisses++;
-        index++;
-        next();
-        return;
+        consecutiveMisses++; index++; next(); return;
       }
       var url = folder + '/' + index + '.' + formats[formatIdx];
       var testImg = new Image();
@@ -192,12 +171,9 @@
         found.push(url);
         consecutiveMisses = 0;
         if (onImage) onImage(url, index);
-        index++;
-        next();
+        index++; next();
       };
-      testImg.onerror = function () {
-        tryFormat(formats, formatIdx + 1);
-      };
+      testImg.onerror = function () { tryFormat(formats, formatIdx + 1); };
       testImg.src = url;
     }
 
@@ -211,13 +187,12 @@
   }
 
   /* ============================================================
-     HOMEPAGE GRID
+     PRODUCT CARD + GRID
      ============================================================ */
   function renderProductCard(product) {
     var discount = product.mrp > product.price
       ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
       : 0;
-
     var cover = getCoverImage(product);
 
     return '' +
@@ -230,14 +205,10 @@
           '<div class="product-card-body">' +
             '<span class="product-brand">' + escapeHtml(product.brand) + '</span>' +
             '<h3 class="product-name">' + escapeHtml(product.name) + '</h3>' +
-            '<div class="product-rating">' +
-              '<span class="rating-pill">' + product.rating.toFixed(1) + ' ★</span>' +
-            '</div>' +
+            '<div class="product-rating"><span class="rating-pill">' + product.rating.toFixed(1) + ' ★</span></div>' +
             '<div class="product-price-row">' +
               '<span class="price">₹' + product.price.toLocaleString('en-IN') + '</span>' +
-              (product.mrp > product.price
-                ? '<span class="mrp">₹' + product.mrp.toLocaleString('en-IN') + '</span>'
-                : '') +
+              (product.mrp > product.price ? '<span class="mrp">₹' + product.mrp.toLocaleString('en-IN') + '</span>' : '') +
             '</div>' +
           '</div>' +
         '</a>' +
@@ -257,13 +228,11 @@
     var html = '';
     products.forEach(function (p) { html += renderProductCard(p); });
     grid.innerHTML = html;
-
     attachImageFallbacks(grid);
 
     grid.querySelectorAll('.add-cart-btn').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
+        e.preventDefault(); e.stopPropagation();
         var id = parseInt(btn.getAttribute('data-id'), 10);
         addToCart(id, 1);
         showToast('Added to cart');
@@ -291,18 +260,14 @@
 
   function setupSearch() {
     var searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-      searchInput.addEventListener('input', applyFilters);
-    }
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
   }
 
   function applyFilters() {
     var grid = document.getElementById('productGrid');
     if (!grid) return;
-
     var activeFilter = document.querySelector('.category-filter.active');
     var activeCat = activeFilter ? activeFilter.getAttribute('data-cat') : 'all';
-
     var searchVal = '';
     var searchInput = document.getElementById('searchInput');
     if (searchInput) searchVal = searchInput.value.trim().toLowerCase();
@@ -356,11 +321,7 @@
     }
 
     document.title = product.name + ' — GIMPZ';
-
-    var discount = product.mrp > product.price
-      ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
-      : 0;
-
+    var discount = product.mrp > product.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
     var cover = getCoverImage(product);
 
     container.innerHTML = '' +
@@ -403,7 +364,6 @@
 
     detectProductImages(product, function (url, index) {
       detectedImages.push(url);
-
       var btn = document.createElement('button');
       btn.className = 'pd-thumb' + (detectedImages.length === 1 ? ' active' : '');
       btn.setAttribute('data-src', url);
@@ -414,20 +374,14 @@
         btn.classList.add('active');
       });
       thumbsEl.appendChild(btn);
-
-      if (detectedImages.length === 1 && mainImg) {
-        mainImg.src = url;
-      }
-
+      if (detectedImages.length === 1 && mainImg) mainImg.src = url;
       attachImageFallbacks(thumbsEl);
     }, function (allFound) {
       if (countEl && allFound.length > 1) {
         countEl.style.display = 'block';
         countEl.textContent = allFound.length + ' photos';
       }
-      if (allFound.length <= 1 && thumbsEl) {
-        thumbsEl.style.display = 'none';
-      }
+      if (allFound.length <= 1 && thumbsEl) thumbsEl.style.display = 'none';
     });
 
     document.getElementById('pdAddCart').addEventListener('click', function () {
@@ -472,9 +426,7 @@
       var img = getCoverImage(p);
       itemsHtml += '' +
         '<div class="cart-item">' +
-          '<div class="cart-item-img">' +
-            '<img src="' + img + '" alt="' + escapeHtml(p.name) + '">' +
-          '</div>' +
+          '<div class="cart-item-img"><img src="' + img + '" alt="' + escapeHtml(p.name) + '"></div>' +
           '<div class="cart-item-info">' +
             '<h3>' + escapeHtml(p.name) + '</h3>' +
             '<p class="cart-item-brand">' + escapeHtml(p.brand) + '</p>' +
@@ -515,17 +467,18 @@
     });
 
     updateSummary();
+
+    // Autofill from profile (if signed in)
+    autofillFromProfile();
   }
 
   function updateSummary() {
     var subEl = document.getElementById('sumSubtotal');
     var totalEl = document.getElementById('sumTotal');
     if (!subEl || !totalEl) return;
-
     var subtotal = cartTotal();
     var shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
     var total = subtotal + shipping;
-
     subEl.textContent = '₹' + subtotal.toLocaleString('en-IN');
     var shipEl = document.getElementById('sumShipping');
     if (shipEl) shipEl.textContent = shipping === 0 ? 'FREE' : '₹' + shipping;
@@ -533,69 +486,42 @@
   }
 
   /* ============================================================
-     SAVE ORDER TO SUPABASE
-     Uses keepalive:true so request survives page navigation
+     AUTOFILL FROM PROFILE
      ============================================================ */
-  function saveOrderToSupabase(orderData, items) {
-    var orderUrl = SUPABASE_URL + '/rest/v1/orders';
-    var itemsUrl = SUPABASE_URL + '/rest/v1/order_items';
+  function autofillFromProfile() {
+    var user = null;
+    try {
+      var raw = localStorage.getItem('gimpz_user');
+      user = raw ? JSON.parse(raw) : null;
+    } catch (e) { user = null; }
 
-    var headers = {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    };
+    if (!user || !user.uid) return;
 
-    console.log('[GIMPZ] Saving order to database...', orderData.order_number);
-
-    return fetch(orderUrl, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(orderData),
-      keepalive: true
+    fetch(SUPABASE_URL + '/rest/v1/profiles?id=eq.' + encodeURIComponent(user.uid) + '&select=*', {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
     })
-      .then(function (res) {
-        console.log('[GIMPZ] Order response status:', res.status);
-        if (!res.ok) {
-          return res.text().then(function (t) {
-            throw new Error('Status ' + res.status + ' — ' + t);
-          });
-        }
-        return res.json();
-      })
+      .then(function (r) { return r.json(); })
       .then(function (rows) {
-        var orderId = rows[0] && rows[0].id;
-        console.log('[GIMPZ] Order ID created:', orderId);
-        if (!orderId) return null;
-
-        var itemsPayload = items.map(function (it) {
-          return {
-            order_id: orderId,
-            product_id: it.product_id,
-            product_name: it.product_name,
-            product_brand: it.product_brand,
-            quantity: it.quantity,
-            price_at_time: it.price_at_time,
-            line_total: it.line_total
-          };
-        });
-
-        return fetch(itemsUrl, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify(itemsPayload),
-          keepalive: true
-        });
+        if (!Array.isArray(rows) || !rows[0]) return;
+        var p = rows[0];
+        var setIfEmpty = function (id, val) {
+          var el = document.getElementById(id);
+          if (el && !el.value && val) el.value = val;
+        };
+        setIfEmpty('cname', p.full_name);
+        setIfEmpty('cphone', p.phone);
+        setIfEmpty('cemail', p.email || user.email);
+        setIfEmpty('caddress', p.default_address);
+        setIfEmpty('ccity', p.default_city);
+        setIfEmpty('cstate', p.default_state);
+        setIfEmpty('cpincode', p.default_pincode);
       })
-      .then(function () {
-        console.log('[GIMPZ] Order saved to database ✅');
-      })
-      .catch(function (err) {
-        console.error('[GIMPZ] Could not save order:', err.message || err);
-      });
+      .catch(function () {});
   }
 
+  /* ============================================================
+     ORDER SUBMISSION — saves to Supabase, no WhatsApp
+     ============================================================ */
   function generateOrderNumber() {
     var d = new Date();
     var stamp = d.getFullYear().toString().slice(-2) +
@@ -607,9 +533,6 @@
     return 'GIMPZ-' + stamp + '-' + rand;
   }
 
-  /* ============================================================
-     CHECKOUT
-     ============================================================ */
   function setupCheckout() {
     var form = document.getElementById('checkoutForm');
     if (!form) return;
@@ -620,24 +543,56 @@
       var cart = getCart();
       if (!cart.length) { showToast('Your cart is empty'); return; }
 
+      // Get Firebase user
+      var user = null;
+      try {
+        var raw = localStorage.getItem('gimpz_user');
+        user = raw ? JSON.parse(raw) : null;
+      } catch (err) { user = null; }
+
+      if (!user || !user.uid) {
+        alert('Please sign in to place an order.');
+        window.location.href = 'login.html?redirect=cart.html';
+        return;
+      }
+
       var name = form.cname.value.trim();
       var phone = form.cphone.value.trim();
-      var email = form.cemail.value.trim();
+      var email = user.email;
       var address = form.caddress.value.trim();
       var city = form.ccity.value.trim();
       var state = form.cstate.value.trim();
       var pincode = form.cpincode.value.trim();
       var payment = form.cpayment.value;
 
-      if (!name || name.length < 2) { alert('Please enter your name'); return; }
-      if (!/^[0-9]{10}$/.test(phone)) { alert('Please enter a valid 10-digit phone number'); return; }
-      if (!address) { alert('Please enter your address'); return; }
-      if (!city) { alert('Please enter your city'); return; }
-      if (!state) { alert('Please enter your state'); return; }
-      if (!/^[0-9]{6}$/.test(pincode)) { alert('Please enter a valid 6-digit pincode'); return; }
+      /* Strong validation */
+      var nameClean = name.replace(/\s+/g, ' ').trim();
+      if (!/^[A-Za-z][A-Za-z.\s]{2,}$/.test(nameClean) || nameClean.indexOf(' ') === -1) {
+        alert('Please enter your full name (first and last name)');
+        return;
+      }
+      if (!/^[6-9][0-9]{9}$/.test(phone)) {
+        alert('Please enter a valid Indian mobile number (10 digits, starting with 6-9)');
+        return;
+      }
+      if (!address || address.trim().length < 10) {
+        alert('Please enter your full address (at least 10 characters)');
+        return;
+      }
+      if (!/^[A-Za-z\s]{3,}$/.test(city.trim())) {
+        alert('Please enter a valid city name');
+        return;
+      }
+      if (!/^[A-Za-z\s]{3,}$/.test(state.trim())) {
+        alert('Please enter a valid state name');
+        return;
+      }
+      if (!/^[1-9][0-9]{5}$/.test(pincode)) {
+        alert('Please enter a valid 6-digit Indian pincode');
+        return;
+      }
 
       var orderNumber = generateOrderNumber();
-
       var subtotal = 0;
       var orderItems = [];
 
@@ -659,12 +614,12 @@
       var shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
       var total = subtotal + shipping;
 
-      /* Save order to database — keepalive:true so it survives navigation */
-      var savePromise = saveOrderToSupabase({
+      var orderData = {
         order_number: orderNumber,
+        user_id: user.uid,
         customer_name: name,
         phone: phone,
-        email: email || null,
+        email: email,
         address: address,
         city: city,
         state: state,
@@ -674,61 +629,85 @@
         shipping: shipping,
         total: total,
         status: 'Pending'
-      }, orderItems);
+      };
 
-      /* Build WhatsApp message */
-      var lines = [];
-      lines.push('*NEW ORDER — GIMPZ*');
-      lines.push('Order #: ' + orderNumber);
-      lines.push('');
-      lines.push('*Customer*');
-      lines.push('Name: ' + name);
-      lines.push('Phone: ' + phone);
-      if (email) lines.push('Email: ' + email);
-      lines.push('');
-      lines.push('*Shipping Address*');
-      lines.push(address);
-      lines.push(city + ', ' + state + ' — ' + pincode);
-      lines.push('');
-      lines.push('*Items*');
-      orderItems.forEach(function (it) {
-        lines.push('• ' + it.product_name + ' × ' + it.quantity + ' = ₹' + it.line_total.toLocaleString('en-IN'));
-      });
-      lines.push('');
-      lines.push('Subtotal: ₹' + subtotal.toLocaleString('en-IN'));
-      lines.push('Shipping: ' + (shipping === 0 ? 'FREE' : '₹' + shipping));
-      lines.push('*Total: ₹' + total.toLocaleString('en-IN') + '*');
-      lines.push('');
-      lines.push('*Payment Method:* ' + payment);
+      var btn = document.getElementById('placeOrderBtn');
+      var statusEl = document.getElementById('orderStatus');
+      btn.disabled = true;
+      btn.innerHTML = 'Placing order...';
+      if (statusEl) { statusEl.textContent = ''; statusEl.className = 'form-status'; }
 
-      var orderText = lines.join('\n');
+      // Save order + items
+      fetch(SUPABASE_URL + '/rest/v1/orders', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(orderData)
+      })
+        .then(function (r) {
+          if (!r.ok) return r.text().then(function (t) { throw new Error('Order failed: ' + r.status + ' — ' + t); });
+          return r.json();
+        })
+        .then(function (rows) {
+          var orderId = rows[0] && rows[0].id;
+          if (!orderId) throw new Error('No order ID returned');
 
-      try {
-        localStorage.setItem('gimpz_last_order', JSON.stringify({
-          order: orderText,
-          total: total,
-          name: name,
-          orderNumber: orderNumber
-        }));
-      } catch (err) {}
+          var itemsPayload = orderItems.map(function (it) {
+            return {
+              order_id: orderId,
+              product_id: it.product_id,
+              product_name: it.product_name,
+              product_brand: it.product_brand,
+              quantity: it.quantity,
+              price_at_time: it.price_at_time,
+              line_total: it.line_total
+            };
+          });
 
-      /* Open WhatsApp */
-      var waNumber = '917061086068';
-      var waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(orderText);
-      window.open(waUrl, '_blank');
+          return fetch(SUPABASE_URL + '/rest/v1/order_items', {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify(itemsPayload)
+          }).then(function () { return orderId; });
+        })
+        .then(function (orderId) {
+          // Save order info for success page
+          try {
+            localStorage.setItem('gimpz_last_order', JSON.stringify({
+              orderNumber: orderNumber,
+              total: total,
+              name: name,
+              orderId: orderId
+            }));
+          } catch (err) {}
 
-      clearCart();
-
-      /* Wait for save to finish (max 3 sec) then go to success page */
-      Promise.race([
-        savePromise,
-        new Promise(function (resolve) { setTimeout(resolve, 3000); })
-      ]).then(function () {
-        window.location.href = 'order-success.html';
-      });
+          clearCart();
+          window.location.href = 'order-success.html';
+        })
+        .catch(function (err) {
+          console.error('[GIMPZ] Order failed:', err);
+          if (statusEl) {
+            statusEl.textContent = 'Order failed. Please try again.';
+            statusEl.className = 'form-status err';
+          }
+          btn.disabled = false;
+          btn.textContent = 'Place Order →';
+        });
     });
   }
 
+  /* ============================================================
+     ORDER SUCCESS PAGE
+     ============================================================ */
   function renderOrderSuccess() {
     var container = document.getElementById('orderSuccessContent');
     if (!container) return;
@@ -741,6 +720,8 @@
         if (nameEl && data.name) nameEl.textContent = data.name;
         var totalEl = document.getElementById('orderTotalAmount');
         if (totalEl && data.total) totalEl.textContent = '₹' + data.total.toLocaleString('en-IN');
+        var numEl = document.getElementById('orderSuccessNumber');
+        if (numEl && data.orderNumber) numEl.textContent = data.orderNumber;
       }
     } catch (e) {}
   }
@@ -779,6 +760,12 @@
     });
   }
 
+  // Expose to cart.html sign-in gate
+  window.gimpzRefreshCart = function () {
+    if (document.getElementById('cartList')) renderCartPage();
+    updateCartBadge();
+  };
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
@@ -792,27 +779,19 @@
    ============================================================ */
 (function () {
   'use strict';
-
   document.addEventListener('click', function (e) {
     var link = e.target.closest('a[href*="index.html#"]');
     if (!link) return;
-
     var path = window.location.pathname;
-    var isHome = path === '/' ||
-                 path.endsWith('/') ||
-                 path.indexOf('index.html') !== -1;
+    var isHome = path === '/' || path.endsWith('/') || path.indexOf('index.html') !== -1;
     if (!isHome) return;
-
     var hash = link.getAttribute('href').split('#')[1];
     if (!hash) return;
-
     var target = document.getElementById(hash);
     if (!target) return;
-
     e.preventDefault();
     var top = target.getBoundingClientRect().top + window.pageYOffset - 90;
     window.scrollTo({ top: top, behavior: 'smooth' });
     history.pushState(null, '', '#' + hash);
   });
-
 })();
