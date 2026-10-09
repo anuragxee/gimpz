@@ -69,7 +69,14 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
   animation:topbarScroll 26s linear infinite;
   will-change:transform;
 }
-.topbar-marquee-track span{color:#cbd5e1;font-weight:500}
+.topbar-marquee-track a{
+  color:#cbd5e1;
+  font-weight:500;
+  text-decoration:none;
+  transition:color .2s;
+  cursor:pointer;
+}
+.topbar-marquee-track a:hover{color:#fff;text-decoration:underline}
 .topbar-marquee:hover .topbar-marquee-track{animation-play-state:paused}
 @keyframes topbarScroll{
   from{transform:translateX(0)}
