@@ -1,14 +1,70 @@
 /* ============================================================
-   GIMPZ — CART, FILTERS, SEARCH LOGIC
-   + AUTO IMAGE DETECTION FROM FOLDERS
+   GIMPZ — MAIN SCRIPT
+   Reads products from Supabase database
+   Falls back to products.js if Supabase is unreachable
    ============================================================ */
 (function () {
   'use strict';
 
-  var CART_KEY = 'gimpz_cart';
-  var MAX_IMAGES_PER_PRODUCT = 10; // tries 1..10 in the folder
+  /* ============================================================
+     SUPABASE CONFIGURATION
+     ============================================================ */
+  var SUPABASE_URL = 'https://qyzevydprpkjslnesrxq.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5emV2eWRwcnBranNsbmVzcnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTk2NDksImV4cCI6MjEwNzA5NTY0OX0.BE-ijSGGNmkQjaeSZ8RX6mQGMW5dY2Y2Gzj9vitRK0g';
 
-  /* ---------- CART ---------- */
+  /* ============================================================
+     PRODUCTS ARRAY
+     Populated from products.js (fallback) or Supabase (live)
+     ============================================================ */
+  var PRODUCTS = (typeof window.PRODUCTS !== 'undefined') ? window.PRODUCTS : [];
+
+  var CART_KEY = 'gimpz_cart';
+  var MAX_IMAGES_PER_PRODUCT = 10;
+
+  /* ============================================================
+     SUPABASE FETCH
+     ============================================================ */
+  function fetchProductsFromSupabase() {
+    var url = SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=id.asc';
+
+    return fetch(url, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Accept': 'application/json'
+      }
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (rows) {
+        if (!Array.isArray(rows)) return [];
+        return rows.map(function (row) {
+          return {
+            id: row.id,
+            name: row.name,
+            brand: row.brand,
+            category: row.category,
+            price: row.price,
+            mrp: row.mrp,
+            rating: typeof row.rating === 'number' ? row.rating : parseFloat(row.rating || 4.5),
+            stock: row.stock || 0,
+            description: row.description || '',
+            folder: row.image_folder ? ('assets/products/' + row.image_folder) : '',
+            featured: !!row.featured
+          };
+        });
+      })
+      .catch(function (err) {
+        console.warn('[GIMPZ] Supabase fetch failed:', err);
+        return null;
+      });
+  }
+
+  /* ============================================================
+     CART
+     ============================================================ */
   function getCart() {
     try {
       var raw = localStorage.getItem(CART_KEY);
@@ -78,22 +134,21 @@
     });
   }
 
-  /* ---------- IMAGE HELPERS ---------- */
-
-  // Cover image for a product on the homepage grid
+  /* ============================================================
+     IMAGES
+     ============================================================ */
   function getCoverImage(product) {
     if (product && product.folder) {
-      return product.folder + "/1.jpg";
+      return product.folder + '/1.jpg';
     }
-    return "assets/products/placeholder.svg";
+    return 'assets/products/placeholder.svg';
   }
 
-  // Attach fallback chain: .jpg → .png → .webp → placeholder
   function attachImageFallbacks(container) {
     if (!container) return;
     container.querySelectorAll('img').forEach(function (img) {
       if (img.dataset.fallbackAttached) return;
-      img.dataset.fallbackAttached = "1";
+      img.dataset.fallbackAttached = '1';
 
       img.addEventListener('error', function () {
         var src = img.getAttribute('src') || '';
@@ -112,12 +167,6 @@
     });
   }
 
-  /* ---------- AUTO-DETECT IMAGES IN A PRODUCT'S FOLDER ----------
-     Tries 1.jpg, 1.png, 1.webp, then 2.jpg... up to MAX_IMAGES
-     Stops after 3 consecutive missing indices (handles gaps)
-     Calls onImage(url, index) for each found image
-     Calls onComplete(foundArray) when done
-  ------------------------------------------------------------ */
   function detectProductImages(product, onImage, onComplete) {
     var folder = product && product.folder;
     var found = [];
@@ -133,13 +182,12 @@
 
     function tryFormat(formats, formatIdx) {
       if (formatIdx >= formats.length) {
-        // No format worked for this index
         consecutiveMisses++;
         index++;
         next();
         return;
       }
-      var url = folder + "/" + index + "." + formats[formatIdx];
+      var url = folder + '/' + index + '.' + formats[formatIdx];
       var testImg = new Image();
       testImg.onload = function () {
         found.push(url);
@@ -163,7 +211,9 @@
     next();
   }
 
-  /* ---------- PRODUCT CARD ---------- */
+  /* ============================================================
+     HOMEPAGE GRID
+     ============================================================ */
   function renderProductCard(product) {
     var discount = product.mrp > product.price
       ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
@@ -290,7 +340,9 @@
     t._timer = setTimeout(function () { t.classList.remove('show'); }, 1800);
   }
 
-  /* ---------- PRODUCT DETAIL WITH AUTO GALLERY ---------- */
+  /* ============================================================
+     PRODUCT DETAIL
+     ============================================================ */
   function renderProductDetail() {
     var container = document.getElementById('productDetail');
     if (!container) return;
@@ -300,7 +352,7 @@
     var product = getProduct(id);
 
     if (!product) {
-      container.innerHTML = '<p>Product not found. <a href="index.html">Back to store</a></p>';
+      container.innerHTML = '<p style="text-align:center;padding:60px 20px;">Product not found. <a href="index.html" style="color:#2563eb;">Back to store</a></p>';
       return;
     }
 
@@ -350,11 +402,9 @@
     var countEl = document.getElementById('pdImgCount');
     var detectedImages = [];
 
-    // Auto-detect every image in the product's folder
     detectProductImages(product, function (url, index) {
       detectedImages.push(url);
 
-      // Create thumbnail
       var btn = document.createElement('button');
       btn.className = 'pd-thumb' + (detectedImages.length === 1 ? ' active' : '');
       btn.setAttribute('data-src', url);
@@ -366,19 +416,16 @@
       });
       thumbsEl.appendChild(btn);
 
-      // Update main image on the first detected image
       if (detectedImages.length === 1 && mainImg) {
         mainImg.src = url;
       }
 
       attachImageFallbacks(thumbsEl);
     }, function (allFound) {
-      // Done detecting
       if (countEl && allFound.length > 1) {
         countEl.style.display = 'block';
         countEl.textContent = allFound.length + ' photos';
       }
-      // If only 1 image found, hide thumbs
       if (allFound.length <= 1 && thumbsEl) {
         thumbsEl.style.display = 'none';
       }
@@ -395,7 +442,9 @@
     });
   }
 
-  /* ---------- CART PAGE ---------- */
+  /* ============================================================
+     CART PAGE
+     ============================================================ */
   function renderCartPage() {
     var cartList = document.getElementById('cartList');
     if (!cartList) return;
@@ -484,6 +533,71 @@
     totalEl.textContent = '₹' + total.toLocaleString('en-IN');
   }
 
+  /* ============================================================
+     CHECKOUT — saves order to Supabase + opens WhatsApp
+     ============================================================ */
+  function saveOrderToSupabase(orderData, items) {
+    var orderUrl = SUPABASE_URL + '/rest/v1/orders';
+    var itemsUrl = SUPABASE_URL + '/rest/v1/order_items';
+
+    var headers = {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    };
+
+    return fetch(orderUrl, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(orderData)
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('Order save failed: ' + res.status);
+        return res.json();
+      })
+      .then(function (rows) {
+        var orderId = rows[0] && rows[0].id;
+        if (!orderId) return null;
+
+        var itemsPayload = items.map(function (it) {
+          return {
+            order_id: orderId,
+            product_id: it.product_id,
+            product_name: it.product_name,
+            product_brand: it.product_brand,
+            quantity: it.quantity,
+            price_at_time: it.price_at_time,
+            line_total: it.line_total
+          };
+        });
+
+        return fetch(itemsUrl, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(itemsPayload)
+        });
+      })
+      .then(function () {
+        console.log('[GIMPZ] Order saved to database');
+      })
+      .catch(function (err) {
+        console.warn('[GIMPZ] Could not save order to database:', err);
+        /* Silently fail — order still goes to WhatsApp */
+      });
+  }
+
+  function generateOrderNumber() {
+    var d = new Date();
+    var stamp = d.getFullYear().toString().slice(-2) +
+      String(d.getMonth() + 1).padStart(2, '0') +
+      String(d.getDate()).padStart(2, '0') +
+      String(d.getHours()).padStart(2, '0') +
+      String(d.getMinutes()).padStart(2, '0');
+    var rand = Math.floor(Math.random() * 9000 + 1000);
+    return 'GIMPZ-' + stamp + '-' + rand;
+  }
+
   function setupCheckout() {
     var form = document.getElementById('checkoutForm');
     if (!form) return;
@@ -510,8 +624,50 @@
       if (!state) { alert('Please enter your state'); return; }
       if (!/^[0-9]{6}$/.test(pincode)) { alert('Please enter a valid 6-digit pincode'); return; }
 
+      var orderNumber = generateOrderNumber();
+
+      var subtotal = 0;
+      var orderItems = [];
+
+      cart.forEach(function (item) {
+        var p = getProduct(item.id);
+        if (!p) return;
+        var lineTotal = p.price * item.qty;
+        subtotal += lineTotal;
+        orderItems.push({
+          product_id: p.id,
+          product_name: p.name,
+          product_brand: p.brand,
+          quantity: item.qty,
+          price_at_time: p.price,
+          line_total: lineTotal
+        });
+      });
+
+      var shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
+      var total = subtotal + shipping;
+
+      /* Save to Supabase (fire and forget — don't block WhatsApp flow) */
+      saveOrderToSupabase({
+        order_number: orderNumber,
+        customer_name: name,
+        phone: phone,
+        email: email || null,
+        address: address,
+        city: city,
+        state: state,
+        pincode: pincode,
+        payment_method: payment,
+        subtotal: subtotal,
+        shipping: shipping,
+        total: total,
+        status: 'Pending'
+      }, orderItems);
+
+      /* Build WhatsApp message */
       var lines = [];
       lines.push('*NEW ORDER — GIMPZ*');
+      lines.push('Order #: ' + orderNumber);
       lines.push('');
       lines.push('*Customer*');
       lines.push('Name: ' + name);
@@ -523,16 +679,9 @@
       lines.push(city + ', ' + state + ' — ' + pincode);
       lines.push('');
       lines.push('*Items*');
-      var subtotal = 0;
-      cart.forEach(function (item) {
-        var p = getProduct(item.id);
-        if (!p) return;
-        var lineTotal = p.price * item.qty;
-        subtotal += lineTotal;
-        lines.push('• ' + p.name + ' × ' + item.qty + ' = ₹' + lineTotal.toLocaleString('en-IN'));
+      orderItems.forEach(function (it) {
+        lines.push('• ' + it.product_name + ' × ' + it.quantity + ' = ₹' + it.line_total.toLocaleString('en-IN'));
       });
-      var shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
-      var total = subtotal + shipping;
       lines.push('');
       lines.push('Subtotal: ₹' + subtotal.toLocaleString('en-IN'));
       lines.push('Shipping: ' + (shipping === 0 ? 'FREE' : '₹' + shipping));
@@ -544,7 +693,10 @@
 
       try {
         localStorage.setItem('gimpz_last_order', JSON.stringify({
-          order: orderText, total: total, name: name
+          order: orderText,
+          total: total,
+          name: name,
+          orderNumber: orderNumber
         }));
       } catch (err) {}
 
@@ -573,17 +725,40 @@
     } catch (e) {}
   }
 
+  /* ============================================================
+     INIT
+     ============================================================ */
   function init() {
+    /* Show loading state */
+    var grid = document.getElementById('productGrid');
+    if (grid) grid.innerHTML = '<div class="no-products">Loading products…</div>';
+
+    var pd = document.getElementById('productDetail');
+    if (pd && !pd.innerHTML.trim()) {
+      pd.innerHTML = '<p style="text-align:center;padding:80px 20px;color:#64748b;">Loading product…</p>';
+    }
+
     updateCartBadge();
     setupSearch();
     setupCategoryFilters();
     setupSort();
     setupCheckout();
 
-    if (document.getElementById('productGrid')) applyFilters();
-    if (document.getElementById('productDetail')) renderProductDetail();
-    if (document.getElementById('cartList')) renderCartPage();
-    if (document.getElementById('orderSuccessContent')) renderOrderSuccess();
+    /* Fetch products from Supabase, then render */
+    fetchProductsFromSupabase().then(function (supaProducts) {
+      if (supaProducts && supaProducts.length > 0) {
+        PRODUCTS.length = 0;
+        supaProducts.forEach(function (p) { PRODUCTS.push(p); });
+        console.log('[GIMPZ] Loaded ' + supaProducts.length + ' products from Supabase');
+      } else {
+        console.log('[GIMPZ] Using fallback products (products.js)');
+      }
+
+      if (document.getElementById('productGrid')) applyFilters();
+      if (document.getElementById('productDetail')) renderProductDetail();
+      if (document.getElementById('cartList')) renderCartPage();
+      if (document.getElementById('orderSuccessContent')) renderOrderSuccess();
+    });
   }
 
   if (document.readyState === 'loading') {
