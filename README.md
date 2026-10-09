@@ -1,49 +1,64 @@
 # GIMPZ — E-commerce Store
 
 A modern e-commerce storefront built with plain HTML, CSS and JavaScript.
-Runs completely free on **GitHub Pages** — no backend, no database required.
+Runs free on **GitHub Pages**. Data is stored in **Supabase**. Customer auth is handled by **Firebase**.
 
 ## Live site
 
-Once deployed: `https://<your-username>.github.io/gimpz/`
+`https://anuragxee.github.io/gimpz/`
 
 ## Pages
 
-- **index.html** — Homepage with hero, categories, product grid, filters, search
-- **product.html?id=1** — Single product page
-- **cart.html** — Shopping cart + checkout (sends order via WhatsApp)
-- **order-success.html** — Order confirmation page
+- **index.html** — Homepage: hero, categories, product grid, filters, search
+- **product.html?id=1** — Product detail with gallery
+- **cart.html** — Cart + checkout (requires sign-in)
+- **order-success.html** — Order confirmation
+- **new-arrivals.html** — 12 newest products
+- **best-sellers.html** — 12 top-rated products
+- **login.html** — Sign up / sign in / forgot password / verify email
+- **account.html** — My orders + profile
+- **track-order.html** — Order tracking by order number
+- **shipping.html**, **returns.html**, **contact.html** — Info pages
+- **admin.html** — Admin panel (10 tabs: products, orders, customers, categories, coupons, analytics, marketing, staff, activity log)
 
-## How to add / edit products
+## Tech stack
 
-Open `products.js` and copy any existing product block. Change:
+- **Frontend:** Plain HTML + CSS + vanilla JS
+- **Data:** Supabase (tables: `products`, `orders`, `order_items`, `profiles`, `categories`, `coupons`, `admin_users`, `marketing_lists`, `activity_log`)
+- **Auth (customers):** Firebase Authentication
+- **Auth (admin):** Supabase Auth
+- **Hosting:** GitHub Pages
+- **Images:** `assets/products/<folder-slug>/1.jpg`, `2.jpg`, etc.
 
-- `id` — must be unique (increment the last one)
-- `name` — product name
-- `brand` — brand name
-- `category` — must match one of: Electronics, Fashion, Home & Kitchen, Beauty, Sports, Toys, Books, Grocery
-- `price` — selling price in ₹
-- `mrp` — original price (shows strikethrough)
-- `rating` — 0 to 5
-- `stock` — number available
-- `image` — path to image (e.g. `assets/products/tshirt.svg`)
-- `description` — short paragraph
+## How products work
 
-## How to add product images
+Products live in the Supabase `products` table — not in a JS file. To add or edit products, use the **Admin Panel** at `/admin.html` or add rows directly in Supabase.
 
-1. Put your image in `assets/products/`
-2. Reference it in `products.js` as `assets/products/yourfile.jpg`
-
-Recommended: square images, 800×800px, under 200KB.
+Product images go in `assets/products/<image_folder>/` named `1.jpg`, `2.jpg`, `3.jpg`... up to 10. The site auto-detects `.jpg`, `.png`, `.webp`.
 
 ## How orders work
 
-When a customer places an order:
-1. Their details + cart items are formatted into a text message
-2. WhatsApp opens with `+91 7061086068` and the message pre-filled
-3. Customer sends the message
-4. You receive the order and process it manually
+1. Customer adds items to cart (stored in `localStorage`)
+2. Signs in via Firebase
+3. Fills shipping details in `cart.html`
+4. Order + items are written to Supabase (`orders`, `order_items`)
+5. Order appears instantly in the admin panel
+6. Admin updates status → customer sees it in `account.html` and `track-order.html`
 
-## How to change your WhatsApp number
+## Admin panel
 
-Open `script.js`, find:
+- URL: `/admin.html`
+- Login with a Supabase Auth user
+- Only emails in the `admin_users` table can log in
+- Supports: product CRUD, order management, customer list, categories, coupons, analytics, marketing lists, staff, activity log
+
+## How to change site info
+
+- **Email:** `thegimpzzstore@gmail.com` (search all HTML files)
+- **Instagram / X / LinkedIn:** search `instagram.com/thegimpzz`, `x.com/TGimpzz49730`, `linkedin.com/in/gimpz`
+- **Free shipping threshold:** edit `script.js` — look for `s < 499 ? 49 : 0`
+- **Brand colors:** `style.css` — `:root { --navy, --blue, ... }`
+
+## Deployment
+
+Push to the `main` branch. GitHub Pages deploys automatically within 1–2 minutes.
