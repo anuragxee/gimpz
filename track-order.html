@@ -10,6 +10,76 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style>
+  .track-result{margin-top:22px;display:none}
+  .track-result.show{display:block}
+  .track-status-card{
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:22px;margin-bottom:16px;
+  }
+  .track-status-head{
+    display:flex;justify-content:space-between;align-items:center;
+    gap:12px;flex-wrap:wrap;margin-bottom:16px;
+    padding-bottom:14px;border-bottom:1px solid var(--line);
+  }
+  .track-status-head h3{font-size:1.05rem;color:var(--navy);margin:0}
+  .track-status-head small{color:var(--muted);font-size:.78rem;display:block;margin-top:3px}
+  .track-progress{
+    display:flex;justify-content:space-between;position:relative;
+    margin:20px 0 6px;padding:0 4px;
+  }
+  .track-progress::before{
+    content:'';position:absolute;left:12px;right:12px;top:14px;height:3px;
+    background:#e2e8f0;border-radius:2px;z-index:0;
+  }
+  .track-progress-fill{
+    position:absolute;left:12px;top:14px;height:3px;
+    background:linear-gradient(90deg,#2563eb,#22d3ee);border-radius:2px;z-index:1;
+    transition:width .4s ease;
+  }
+  .track-step{
+    position:relative;z-index:2;display:flex;flex-direction:column;
+    align-items:center;gap:6px;flex:1;
+  }
+  .track-dot{
+    width:30px;height:30px;border-radius:50%;
+    background:#fff;border:3px solid #e2e8f0;
+    display:grid;place-items:center;font-size:.8rem;
+    color:#94a3b8;font-weight:700;transition:.3s;
+  }
+  .track-step.done .track-dot{background:#2563eb;border-color:#2563eb;color:#fff}
+  .track-step.current .track-dot{background:#fff;border-color:#2563eb;color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.15)}
+  .track-step-label{font-size:.7rem;color:#94a3b8;text-align:center;font-weight:600;line-height:1.2}
+  .track-step.done .track-step-label,
+  .track-step.current .track-step-label{color:#0a2540}
+  .track-items-list{
+    border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:16px;
+  }
+  .track-item-row{
+    display:grid;grid-template-columns:1fr auto auto;gap:14px;
+    padding:11px 14px;font-size:.86rem;align-items:center;
+    border-bottom:1px solid #f1f5f9;
+  }
+  .track-item-row:last-child{border-bottom:0}
+  .track-item-row strong{color:var(--navy)}
+  .track-totals{
+    margin-top:16px;padding-top:14px;border-top:1px solid var(--line);
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .track-total-row{display:flex;justify-content:space-between;font-size:.88rem;color:var(--slate)}
+  .track-total-row.grand{font-size:1.05rem;font-weight:800;color:var(--navy);padding-top:8px;border-top:1px solid #f1f5f9;margin-top:6px}
+  .track-error{
+    background:#fef2f2;border:1px solid #fecaca;color:#991b1b;
+    padding:14px 18px;border-radius:10px;font-size:.9rem;margin-top:18px;
+    display:none;
+  }
+  .track-error.show{display:block}
+  @media(max-width:640px){
+    .track-step-label{font-size:.62rem}
+    .track-dot{width:26px;height:26px;font-size:.7rem}
+    .track-progress::before,.track-progress-fill{top:12px}
+  }
+</style>
 </head>
 <body>
 
@@ -63,22 +133,33 @@
     <div class="info-hero">
       <div class="info-hero-icon">📦</div>
       <h1>Track Your Order</h1>
-      <p>Enter your order number to check the status</p>
+      <p>Enter your order number and phone to see live status</p>
     </div>
+
     <section class="info-section">
-      <h2>Enter Order Number</h2>
-      <p>Your order number looks like <b>GIMPZ-XXXXXX-XXXX</b>. Sign in to your account to see all orders instantly.</p>
+      <h2>Enter Order Details</h2>
+      <p>Your order number looks like <b>GIMPZ-XXXXXX-XXXX</b> and was shown on your order confirmation screen.</p>
       <div class="info-actions" style="margin-bottom:16px;">
-        <a class="btn btn-primary" href="account.html">View My Orders</a>
+        <a class="btn btn-outline" href="account.html">View My Orders</a>
         <a class="btn btn-outline" href="contact.html">Need Help?</a>
       </div>
-      <form id="trackForm" class="track-form">
-        <div class="form-field"><label for="orderId">Order Number</label><input type="text" id="orderId" placeholder="e.g. GIMPZ-251009-4532" required></div>
-        <div class="form-field"><label for="orderPhone">Phone Number (used while ordering)</label><input type="tel" id="orderPhone" placeholder="10-digit mobile" pattern="[6-9][0-9]{9}" required></div>
-        <button type="submit" class="btn btn-primary btn-lg">Send Tracking Request →</button>
+
+      <form id="trackForm" class="track-form" novalidate>
+        <div class="form-field">
+          <label for="orderId">Order Number</label>
+          <input type="text" id="orderId" placeholder="e.g. GIMPZ-251009-4532" required autocomplete="off">
+        </div>
+        <div class="form-field">
+          <label for="orderPhone">Phone Number (used while ordering)</label>
+          <input type="tel" id="orderPhone" placeholder="10-digit mobile" pattern="[6-9][0-9]{9}" required autocomplete="tel">
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg" id="trackBtn">Track Order →</button>
       </form>
-      <p class="track-note">Submitting this form will open your email app with the details pre-filled. We'll reply with the current status within a few hours.</p>
+
+      <div class="track-error" id="trackError"></div>
+      <div class="track-result" id="trackResult"></div>
     </section>
+
     <section class="info-section">
       <h2>Order Status Stages</h2>
       <ol class="info-steps">
@@ -90,6 +171,7 @@
         <li><b>Delivered</b> — successfully delivered</li>
       </ol>
     </section>
+
     <section class="info-section">
       <h2>Can't Find Your Order Number?</h2>
       <p>Sign in to your account to see all your orders, or email us with your phone number.</p>
@@ -143,16 +225,228 @@
 
 <script src="script.js"></script>
 <script>
-document.getElementById('year').textContent = new Date().getFullYear();
-document.getElementById('trackForm').addEventListener('submit', function (e) {
-  e.preventDefault();
-  var oid = document.getElementById('orderId').value.trim();
-  var phone = document.getElementById('orderPhone').value.trim();
-  if (!oid) { alert('Please enter your order number'); return; }
-  if (!/^[6-9][0-9]{9}$/.test(phone)) { alert('Please enter a valid 10-digit mobile number'); return; }
-  var body = 'Order Number: ' + oid + '\nPhone: ' + phone + '\n\nPlease share the current status.';
-  window.location.href = 'mailto:thegimpzzstore@gmail.com?subject=' + encodeURIComponent('Track Order ' + oid) + '&body=' + encodeURIComponent(body);
-});
+(function () {
+  'use strict';
+
+  var SUPABASE_URL = 'https://qyzevydprpkjslnesrxq.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5emV2eWRwcnBranNsbmVzcnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTk2NDksImV4cCI6MjEwNzA5NTY0OX0.BE-ijSGGNmkQjaeSZ8RX6mQGMW5dY2Y2Gzj9vitRK0g';
+
+  // Status stages in order. "Cancelled" handled separately.
+  var STAGES = [
+    { key: 'Pending',   label: 'Pending' },
+    { key: 'Confirmed', label: 'Confirmed' },
+    { key: 'Packed',    label: 'Packed' },
+    { key: 'Shipped',   label: 'Shipped' },
+    { key: 'Out for Delivery', label: 'Out for Delivery' },
+    { key: 'Delivered', label: 'Delivered' }
+  ];
+
+  function $(id) { return document.getElementById(id); }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function fmtPrice(n) { return '₹' + Number(n || 0).toLocaleString('en-IN'); }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    try {
+      var d = new Date(iso);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) +
+        ' · ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return ''; }
+  }
+
+  function showError(msg) {
+    var el = $('trackError');
+    el.textContent = msg;
+    el.classList.add('show');
+    $('trackResult').classList.remove('show');
+  }
+
+  function hideError() {
+    $('trackError').classList.remove('show');
+  }
+
+  function statusPill(status) {
+    var s = (status || 'Pending').toLowerCase();
+    var cls = 'status-pending';
+    if (s === 'shipped' || s === 'out for delivery' || s === 'packed') cls = 'status-shipped';
+    else if (s === 'delivered' || s === 'confirmed') cls = 'status-delivered';
+    else if (s === 'cancelled') cls = 'status-cancelled';
+    return '<span class="status-pill ' + cls + '">' + esc(status || 'Pending') + '</span>';
+  }
+
+  function renderProgress(currentStatus) {
+    if (currentStatus === 'Cancelled') {
+      return '<div style="padding:14px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;color:#991b1b;font-size:.9rem;">❌ This order has been cancelled. If this is a mistake, please <a href="contact.html" style="color:#991b1b;text-decoration:underline;">contact us</a>.</div>';
+    }
+
+    var currentIdx = 0;
+    for (var i = 0; i < STAGES.length; i++) {
+      if (STAGES[i].key.toLowerCase() === (currentStatus || 'Pending').toLowerCase()) {
+        currentIdx = i;
+        break;
+      }
+    }
+
+    var pct = STAGES.length > 1 ? (currentIdx / (STAGES.length - 1)) * 100 : 0;
+
+    var html = '<div class="track-progress">';
+    html += '<div class="track-progress-fill" style="width:calc(' + pct + '% - 24px * ' + pct / 100 + ');"></div>';
+    STAGES.forEach(function (stage, i) {
+      var cls = 'track-step';
+      if (i < currentIdx) cls += ' done';
+      else if (i === currentIdx) cls += ' current';
+      html += '<div class="' + cls + '">' +
+        '<div class="track-dot">' + (i < currentIdx ? '✓' : (i + 1)) + '</div>' +
+        '<div class="track-step-label">' + esc(stage.label) + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function renderResult(order, items) {
+    var html = '';
+
+    html += '<div class="track-status-card">';
+    html += '<div class="track-status-head">';
+    html += '<div>' +
+      '<h3>Order ' + esc(order.order_number) + '</h3>' +
+      '<small>Placed on ' + fmtDate(order.created_at) + '</small>' +
+    '</div>';
+    html += statusPill(order.status);
+    html += '</div>';
+
+    html += renderProgress(order.status);
+
+    html += '<div style="margin-top:22px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:.88rem;color:#475569;line-height:1.7;">' +
+      '<strong style="color:#0a2540;">Delivery to</strong><br>' +
+      esc(order.customer_name || '') + '<br>' +
+      esc(order.address || '') + ', ' + esc(order.city || '') + '<br>' +
+      esc(order.state || '') + ' — ' + esc(order.pincode || '') + '<br>' +
+      '📞 ' + esc(order.phone || '') +
+    '</div>';
+
+    html += '</div>';
+
+    html += '<div class="track-status-card">';
+    html += '<h3 style="font-size:1rem;color:#0a2540;margin-bottom:12px;">Items (' + items.length + ')</h3>';
+
+    if (items.length) {
+      html += '<div class="track-items-list">';
+      items.forEach(function (it) {
+        html += '<div class="track-item-row">' +
+          '<div><strong>' + esc(it.product_name) + '</strong>' +
+            (it.product_brand ? '<br><small style="color:#64748b;font-size:.75rem;">' + esc(it.product_brand) + '</small>' : '') +
+          '</div>' +
+          '<div style="font-weight:600;">× ' + it.quantity + '</div>' +
+          '<div style="font-weight:700;color:#0a2540;">' + fmtPrice(it.line_total) + '</div>' +
+        '</div>';
+      });
+      html += '</div>';
+    }
+
+    html += '<div class="track-totals">' +
+      '<div class="track-total-row"><span>Subtotal</span><span>' + fmtPrice(order.subtotal) + '</span></div>' +
+      '<div class="track-total-row"><span>Shipping</span><span>' + (order.shipping > 0 ? fmtPrice(order.shipping) : 'FREE') + '</span></div>' +
+      '<div class="track-total-row grand"><span>Total</span><span>' + fmtPrice(order.total) + '</span></div>' +
+    '</div>';
+
+    html += '<div style="margin-top:14px;font-size:.8rem;color:#64748b;">Payment: <b style="color:#0a2540;">' + esc(order.payment_method || '—') + '</b></div>';
+
+    html += '</div>';
+
+    return html;
+  }
+
+  function trackOrder(orderNumber, phone) {
+    var btn = $('trackBtn');
+    btn.disabled = true;
+    btn.textContent = 'Searching...';
+    hideError();
+
+    var url = SUPABASE_URL + '/rest/v1/orders?order_number=eq.' +
+      encodeURIComponent(orderNumber) +
+      '&phone=eq.' + encodeURIComponent(phone) +
+      '&select=*&limit=1';
+
+    fetch(url, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Accept': 'application/json'
+      }
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (rows) {
+        if (!Array.isArray(rows) || !rows.length) {
+          showError('No order found with that order number and phone. Please check and try again, or contact us.');
+          btn.disabled = false;
+          btn.textContent = 'Track Order →';
+          return;
+        }
+
+        var order = rows[0];
+
+        // Fetch items
+        return fetch(SUPABASE_URL + '/rest/v1/order_items?order_id=eq.' + order.id + '&order=id.asc', {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Accept': 'application/json'
+          }
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (items) {
+            if (!Array.isArray(items)) items = [];
+            var result = $('trackResult');
+            result.innerHTML = renderResult(order, items);
+            result.classList.add('show');
+            result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            btn.disabled = false;
+            btn.textContent = 'Track Order →';
+          });
+      })
+      .catch(function (err) {
+        console.error('[GIMPZ] Track failed:', err);
+        showError('Something went wrong. Please try again in a moment.');
+        btn.disabled = false;
+        btn.textContent = 'Track Order →';
+      });
+  }
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  $('trackForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var orderNumber = $('orderId').value.trim().toUpperCase();
+    var phone = $('orderPhone').value.trim();
+
+    if (!orderNumber) { showError('Please enter your order number.'); return; }
+    if (!/^[6-9][0-9]{9}$/.test(phone)) { showError('Please enter a valid 10-digit mobile number.'); return; }
+
+    trackOrder(orderNumber, phone);
+  });
+
+  // Auto-track if URL has ?order=XXX&phone=XXX (used from order-success page)
+  var params = new URLSearchParams(window.location.search);
+  var qOrder = params.get('order');
+  var qPhone = params.get('phone');
+  if (qOrder && qPhone) {
+    $('orderId').value = qOrder;
+    $('orderPhone').value = qPhone;
+    trackOrder(qOrder, qPhone);
+  }
+
+})();
 </script>
 </body>
 </html>
