@@ -1,158 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0a2540">
-<title>New Arrivals — GIMPZ</title>
-<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<div class="topbar">
-  <div class="container topbar-inner">
-    <div class="topbar-marquee">
-      <div class="topbar-marquee-track">
-        <a href="index.html#products">🚚 Free shipping on orders above ₹499</a>
-        <a href="new-arrivals.html">✨ New arrivals every week</a>
-        <a href="shipping.html">🔒 100% secure payments</a>
-        <a href="returns.html">↩️ Easy 7-day returns</a>
-        <a href="https://www.instagram.com/thegimpzz" target="_blank" rel="noopener">📱 Follow us on Instagram</a>
-        <a href="best-sellers.html">💰 Best prices guaranteed</a>
-        <a href="index.html#products">🚚 Free shipping on orders above ₹499</a>
-        <a href="new-arrivals.html">✨ New arrivals every week</a>
-        <a href="shipping.html">🔒 100% secure payments</a>
-        <a href="returns.html">↩️ Easy 7-day returns</a>
-        <a href="https://www.instagram.com/thegimpzz" target="_blank" rel="noopener">📱 Follow us on Instagram</a>
-        <a href="best-sellers.html">💰 Best prices guaranteed</a>
-      </div>
-    </div>
-    <span class="topbar-links">
-      <a href="track-order.html">Track Order</a>
-      <a href="contact.html">Help</a>
-    </span>
-  </div>
-</div>
-
-<header class="site-header">
-  <div class="container header-inner">
-    <a class="logo" href="index.html"><span class="logo-mark">G</span><span class="logo-text">GIMPZ</span></a>
-    <form class="header-search" role="search" onsubmit="location.href='index.html';return false;">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
-      <input type="search" placeholder="Search for products..." aria-label="Search products">
-    </form>
-    <nav class="header-actions">
-      <a class="icon-btn" href="account.html" aria-label="Account">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>
-      </a>
-      <a class="icon-btn cart-icon-btn" href="cart.html" aria-label="Cart">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 12.2a2 2 0 0 0 2 1.8h8.7a2 2 0 0 0 2-1.6L22 8H6"/><circle cx="10" cy="20" r="1.4"/><circle cx="19" cy="20" r="1.4"/></svg>
-        <span class="cart-badge" style="display:none">0</span>
-      </a>
-    </nav>
-  </div>
-</header>
-
-<main id="main" class="page-info">
-  <div class="container">
-    <nav class="breadcrumb"><a href="index.html">Home</a><span>/</span><span>New Arrivals</span></nav>
-
-    <div class="info-hero">
-      <div class="info-hero-icon">✨</div>
-      <h1>New Arrivals</h1>
-      <p>Freshly added products — check back every week</p>
-    </div>
-
-    <section class="products-section" style="padding:0">
-      <div class="products-header">
-        <div>
-          <h2 class="section-title">Just Landed</h2>
-          <p class="section-sub" id="productsCount">Loading...</p>
-        </div>
-        <div class="products-sort">
-          <label for="sortSelect">Sort by:</label>
-          <select id="sortSelect">
-            <option value="newest">Newest First</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="rating">Highest Rated</option>
-          </select>
-        </div>
-      </div>
-      <div class="product-grid" id="productGrid">
-        <div class="no-products">Loading products…</div>
-      </div>
-    </section>
-
-    <section class="info-section" style="margin-top:28px">
-      <h2>Want to know when something new drops?</h2>
-      <p>New products are added every week. Follow us on Instagram or X to get notified first.</p>
-      <div class="info-actions">
-        <a class="btn btn-primary" href="https://www.instagram.com/thegimpzz" target="_blank" rel="noopener">Follow on Instagram</a>
-        <a class="btn btn-outline" href="index.html#products">Browse All Products</a>
-      </div>
-    </section>
-  </div>
-</main>
-
-<footer class="site-footer">
-  <div class="container footer-grid">
-    <div class="footer-brand">
-      <div class="logo"><span class="logo-mark">G</span><span class="logo-text">GIMPZ</span></div>
-      <p class="footer-desc">Everything You Need, One Store.</p>
-    </div>
-    <div class="footer-col">
-      <h3>Shop</h3>
-      <ul>
-        <li><a href="index.html#products">All Products</a></li>
-        <li><a href="index.html#categories">Categories</a></li>
-        <li><a href="best-sellers.html">Best Sellers</a></li>
-      </ul>
-    </div>
-    <div class="footer-col">
-      <h3>Help</h3>
-      <ul>
-        <li><a href="track-order.html">Track Order</a></li>
-        <li><a href="shipping.html">Shipping Info</a></li>
-        <li><a href="returns.html">Returns</a></li>
-        <li><a href="contact.html">Contact Us</a></li>
-      </ul>
-    </div>
-    <div class="footer-col">
-      <h3>Follow Us</h3>
-      <div class="social-row">
-        <a class="social-link" href="https://www.instagram.com/thegimpzz" target="_blank" rel="noopener" aria-label="Instagram">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
-        </a>
-        <a class="social-link" href="https://x.com/TGimpzz49730" target="_blank" rel="noopener" aria-label="X">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.9 2H22l-7.5 8.5L23 22h-6.9l-5.4-6.6L4.5 22H1.4l8-9.1L1 2h7.1l4.9 6.1L18.9 2zm-1.1 18h1.9L7.3 4H5.3l12.5 16z"/></svg>
-        </a>
-        <a class="social-link" href="https://www.linkedin.com/in/gimpz" target="_blank" rel="noopener" aria-label="LinkedIn">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM10 9h3.8v1.7h.1c.5-1 1.8-2 3.7-2 4 0 4.7 2.5 4.7 5.9V21h-4v-5.6c0-1.3 0-3.1-1.9-3.1s-2.2 1.5-2.2 3V21h-4z"/></svg>
-        </a>
-      </div>
-      <p class="social-note">Follow us for updates</p>
-    </div>
-  </div>
-  <div class="container footer-bottom">
-    <p>&copy; <span id="year">2026</span> GIMPZ. All rights reserved.</p>
-    <p>Made with care in India</p>
-  </div>
-</footer>
-
-<script>
+/* ============================================================
+   GIMPZ — MAIN SCRIPT (standalone)
+   Reads from Supabase. No products.js dependency.
+   ============================================================ */
 (function () {
   'use strict';
 
   var SUPABASE_URL = 'https://qyzevydprpkjslnesrxq.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5emV2eWRwcnBranNsbmVzcnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTk2NDksImV4cCI6MjEwNzA5NTY0OX0.BE-ijSGGNmkQjaeSZ8RX6mQGMW5dY2Y2Gzj9vitRK0g';
+  var CART_KEY = 'gimpz_cart';
+  var MAX_IMAGES_PER_PRODUCT = 10;
 
-  var products = [];
-  var currentSort = 'newest';
+  var PRODUCTS = [];
+  var isLoaded = false;
+
+  /* ============ HELPERS ============ */
+  function $(id) { return document.getElementById(id); }
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -164,22 +26,173 @@
     return '₹' + Number(n || 0).toLocaleString('en-IN');
   }
 
+  /* ============ FETCH PRODUCTS ============ */
+  function fetchProducts() {
+    var url = SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=id.asc';
+    return fetch(url, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Accept': 'application/json'
+      }
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (rows) {
+        if (!Array.isArray(rows)) rows = [];
+        PRODUCTS = rows.map(function (row) {
+          return {
+            id: row.id,
+            name: row.name,
+            brand: row.brand,
+            category: row.category,
+            price: row.price,
+            mrp: row.mrp,
+            rating: typeof row.rating === 'number' ? row.rating : parseFloat(row.rating || 4.5),
+            stock: row.stock || 0,
+            description: row.description || '',
+            folder: row.image_folder ? ('assets/products/' + row.image_folder) : '',
+            image_folder: row.image_folder || ''
+          };
+        });
+        isLoaded = true;
+        console.log('[GIMPZ] Loaded ' + PRODUCTS.length + ' products from Supabase');
+        return PRODUCTS;
+      })
+      .catch(function (err) {
+        console.error('[GIMPZ] Fetch failed:', err);
+        return [];
+      });
+  }
+
+  /* ============ CART ============ */
+  function getCart() {
+    try {
+      var raw = localStorage.getItem(CART_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+
+  function saveCart(cart) {
+    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {}
+    updateCartBadge();
+  }
+
+  function addToCart(productId, qty) {
+    qty = qty || 1;
+    var cart = getCart();
+    var existing = null;
+    for (var i = 0; i < cart.length; i++) {
+      if (cart[i].id === productId) { existing = cart[i]; break; }
+    }
+    if (existing) { existing.qty += qty; }
+    else { cart.push({ id: productId, qty: qty }); }
+    saveCart(cart);
+  }
+
+  function removeFromCart(productId) {
+    var cart = getCart().filter(function (item) { return item.id !== productId; });
+    saveCart(cart);
+  }
+
+  function clearCart() { saveCart([]); }
+
+  function getProduct(id) {
+    for (var i = 0; i < PRODUCTS.length; i++) {
+      if (PRODUCTS[i].id === id) return PRODUCTS[i];
+    }
+    return null;
+  }
+
+  function cartItemCount() {
+    var cart = getCart(); var n = 0;
+    for (var i = 0; i < cart.length; i++) n += cart[i].qty;
+    return n;
+  }
+
+  function cartTotal() {
+    var cart = getCart(); var total = 0;
+    for (var i = 0; i < cart.length; i++) {
+      var p = getProduct(cart[i].id);
+      if (p) total += p.price * cart[i].qty;
+    }
+    return total;
+  }
+
+  function updateCartBadge() {
+    var badges = document.querySelectorAll('.cart-badge');
+    var count = cartItemCount();
+    badges.forEach(function (b) {
+      b.textContent = count;
+      b.style.display = count > 0 ? 'grid' : 'none';
+    });
+  }
+
+  /* ============ IMAGES ============ */
   function getCoverImage(p) {
-    if (p && p.image_folder) return 'assets/products/' + p.image_folder + '/1.jpg';
+    if (p && p.folder) return p.folder + '/1.jpg';
     return 'assets/products/placeholder.svg';
   }
 
-  function cardHtml(p) {
-    var discount = p.mrp > p.price
-      ? Math.round(((p.mrp - p.price) / p.mrp) * 100)
-      : 0;
+  function attachImageFallbacks(container) {
+    if (!container) return;
+    container.querySelectorAll('img').forEach(function (img) {
+      if (img.dataset.fb) return;
+      img.dataset.fb = '1';
+      img.addEventListener('error', function () {
+        var src = img.getAttribute('src') || '';
+        if (src.indexOf('placeholder.svg') !== -1) return;
+        if (src.indexOf('.jpg') !== -1) { img.setAttribute('src', src.replace('.jpg', '.png')); return; }
+        if (src.indexOf('.png') !== -1) { img.setAttribute('src', src.replace('.png', '.webp')); return; }
+        img.setAttribute('src', 'assets/products/placeholder.svg');
+      });
+    });
+  }
+
+  function detectProductImages(product, onImage, onComplete) {
+    var folder = product && product.folder;
+    var found = [];
+    if (!folder) { onComplete(found); return; }
+
+    var index = 1;
+    var misses = 0;
+    var MAX_MISS = 3;
+
+    function tryFormat(formats, fi) {
+      if (fi >= formats.length) {
+        misses++; index++; next(); return;
+      }
+      var url = folder + '/' + index + '.' + formats[fi];
+      var t = new Image();
+      t.onload = function () {
+        found.push(url);
+        misses = 0;
+        if (onImage) onImage(url, index);
+        index++; next();
+      };
+      t.onerror = function () { tryFormat(formats, fi + 1); };
+      t.src = url;
+    }
+    function next() {
+      if (index > MAX_IMAGES_PER_PRODUCT) { onComplete(found); return; }
+      if (misses >= MAX_MISS) { onComplete(found); return; }
+      tryFormat(['jpg', 'png', 'webp'], 0);
+    }
+    next();
+  }
+
+  /* ============ PRODUCT CARD ============ */
+  function renderProductCard(p) {
+    var discount = p.mrp > p.price ? Math.round(((p.mrp - p.price) / p.mrp) * 100) : 0;
     var cover = getCoverImage(p);
-    var rating = (typeof p.rating === 'number') ? p.rating : parseFloat(p.rating || 4.5);
+    var rating = typeof p.rating === 'number' ? p.rating : parseFloat(p.rating || 4.5);
 
     return '<article class="product-card">' +
       '<a class="product-card-link" href="product.html?id=' + p.id + '">' +
         '<div class="product-card-thumb">' +
-          '<img src="' + cover + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.onerror=null;this.src=\'assets/products/placeholder.svg\'">' +
+          '<img src="' + cover + '" alt="' + esc(p.name) + '" loading="lazy">' +
           (discount > 0 ? '<span class="discount-tag">' + discount + '% OFF</span>' : '') +
         '</div>' +
         '<div class="product-card-body">' +
@@ -196,155 +209,452 @@
     '</article>';
   }
 
-  function render(list) {
-    var grid = document.getElementById('productGrid');
-    var countEl = document.getElementById('productsCount');
+  function renderGrid(grid, list) {
     if (!grid) return;
-
     if (!list || !list.length) {
       grid.innerHTML = '<div class="no-products">No products found.</div>';
-      if (countEl) countEl.textContent = 'No products';
       return;
     }
-
     var html = '';
-    list.forEach(function (p) { html += cardHtml(p); });
+    list.forEach(function (p) { html += renderProductCard(p); });
     grid.innerHTML = html;
-
-    if (countEl) {
-      countEl.textContent = 'Showing ' + list.length + ' new product' + (list.length === 1 ? '' : 's');
-    }
+    attachImageFallbacks(grid);
 
     grid.querySelectorAll('.add-cart-btn').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
         var id = parseInt(btn.getAttribute('data-id'), 10);
-        addToCart(id);
+        addToCart(id, 1);
+        showToast('Added to cart');
       });
     });
   }
 
-  function addToCart(productId) {
-    var CART_KEY = 'gimpz_cart';
-    var cart = [];
-    try {
-      var raw = localStorage.getItem(CART_KEY);
-      cart = raw ? JSON.parse(raw) : [];
-    } catch (e) { cart = []; }
+  /* ============ FILTERS ============ */
+  function applyFilters() {
+    var grid = $('productGrid');
+    if (!grid) return;
 
-    var found = false;
-    for (var i = 0; i < cart.length; i++) {
-      if (cart[i].id === productId) { cart[i].qty++; found = true; break; }
-    }
-    if (!found) cart.push({ id: productId, qty: 1 });
+    var active = document.querySelector('.category-filter.active');
+    var cat = active ? active.getAttribute('data-cat') : 'all';
 
-    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {}
+    var searchInput = $('searchInput');
+    var q = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
-    var total = 0;
-    cart.forEach(function (it) { total += it.qty; });
-    document.querySelectorAll('.cart-badge').forEach(function (b) {
-      b.textContent = total;
-      b.style.display = total > 0 ? 'grid' : 'none';
+    var filtered = PRODUCTS.filter(function (p) {
+      var catOk = cat === 'all' || p.category === cat;
+      var sOk = !q ||
+        p.name.toLowerCase().indexOf(q) !== -1 ||
+        p.brand.toLowerCase().indexOf(q) !== -1 ||
+        p.category.toLowerCase().indexOf(q) !== -1;
+      return catOk && sOk;
     });
 
-    // Toast
-    var t = document.getElementById('toast');
+    var sortSel = $('sortSelect');
+    var s = sortSel ? sortSel.value : 'popular';
+    if (s === 'price-asc') filtered.sort(function (a, b) { return a.price - b.price; });
+    else if (s === 'price-desc') filtered.sort(function (a, b) { return b.price - a.price; });
+    else if (s === 'rating') filtered.sort(function (a, b) { return b.rating - a.rating; });
+
+    renderGrid(grid, filtered);
+  }
+
+  function showToast(msg) {
+    var t = $('toast');
     if (!t) {
       t = document.createElement('div');
       t.id = 'toast';
       t.className = 'toast';
       document.body.appendChild(t);
     }
-    t.textContent = 'Added to cart';
+    t.textContent = msg;
     t.classList.add('show');
     clearTimeout(t._timer);
     t._timer = setTimeout(function () { t.classList.remove('show'); }, 1800);
   }
 
-  function applySort() {
-    var list = products.slice();
-    if (currentSort === 'price-asc') {
-      list.sort(function (a, b) { return a.price - b.price; });
-    } else if (currentSort === 'price-desc') {
-      list.sort(function (a, b) { return b.price - a.price; });
-    } else if (currentSort === 'rating') {
-      list.sort(function (a, b) { return (b.rating || 0) - (a.rating || 0); });
-    } else {
-      list.sort(function (a, b) { return b.id - a.id; });
+  /* ============ PRODUCT DETAIL ============ */
+  function renderProductDetail() {
+    var container = $('productDetail');
+    if (!container) return;
+
+    var params = new URLSearchParams(window.location.search);
+    var id = parseInt(params.get('id'), 10);
+    var p = getProduct(id);
+
+    if (!p) {
+      container.innerHTML = '<p style="text-align:center;padding:60px 20px;">Product not found. <a href="index.html" style="color:#2563eb;">Back to store</a></p>';
+      return;
     }
-    render(list);
-  }
 
-  function loadProducts() {
-    var url = SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=id.desc&limit=12';
+    document.title = p.name + ' — GIMPZ';
+    var discount = p.mrp > p.price ? Math.round(((p.mrp - p.price) / p.mrp) * 100) : 0;
+    var cover = getCoverImage(p);
+    var rating = typeof p.rating === 'number' ? p.rating : parseFloat(p.rating || 4.5);
 
-    fetch(url, {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-        'Accept': 'application/json'
-      }
-    })
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(function (rows) {
-        if (!Array.isArray(rows)) rows = [];
-        products = rows.map(function (row) {
-          return {
-            id: row.id,
-            name: row.name,
-            brand: row.brand,
-            category: row.category,
-            price: row.price,
-            mrp: row.mrp,
-            rating: typeof row.rating === 'number' ? row.rating : parseFloat(row.rating || 4.5),
-            stock: row.stock || 0,
-            image_folder: row.image_folder || ''
-          };
-        });
-        applySort();
-      })
-      .catch(function (err) {
-        var grid = document.getElementById('productGrid');
-        if (grid) {
-          grid.innerHTML = '<div class="no-products">Could not load products. Please refresh.</div>';
-        }
-        console.warn('[GIMPZ] Fetch failed:', err);
+    container.innerHTML = '' +
+      '<div class="pd-grid">' +
+        '<div class="pd-gallery">' +
+          '<div class="pd-image">' +
+            '<img id="pdMainImage" src="' + cover + '" alt="' + esc(p.name) + '">' +
+            '<span class="pd-img-count" id="pdImgCount" style="display:none">0 photos</span>' +
+          '</div>' +
+          '<div class="pd-thumbs" id="pdThumbs"></div>' +
+        '</div>' +
+        '<div class="pd-info">' +
+          '<span class="pd-brand">' + esc(p.brand) + '</span>' +
+          '<h1 class="pd-title">' + esc(p.name) + '</h1>' +
+          '<div class="pd-rating">' +
+            '<span class="rating-pill">' + rating.toFixed(1) + ' ★</span>' +
+            '<span class="pd-stock">' + (p.stock > 0 ? 'In Stock' : 'Out of Stock') + '</span>' +
+          '</div>' +
+          '<div class="pd-price">' +
+            '<span class="pd-now">' + fmtPrice(p.price) + '</span>' +
+            (p.mrp > p.price ? '<span class="pd-mrp">' + fmtPrice(p.mrp) + '</span><span class="pd-disc">' + discount + '% OFF</span>' : '') +
+          '</div>' +
+          '<p class="pd-desc">' + esc(p.description) + '</p>' +
+          '<div class="pd-actions">' +
+            '<button class="btn btn-outline" id="pdAddCart">Add to Cart</button>' +
+            '<button class="btn btn-primary" id="pdBuyNow">Buy Now</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    attachImageFallbacks(container);
+
+    var mainImg = $('pdMainImage');
+    var thumbs = $('pdThumbs');
+    var countEl = $('pdImgCount');
+    var detected = [];
+
+    detectProductImages(p, function (url, idx) {
+      detected.push(url);
+      var btn = document.createElement('button');
+      btn.className = 'pd-thumb' + (detected.length === 1 ? ' active' : '');
+      btn.innerHTML = '<img src="' + url + '" alt="View ' + idx + '">';
+      btn.addEventListener('click', function () {
+        if (mainImg) mainImg.src = url;
+        thumbs.querySelectorAll('.pd-thumb').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
       });
-  }
+      thumbs.appendChild(btn);
+      if (detected.length === 1 && mainImg) mainImg.src = url;
+      attachImageFallbacks(thumbs);
+    }, function (all) {
+      if (countEl && all.length > 1) {
+        countEl.style.display = 'block';
+        countEl.textContent = all.length + ' photos';
+      }
+      if (all.length <= 1 && thumbs) thumbs.style.display = 'none';
+    });
 
-  // Init
-  document.getElementById('year').textContent = new Date().getFullYear();
-
-  var sortSel = document.getElementById('sortSelect');
-  if (sortSel) {
-    sortSel.value = 'newest';
-    sortSel.addEventListener('change', function () {
-      currentSort = this.value;
-      applySort();
+    $('pdAddCart').addEventListener('click', function () {
+      addToCart(p.id, 1);
+      showToast('Added to cart');
+    });
+    $('pdBuyNow').addEventListener('click', function () {
+      addToCart(p.id, 1);
+      window.location.href = 'cart.html';
     });
   }
 
-  // Update cart badge on load
-  try {
-    var raw = localStorage.getItem('gimpz_cart');
-    var cart = raw ? JSON.parse(raw) : [];
-    var total = 0;
-    cart.forEach(function (it) { total += it.qty; });
-    if (total > 0) {
-      document.querySelectorAll('.cart-badge').forEach(function (b) {
-        b.textContent = total;
-        b.style.display = 'grid';
-      });
-    }
-  } catch (e) {}
+  /* ============ CART PAGE ============ */
+  function renderCartPage() {
+    var list = $('cartList');
+    if (!list) return;
 
-  loadProducts();
+    var cart = getCart();
+
+    if (!cart.length) {
+      list.innerHTML = '<div class="cart-empty"><h2>Your cart is empty</h2><p>Browse our products and add something you like.</p><a class="btn btn-primary" href="index.html">Start Shopping</a></div>';
+      if ($('cartSummary')) $('cartSummary').style.display = 'none';
+      if ($('checkoutBlock')) $('checkoutBlock').style.display = 'none';
+      return;
+    }
+
+    var html = '';
+    cart.forEach(function (item) {
+      var p = getProduct(item.id);
+      if (!p) return;
+      var lineTotal = p.price * item.qty;
+      html += '<div class="cart-item">' +
+        '<div class="cart-item-img"><img src="' + getCoverImage(p) + '" alt="' + esc(p.name) + '"></div>' +
+        '<div class="cart-item-info">' +
+          '<h3>' + esc(p.name) + '</h3>' +
+          '<p class="cart-item-brand">' + esc(p.brand) + '</p>' +
+          '<p class="cart-item-price">' + fmtPrice(p.price) + '</p>' +
+        '</div>' +
+        '<div class="cart-item-qty">' +
+          '<button class="qty-btn" data-id="' + p.id + '" data-delta="-1">−</button>' +
+          '<span class="qty-num">' + item.qty + '</span>' +
+          '<button class="qty-btn" data-id="' + p.id + '" data-delta="1">+</button>' +
+        '</div>' +
+        '<div class="cart-item-total">' + fmtPrice(lineTotal) + '</div>' +
+        '<button class="cart-item-remove" data-id="' + p.id + '" aria-label="Remove">×</button>' +
+      '</div>';
+    });
+    list.innerHTML = html;
+    attachImageFallbacks(list);
+
+    list.querySelectorAll('.qty-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = parseInt(btn.getAttribute('data-id'), 10);
+        var d = parseInt(btn.getAttribute('data-delta'), 10);
+        var cart = getCart();
+        for (var i = 0; i < cart.length; i++) {
+          if (cart[i].id === id) { cart[i].qty = Math.max(1, cart[i].qty + d); break; }
+        }
+        saveCart(cart);
+        renderCartPage();
+      });
+    });
+    list.querySelectorAll('.cart-item-remove').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        removeFromCart(parseInt(btn.getAttribute('data-id'), 10));
+        renderCartPage();
+      });
+    });
+
+    updateSummary();
+    autofillProfile();
+  }
+
+  function updateSummary() {
+    var sub = $('sumSubtotal'), total = $('sumTotal');
+    if (!sub || !total) return;
+    var s = cartTotal();
+    var ship = s > 0 && s < 499 ? 49 : 0;
+    sub.textContent = fmtPrice(s);
+    if ($('sumShipping')) $('sumShipping').textContent = ship === 0 ? 'FREE' : fmtPrice(ship);
+    total.textContent = fmtPrice(s + ship);
+  }
+
+  function autofillProfile() {
+    var user = null;
+    try { var raw = localStorage.getItem('gimpz_user'); user = raw ? JSON.parse(raw) : null; } catch (e) {}
+    if (!user || !user.uid) return;
+
+    fetch(SUPABASE_URL + '/rest/v1/profiles?id=eq.' + encodeURIComponent(user.uid) + '&select=*', {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        if (!Array.isArray(rows) || !rows[0]) return;
+        var p = rows[0];
+        var set = function (id, v) { var el = $(id); if (el && !el.value && v) el.value = v; };
+        set('cname', p.full_name);
+        set('cphone', p.phone);
+        set('cemail', p.email || user.email);
+        set('caddress', p.default_address);
+        set('ccity', p.default_city);
+        set('cstate', p.default_state);
+        set('cpincode', p.default_pincode);
+      })
+      .catch(function () {});
+  }
+
+  /* ============ CHECKOUT ============ */
+  function generateOrderNumber() {
+    var d = new Date();
+    var stamp = d.getFullYear().toString().slice(-2) +
+      String(d.getMonth() + 1).padStart(2, '0') +
+      String(d.getDate()).padStart(2, '0') +
+      String(d.getHours()).padStart(2, '0') +
+      String(d.getMinutes()).padStart(2, '0');
+    return 'GIMPZ-' + stamp + '-' + Math.floor(Math.random() * 9000 + 1000);
+  }
+
+  function setupCheckout() {
+    var form = $('checkoutForm');
+    if (!form) return;
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var cart = getCart();
+      if (!cart.length) { showToast('Cart is empty'); return; }
+
+      var user = null;
+      try { var raw = localStorage.getItem('gimpz_user'); user = raw ? JSON.parse(raw) : null; } catch (err) {}
+      if (!user || !user.uid) {
+        alert('Please sign in to place an order.');
+        window.location.href = 'login.html?redirect=cart.html';
+        return;
+      }
+
+      var name = form.cname.value.trim();
+      var phone = form.cphone.value.trim();
+      var address = form.caddress.value.trim();
+      var city = form.ccity.value.trim();
+      var state = form.cstate.value.trim();
+      var pincode = form.cpincode.value.trim();
+      var payment = form.cpayment.value;
+
+      if (!name || name.length < 2) { alert('Enter your name'); return; }
+      if (!/^[6-9][0-9]{9}$/.test(phone)) { alert('Enter valid mobile number'); return; }
+      if (address.length < 10) { alert('Enter full address'); return; }
+      if (!/^[A-Za-z\s]{3,}$/.test(city)) { alert('Enter valid city'); return; }
+      if (!/^[A-Za-z\s]{3,}$/.test(state)) { alert('Enter valid state'); return; }
+      if (!/^[1-9][0-9]{5}$/.test(pincode)) { alert('Enter valid pincode'); return; }
+
+      var orderNo = generateOrderNumber();
+      var subtotal = 0;
+      var items = [];
+      cart.forEach(function (item) {
+        var p = getProduct(item.id);
+        if (!p) return;
+        var lt = p.price * item.qty;
+        subtotal += lt;
+        items.push({
+          product_id: p.id,
+          product_name: p.name,
+          product_brand: p.brand,
+          quantity: item.qty,
+          price_at_time: p.price,
+          line_total: lt
+        });
+      });
+      var shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
+      var total = subtotal + shipping;
+
+      var btn = $('placeOrderBtn');
+      var statusEl = $('orderStatus');
+      btn.disabled = true;
+      btn.textContent = 'Placing order...';
+
+      fetch(SUPABASE_URL + '/rest/v1/orders', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+          order_number: orderNo,
+          user_id: user.uid,
+          customer_name: name,
+          phone: phone,
+          email: user.email,
+          address: address,
+          city: city,
+          state: state,
+          pincode: pincode,
+          payment_method: payment,
+          subtotal: subtotal,
+          shipping: shipping,
+          total: total,
+          status: 'Pending'
+        })
+      })
+        .then(function (r) {
+          if (!r.ok) return r.text().then(function () { throw new Error('Order failed'); });
+          return r.json();
+        })
+        .then(function (rows) {
+          var orderId = rows[0] && rows[0].id;
+          if (!orderId) throw new Error('No order id');
+          return fetch(SUPABASE_URL + '/rest/v1/order_items', {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify(items.map(function (it) {
+              return {
+                order_id: orderId,
+                product_id: it.product_id,
+                product_name: it.product_name,
+                product_brand: it.product_brand,
+                quantity: it.quantity,
+                price_at_time: it.price_at_time,
+                line_total: it.line_total
+              };
+            }))
+          }).then(function () { return orderId; });
+        })
+        .then(function () {
+          try {
+            localStorage.setItem('gimpz_last_order', JSON.stringify({
+              orderNumber: orderNo,
+              total: total,
+              name: name
+            }));
+          } catch (err) {}
+          clearCart();
+          window.location.href = 'order-success.html';
+        })
+        .catch(function (err) {
+          console.error('[GIMPZ] Order failed:', err);
+          if (statusEl) {
+            statusEl.textContent = 'Order failed. Please try again.';
+            statusEl.className = 'form-status err';
+          }
+          btn.disabled = false;
+          btn.textContent = 'Place Order →';
+        });
+    });
+  }
+
+  function renderOrderSuccess() {
+    var container = $('orderSuccessContent');
+    if (!container) return;
+    try {
+      var raw = localStorage.getItem('gimpz_last_order');
+      if (raw) {
+        var d = JSON.parse(raw);
+        if ($('orderCustomerName') && d.name) $('orderCustomerName').textContent = d.name;
+        if ($('orderTotalAmount') && d.total) $('orderTotalAmount').textContent = fmtPrice(d.total);
+        if ($('orderSuccessNumber') && d.orderNumber) $('orderSuccessNumber').textContent = d.orderNumber;
+      }
+    } catch (e) {}
+  }
+
+  /* ============ PUBLIC HELPERS ============ */
+  window.gimpzRenderGrid = renderGrid;
+
+  /* ============ INIT ============ */
+  function init() {
+    updateCartBadge();
+
+    fetchProducts().then(function () {
+      // Home page
+      if ($('productGrid')) applyFilters();
+
+      // Product detail
+      if ($('productDetail')) renderProductDetail();
+
+      // Cart page
+      if ($('cartList')) renderCartPage();
+
+      // Order success
+      if ($('orderSuccessContent')) renderOrderSuccess();
+
+      // Setup listeners
+      var searchInput = $('searchInput');
+      if (searchInput) searchInput.addEventListener('input', applyFilters);
+
+      var sortSel = $('sortSelect');
+      if (sortSel) sortSel.addEventListener('change', applyFilters);
+
+      document.querySelectorAll('.category-filter').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.category-filter').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          applyFilters();
+        });
+      });
+
+      setupCheckout();
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
 })();
-</script>
-</body>
-</html>
