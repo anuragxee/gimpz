@@ -13,7 +13,6 @@
 </head>
 <body>
 
-<!-- ===================== TOP BAR ===================== -->
 <div class="topbar">
   <div class="container topbar-inner">
     <div class="topbar-marquee">
@@ -22,13 +21,13 @@
         <a href="new-arrivals.html">✨ New arrivals every week</a>
         <a href="shipping.html">🔒 100% secure payments</a>
         <a href="returns.html">↩️ Easy 7-day returns</a>
-        <a href="https://wa.me/917061086068" target="_blank" rel="noopener">📞 24/7 customer support</a>
+        <a href="https://www.instagram.com/thegimpzz" target="_blank" rel="noopener">📱 Follow us on Instagram</a>
         <a href="best-sellers.html">💰 Best prices guaranteed</a>
         <a href="index.html#products">🚚 Free shipping on orders above ₹499</a>
         <a href="new-arrivals.html">✨ New arrivals every week</a>
         <a href="shipping.html">🔒 100% secure payments</a>
         <a href="returns.html">↩️ Easy 7-day returns</a>
-        <a href="https://wa.me/917061086068" target="_blank" rel="noopener">📞 24/7 customer support</a>
+        <a href="https://www.instagram.com/thegimpzz" target="_blank" rel="noopener">📱 Follow us on Instagram</a>
         <a href="best-sellers.html">💰 Best prices guaranteed</a>
       </div>
     </div>
@@ -39,7 +38,6 @@
   </div>
 </div>
 
-<!-- ===================== HEADER ===================== -->
 <header class="site-header">
   <div class="container header-inner">
     <a class="logo" href="index.html"><span class="logo-mark">G</span><span class="logo-text">GIMPZ</span></a>
@@ -48,7 +46,10 @@
       <input type="search" placeholder="Search for products..." aria-label="Search products">
     </form>
     <nav class="header-actions">
-      <a class="icon-btn" href="cart.html" aria-label="Cart">
+      <a class="icon-btn" href="account.html" aria-label="Account">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>
+      </a>
+      <a class="icon-btn cart-icon-btn" href="cart.html" aria-label="Cart">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 12.2a2 2 0 0 0 2 1.8h8.7a2 2 0 0 0 2-1.6L22 8H6"/><circle cx="10" cy="20" r="1.4"/><circle cx="19" cy="20" r="1.4"/></svg>
         <span class="cart-badge" style="display:none">0</span>
       </a>
@@ -56,7 +57,6 @@
   </div>
 </header>
 
-<!-- ===================== CONTACT PAGE ===================== -->
 <main id="main" class="page-info">
   <div class="container">
     <nav class="breadcrumb"><a href="index.html">Home</a><span>/</span><span>Contact Us</span></nav>
@@ -71,22 +71,12 @@
       <div class="contact-page-form">
         <h2>Send us a message</h2>
         <p>Fill the form below and we'll get back to you within a few hours.</p>
-
         <form id="contactPageForm" class="checkout-form" novalidate>
           <div class="form-row">
-            <div class="form-field">
-              <label for="cName">Your Name *</label>
-              <input type="text" id="cName" placeholder="Full name" required>
-            </div>
-            <div class="form-field">
-              <label for="cPhone">Phone *</label>
-              <input type="tel" id="cPhone" placeholder="10-digit mobile" pattern="[0-9]{10}" required>
-            </div>
+            <div class="form-field"><label for="cName">Your Name *</label><input type="text" id="cName" placeholder="Full name" required></div>
+            <div class="form-field"><label for="cPhone">Phone *</label><input type="tel" id="cPhone" placeholder="10-digit mobile" pattern="[6-9][0-9]{9}" required></div>
           </div>
-          <div class="form-field">
-            <label for="cEmail">Email (optional)</label>
-            <input type="email" id="cEmail" placeholder="you@example.com">
-          </div>
+          <div class="form-field"><label for="cEmail">Your Email *</label><input type="email" id="cEmail" placeholder="you@example.com" required></div>
           <div class="form-field">
             <label for="cSubject">Subject *</label>
             <select id="cSubject" required>
@@ -100,30 +90,14 @@
               <option>Other</option>
             </select>
           </div>
-          <div class="form-field">
-            <label for="cMessage">Message *</label>
-            <textarea id="cMessage" rows="5" placeholder="Tell us how we can help..." required></textarea>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-lg btn-block">Send via WhatsApp →</button>
-          <p class="checkout-note">
-            This will open WhatsApp with your message pre-filled. You can also reach us directly at
-            <b>thegimpzzstore@gmail.com</b>.
-          </p>
+          <div class="form-field"><label for="cMessage">Message *</label><textarea id="cMessage" rows="5" placeholder="Tell us how we can help..." required></textarea></div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block">Send Message →</button>
+          <p class="checkout-note">This opens your email app with the details filled in. You can also reach us at <b>thegimpzzstore@gmail.com</b>.</p>
         </form>
       </div>
 
       <aside class="contact-page-info">
         <h2>Other ways to reach us</h2>
-
-        <div class="contact-channel">
-          <div class="contact-channel-icon">💬</div>
-          <div>
-            <strong>WhatsApp</strong>
-            <p>Fastest response — usually within minutes</p>
-            <a href="https://wa.me/917061086068" target="_blank" rel="noopener">+91 7061086068</a>
-          </div>
-        </div>
 
         <div class="contact-channel">
           <div class="contact-channel-icon">✉️</div>
@@ -150,82 +124,98 @@
             <p>Mon–Sat: 9 AM – 9 PM IST<br>Sunday: 10 AM – 6 PM IST</p>
           </div>
         </div>
+
+        <div class="contact-channel">
+          <div class="contact-channel-icon">📱</div>
+          <div>
+            <strong>Follow Us</strong>
+            <p>Stay updated on new arrivals and offers</p>
+            <div class="social-row" style="margin-top:8px;">
+              <a class="social-link" href="https://www.instagram.com/thegimpzz" target="_blank" rel="noopener" aria-label="Instagram">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+              </a>
+              <a class="social-link" href="https://x.com/TGimpzz49730" target="_blank" rel="noopener" aria-label="X">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.9 2H22l-7.5 8.5L23 22h-6.9l-5.4-6.6L4.5 22H1.4l8-9.1L1 2h7.1l4.9 6.1L18.9 2zm-1.1 18h1.9L7.3 4H5.3l12.5 16z"/></svg>
+              </a>
+              <a class="social-link" href="https://www.linkedin.com/in/gimpz" target="_blank" rel="noopener" aria-label="LinkedIn">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM10 9h3.8v1.7h.1c.5-1 1.8-2 3.7-2 4 0 4.7 2.5 4.7 5.9V21h-4v-5.6c0-1.3 0-3.1-1.9-3.1s-2.2 1.5-2.2 3V21h-4z"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
       </aside>
     </div>
   </div>
 </main>
 
-<!-- ===================== FOOTER ===================== -->
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="footer-brand">
       <div class="logo"><span class="logo-mark">G</span><span class="logo-text">GIMPZ</span></div>
-      <p class="footer-desc">Everything You Need, One Store. Quality products, honest prices, fast delivery.</p>
+      <p class="footer-desc">Everything You Need, One Store.</p>
     </div>
     <div class="footer-col">
       <h3>Shop</h3>
       <ul>
         <li><a href="index.html#products">All Products</a></li>
         <li><a href="index.html#categories">Categories</a></li>
-        <li><a href="new-arrivals.html">New Arrivals</a></li>
-        <li><a href="best-sellers.html">Best Sellers</a></li>
       </ul>
     </div>
     <div class="footer-col">
       <h3>Help</h3>
       <ul>
         <li><a href="track-order.html">Track Order</a></li>
-        <li><a href="shipping.html">Shipping Info</a></li>
-        <li><a href="returns.html">Returns</a></li>
         <li><a href="contact.html">Contact Us</a></li>
       </ul>
     </div>
-    <div class="footer-col" id="contact-info">
-      <h3>Contact</h3>
-      <ul>
-        <li><a href="mailto:thegimpzzstore@gmail.com">thegimpzzstore@gmail.com</a></li>
-        <li><a href="https://wa.me/917061086068" target="_blank" rel="noopener">+91 7061086068</a></li>
-      </ul>
+    <div class="footer-col">
+      <h3>Follow Us</h3>
+      <div class="social-row">
+        <a class="social-link" href="https://www.instagram.com/thegimpzz" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a class="social-link" href="https://x.com/TGimpzz49730" target="_blank" rel="noopener" aria-label="X">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.9 2H22l-7.5 8.5L23 22h-6.9l-5.4-6.6L4.5 22H1.4l8-9.1L1 2h7.1l4.9 6.1L18.9 2zm-1.1 18h1.9L7.3 4H5.3l12.5 16z"/></svg>
+        </a>
+        <a class="social-link" href="https://www.linkedin.com/in/gimpz" target="_blank" rel="noopener" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM10 9h3.8v1.7h.1c.5-1 1.8-2 3.7-2 4 0 4.7 2.5 4.7 5.9V21h-4v-5.6c0-1.3 0-3.1-1.9-3.1s-2.2 1.5-2.2 3V21h-4z"/></svg>
+        </a>
+      </div>
     </div>
   </div>
   <div class="container footer-bottom">
     <p>&copy; <span id="year">2026</span> GIMPZ. All rights reserved.</p>
-    <p>Made with care in India</p>
   </div>
 </footer>
 
 <script src="products.js"></script>
 <script src="script.js"></script>
 <script>
-  document.getElementById('year').textContent = new Date().getFullYear();
+document.getElementById('year').textContent = new Date().getFullYear();
 
-  document.getElementById('contactPageForm').addEventListener('submit', function (e) {
-    e.preventDefault();
+document.getElementById('contactPageForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  var name = document.getElementById('cName').value.trim();
+  var phone = document.getElementById('cPhone').value.trim();
+  var email = document.getElementById('cEmail').value.trim();
+  var subject = document.getElementById('cSubject').value;
+  var message = document.getElementById('cMessage').value.trim();
 
-    var name = document.getElementById('cName').value.trim();
-    var phone = document.getElementById('cPhone').value.trim();
-    var email = document.getElementById('cEmail').value.trim();
-    var subject = document.getElementById('cSubject').value;
-    var message = document.getElementById('cMessage').value.trim();
+  if (!name || !phone || !email || !subject || !message) { alert('Please fill all fields'); return; }
+  if (!/^[6-9][0-9]{9}$/.test(phone)) { alert('Please enter a valid mobile number'); return; }
 
-    if (!name || name.length < 2) { alert('Please enter your name'); return; }
-    if (!/^[0-9]{10}$/.test(phone)) { alert('Please enter a valid 10-digit phone number'); return; }
-    if (!subject) { alert('Please choose a subject'); return; }
-    if (!message || message.length < 5) { alert('Please enter your message'); return; }
+  var lines = [];
+  lines.push('Contact Form — GIMPZ');
+  lines.push('');
+  lines.push('From: ' + name);
+  lines.push('Phone: ' + phone);
+  lines.push('Email: ' + email);
+  lines.push('Subject: ' + subject);
+  lines.push('');
+  lines.push(message);
 
-    var lines = [];
-    lines.push('*New Contact — GIMPZ*');
-    lines.push('');
-    lines.push('*From:* ' + name);
-    lines.push('*Phone:* ' + phone);
-    if (email) lines.push('*Email:* ' + email);
-    lines.push('*Subject:* ' + subject);
-    lines.push('');
-    lines.push('*Message:*');
-    lines.push(message);
-
-    window.open('https://wa.me/917061086068?text=' + encodeURIComponent(lines.join('\n')), '_blank');
-  });
+  window.location.href = 'mailto:thegimpzzstore@gmail.com?subject=' + encodeURIComponent('[GIMPZ] ' + subject) + '&body=' + encodeURIComponent(lines.join('\n'));
+});
 </script>
 </body>
 </html>
