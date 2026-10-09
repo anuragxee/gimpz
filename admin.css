@@ -977,3 +977,128 @@
 @media (max-width:900px){
   .admin-table{min-width:720px;}
 }
+/* ============================================================
+   ADMIN PANEL — MARKETING, STAFF, ACTIVITY LOG
+   ============================================================ */
+
+/* ---------- MARKETING TAB ---------- */
+#allEmailsList::-webkit-scrollbar{
+  width:8px;
+}
+#allEmailsList::-webkit-scrollbar-track{
+  background:#f1f5f9;
+  border-radius:4px;
+}
+#allEmailsList::-webkit-scrollbar-thumb{
+  background:#cbd5e1;
+  border-radius:4px;
+}
+#allEmailsList::-webkit-scrollbar-thumb:hover{
+  background:#94a3b8;
+}
+#allEmailsList div{
+  padding:4px 0;
+  word-break:break-all;
+}
+
+/* ---------- STAFF TAB ---------- */
+#staffBody .status-pill{
+  font-size:.7rem;
+  padding:3px 8px;
+}
+
+/* Role label styling */
+#staffBody td:nth-child(3){
+  font-weight:600;
+  color:#0a2540;
+  font-size:.85rem;
+}
+
+/* ---------- ACTIVITY LOG ---------- */
+#activityBody small{
+  font-size:.76rem;
+  line-height:1.5;
+  display:inline-block;
+}
+#activityBody td:first-child{
+  white-space:nowrap;
+  color:#94a3b8;
+  width:180px;
+}
+#activityBody td:nth-child(2){
+  font-family:monospace;
+  font-size:.78rem;
+  width:200px;
+}
+#activityBody td:nth-child(3){
+  width:180px;
+}
+#activityBody td:nth-child(4){
+  color:#64748b;
+}
+
+/* ---------- FILTER selects (shared) ---------- */
+#activityFilter{
+  min-width:180px;
+}
+
+/* ---------- MARKETING LIST TABLE ---------- */
+#marketingBody td{
+  vertical-align:middle;
+}
+#marketingBody .status-pill{
+  font-size:.72rem;
+}
+
+/* ---------- BADGE / nav badge color ---------- */
+.nav-badge.stock-badge{
+  background:#f59e0b;
+  color:#fff;
+}
+
+/* ---------- Copy button feedback ---------- */
+.admin-action-btn.copied{
+  background:#16a34a;
+  color:#fff;
+  border-color:#16a34a;
+}
+
+/* ============================================================
+   RESPONSIVE — marketing / staff / activity
+   ============================================================ */
+@media (max-width:900px){
+  #activityBody td:first-child{width:auto;font-size:.72rem}
+  #activityBody td:nth-child(2){width:auto;font-size:.72rem}
+  #activityBody td:nth-child(3){width:auto}
+  #allEmailsList{font-size:.8rem;padding:12px 16px !important}
+  #marketingBody td:nth-child(3){
+    display:none;
+  }
+  #marketingBody thead th:nth-child(3){
+    display:none;
+  }
+}
+
+@media (max-width:640px){
+  #activityFilter{
+    min-width:0;
+    flex:1;
+  }
+  #staffBody td:nth-child(4){
+    font-size:.7rem;
+  }
+  #allEmailsList div{
+    font-size:.75rem !important;
+  }
+}
+
+/* ---------- Fade-in animation for tab content ---------- */
+.admin-tab{
+  animation:fadeTabIn .25s ease;
+}
+@keyframes fadeTabIn{
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:none}
+}
+
+/* ---------- Print styles already in place, keep as-is ---------- */
