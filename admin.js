@@ -1,6 +1,7 @@
 /* ============================================================
    GIMPZ — ADMIN PANEL LOGIC
    Handles: Login, Products CRUD, Orders, Image Upload
+   + Order Details Modal (view what customer ordered)
    ============================================================ */
 (function () {
   'use strict';
@@ -15,10 +16,10 @@
   /* ============================================================
      STATE
      ============================================================ */
-  var session = null;      // { access_token, user: { email, id } }
+  var session = null;
   var currentProducts = [];
   var currentOrders = [];
-  var pendingImages = [];   // File objects queued for upload
+  var pendingImages = [];
 
   /* ============================================================
      HELPERS
@@ -64,7 +65,7 @@
   }
 
   /* ============================================================
-     SESSION MANAGEMENT
+     SESSION
      ============================================================ */
   function saveSession() {
     try {
@@ -162,10 +163,9 @@
   }
 
   /* ============================================================
-     OVERVIEW / STATS
+     OVERVIEW
      ============================================================ */
   function loadOverview() {
-    // Products count
     fetch(SUPABASE_URL + '/rest/v1/products?select=id&active=eq.true', {
       headers: apiHeaders(true)
     })
@@ -175,7 +175,6 @@
       })
       .catch(function () { $('statProducts').textContent = '—'; });
 
-    // Orders
     fetch(SUPABASE_URL + '/rest/v1/orders?select=*&order=created_at.desc', {
       headers: apiHeaders(true)
     })
@@ -215,7 +214,7 @@
     }
     var html = '';
     rows.forEach(function (o) {
-      html += '<div class="recent-order-row">' +
+      html += '<div class="recent-order-row" style="cursor:pointer;" data-view="' + o.id + '">' +
         '<div><strong>' + escapeHtml(o.order_number || '—') + '</strong></div>' +
         '<div>' + escapeHtml(o.customer_name || '—') + '</div>' +
         '<div>' + escapeHtml(o.phone || '—') + '</div>' +
@@ -224,6 +223,12 @@
       '</div>';
     });
     el.innerHTML = html;
+
+    el.querySelectorAll('[data-view]').forEach(function (row) {
+      row.addEventListener('click', function () {
+        openOrderDetails(parseInt(row.getAttribute('data-view'), 10));
+      });
+    });
   }
 
   function statusPill(status) {
@@ -297,7 +302,7 @@
   }
 
   /* ============================================================
-     PRODUCT MODAL (Add / Edit)
+     PRODUCT MODAL
      ============================================================ */
   function openProductModal(id) {
     pendingImages = [];
@@ -405,7 +410,6 @@
         return r.json();
       })
       .then(function () {
-        // Upload images if any
         if (pendingImages.length > 0 && data.image_folder) {
           return uploadImages(data.image_folder, pendingImages);
         }
@@ -513,6 +517,7 @@
         '<td><strong>' + formatPrice(o.total) + '</strong></td>' +
         '<td>' + statusPill(o.status) + '</td>' +
         '<td style="text-align:right;white-space:nowrap;">' +
+          '<button class="admin-action-btn" data-action="view" data-id="' + o.id + '" style="background:#2563eb;color:#fff;border-color:#2563eb;">View</button>' +
           '<select class="admin-action-btn" data-action="status" data-id="' + o.id + '" style="padding:6px 8px;">' +
             '<option value="Pending"' + ((o.status || 'Pending') === 'Pending' ? ' selected' : '') + '>Pending</option>' +
             '<option value="Shipped"' + (o.status === 'Shipped' ? ' selected' : '') + '>Shipped</option>' +
@@ -525,11 +530,21 @@
     });
     tbody.innerHTML = html;
 
+    /* View button */
+    tbody.querySelectorAll('[data-action="view"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openOrderDetails(parseInt(btn.getAttribute('data-id'), 10));
+      });
+    });
+
+    /* Status dropdown */
     tbody.querySelectorAll('[data-action="status"]').forEach(function (sel) {
       sel.addEventListener('change', function () {
         updateOrderStatus(parseInt(sel.getAttribute('data-id'), 10), sel.value);
       });
     });
+
+    /* WhatsApp button */
     tbody.querySelectorAll('[data-action="wa"]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var o = currentOrders.find(function (x) { return x.id === parseInt(btn.getAttribute('data-id'), 10); });
@@ -540,6 +555,121 @@
     });
   }
 
+  /* ============================================================
+     ORDER DETAILS MODAL — shows what customer ordered
+     ============================================================ */
+  function openOrderDetails(orderId) {
+    var order = currentOrders.find(function (x) { return x.id === orderId; });
+    if (!order) return;
+
+    var modal = $('orderModal');
+    var title = $('orderModalTitle');
+    var body = $('orderModalBody');
+    if (!modal || !body) {
+      alert('Order details modal not found. Please reload the page.');
+      return;
+    }
+
+    title.textContent = 'Order ' + (order.order_number || '');
+    body.innerHTML = '<p style="color:#64748b;text-align:center;padding:30px 0;">Loading items...</p>';
+    modal.classList.add('open');
+
+    fetch(SUPABASE_URL + '/rest/v1/order_items?select=*&order_id=eq.' + orderId + '&order=id.asc', {
+      headers: apiHeaders(true)
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (items) {
+        if (!Array.isArray(items)) items = [];
+
+        var html = '';
+
+        /* Customer info box */
+        html += '<div style="background:#f8fbff;border:1px solid #dbeafe;border-radius:10px;padding:14px 16px;margin-bottom:16px;">' +
+          '<div style="font-size:.72rem;font-weight:700;color:#2563eb;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Customer</div>' +
+          '<div style="font-size:.9rem;line-height:1.75;color:#334155;">' +
+            '<strong style="color:#0a2540;font-size:.98rem;">' + escapeHtml(order.customer_name || '—') + '</strong><br>' +
+            '📞 <a href="tel:' + escapeHtml(order.phone || '') + '" style="color:#2563eb;text-decoration:none;">' + escapeHtml(order.phone || '—') + '</a><br>' +
+            (order.email ? '✉️ <a href="mailto:' + escapeHtml(order.email) + '" style="color:#2563eb;text-decoration:none;">' + escapeHtml(order.email) + '</a><br>' : '') +
+            '📍 ' + escapeHtml(order.address || '') + '<br>' +
+            '&nbsp;&nbsp;&nbsp;&nbsp;' + escapeHtml(order.city || '') + ', ' + escapeHtml(order.state || '') + ' — ' + escapeHtml(order.pincode || '') +
+          '</div>' +
+        '</div>';
+
+        /* Items list */
+        html += '<div style="font-size:.72rem;font-weight:700;color:#2563eb;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Items Ordered (' + items.length + ')</div>';
+
+        if (!items.length) {
+          html += '<p style="color:#94a3b8;font-size:.88rem;background:#f8fafc;padding:16px;border-radius:10px;text-align:center;">No items recorded for this order.</p>';
+        } else {
+          html += '<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">';
+          items.forEach(function (it, idx) {
+            html += '<div style="display:grid;grid-template-columns:1fr auto auto;gap:14px;padding:12px 14px;border-bottom:' + (idx === items.length - 1 ? '0' : '1px solid #f1f5f9') + ';font-size:.88rem;align-items:center;">' +
+              '<div>' +
+                '<strong style="color:#0a2540;display:block;margin-bottom:2px;">' + escapeHtml(it.product_name) + '</strong>' +
+                (it.product_brand ? '<small style="color:#64748b;">' + escapeHtml(it.product_brand) + '</small>' : '') +
+              '</div>' +
+              '<div style="color:#475569;white-space:nowrap;font-weight:600;">× ' + it.quantity + '</div>' +
+              '<div style="font-weight:700;color:#0a2540;white-space:nowrap;">' + formatPrice(it.line_total) + '</div>' +
+            '</div>';
+          });
+          html += '</div>';
+        }
+
+        /* Totals */
+        html += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid #e2e8f0;">' +
+          '<div style="display:flex;justify-content:space-between;font-size:.86rem;color:#475569;margin-bottom:6px;">' +
+            '<span>Subtotal</span><span style="font-weight:600;color:#0a2540;">' + formatPrice(order.subtotal) + '</span>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:.86rem;color:#475569;margin-bottom:6px;">' +
+            '<span>Shipping</span><span style="font-weight:600;color:#0a2540;">' + (order.shipping > 0 ? formatPrice(order.shipping) : 'FREE') + '</span>' +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:1.05rem;font-weight:800;color:#0a2540;padding-top:10px;border-top:1px solid #f1f5f9;margin-top:8px;">' +
+            '<span>Total</span><span>' + formatPrice(order.total) + '</span>' +
+          '</div>' +
+        '</div>';
+
+        /* Payment + status */
+        html += '<div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">' +
+          '<div style="background:#f1f5f9;border-radius:8px;padding:8px 12px;font-size:.8rem;color:#475569;">' +
+            '<strong style="color:#0a2540;">Payment:</strong> ' + escapeHtml(order.payment_method || '—') +
+          '</div>' +
+          '<div>' + statusPill(order.status) + '</div>' +
+        '</div>';
+
+        /* Placed date */
+        html += '<p style="margin-top:14px;font-size:.76rem;color:#94a3b8;">Placed on ' + formatDate(order.created_at) + '</p>';
+
+        /* Action buttons */
+        html += '<div style="display:flex;gap:10px;margin-top:16px;">' +
+          '<button class="btn btn-primary" style="flex:1;padding:11px 18px;font-size:.85rem;" id="odWhatsApp">Contact on WhatsApp</button>' +
+          '<button class="btn btn-outline" style="padding:11px 18px;font-size:.85rem;" id="odClose">Close</button>' +
+        '</div>';
+
+        body.innerHTML = html;
+
+        /* Wire up buttons inside modal */
+        var waBtn = $('odWhatsApp');
+        if (waBtn) {
+          waBtn.addEventListener('click', function () {
+            var msg = 'Hi ' + (order.customer_name || 'there') + ', this is GIMPZ. Your order ' + (order.order_number || '') + ' is confirmed. We\'ll update you on shipping shortly.';
+            window.open('https://wa.me/91' + (order.phone || '').replace(/\D/g, '').slice(-10) + '?text=' + encodeURIComponent(msg), '_blank');
+          });
+        }
+        var closeBtn = $('odClose');
+        if (closeBtn) {
+          closeBtn.addEventListener('click', function () {
+            modal.classList.remove('open');
+          });
+        }
+      })
+      .catch(function (err) {
+        body.innerHTML = '<p style="color:#dc2626;padding:20px;text-align:center;">Failed to load items: ' + escapeHtml(err.message) + '</p>';
+      });
+  }
+
+  /* ============================================================
+     UPDATE ORDER STATUS
+     ============================================================ */
   function updateOrderStatus(id, status) {
     fetch(SUPABASE_URL + '/rest/v1/orders?id=eq.' + id, {
       method: 'PATCH',
@@ -561,7 +691,7 @@
   function init() {
     loadSession();
 
-    // Login form
+    /* Login form */
     var loginForm = $('loginForm');
     if (loginForm) {
       loginForm.addEventListener('submit', function (e) {
@@ -588,13 +718,13 @@
       });
     }
 
-    // Logout
+    /* Logout */
     var lo = $('logoutBtn');
     if (lo) lo.addEventListener('click', function () {
       if (confirm('Log out of admin panel?')) logout();
     });
 
-    // Tabs
+    /* Tabs */
     document.querySelectorAll('.admin-nav-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         switchTab(btn.getAttribute('data-tab'));
@@ -606,11 +736,11 @@
       });
     });
 
-    // Add product
+    /* Add product */
     var addBtn = $('addProductBtn');
     if (addBtn) addBtn.addEventListener('click', function () { openProductModal(null); });
 
-    // Modal close
+    /* Product modal close */
     var mc = $('modalClose');
     if (mc) mc.addEventListener('click', closeProductModal);
     var cf = $('cancelFormBtn');
@@ -620,11 +750,29 @@
       if (e.target === modal) closeProductModal();
     });
 
-    // Product form submit
+    /* Order modal close */
+    var omc = $('orderModalClose');
+    if (omc) omc.addEventListener('click', function () {
+      $('orderModal').classList.remove('open');
+    });
+    var oModal = $('orderModal');
+    if (oModal) oModal.addEventListener('click', function (e) {
+      if (e.target === oModal) oModal.classList.remove('open');
+    });
+
+    /* ESC closes any open modal */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        if (modal) modal.classList.remove('open');
+        if (oModal) oModal.classList.remove('open');
+      }
+    });
+
+    /* Product form submit */
     var pf = $('productForm');
     if (pf) pf.addEventListener('submit', saveProduct);
 
-    // Image upload
+    /* Image upload */
     var upload = $('adminUpload');
     var input = $('pf-images');
     if (upload && input) {
@@ -652,11 +800,11 @@
       });
     }
 
-    // Refresh orders
+    /* Refresh orders */
     var ro = $('refreshOrdersBtn');
     if (ro) ro.addEventListener('click', loadOrders);
 
-    // Auto-login if session exists
+    /* Auto-login */
     if (session && session.access_token) {
       showDashboard();
     } else {
