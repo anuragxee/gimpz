@@ -75,6 +75,7 @@
 
       <div class="success-actions">
         <a class="btn btn-primary" href="account.html">View My Orders</a>
+        <a class="btn btn-outline" id="trackOrderBtn" href="track-order.html">Track This Order</a>
         <a class="btn btn-outline" href="index.html">Continue Shopping</a>
       </div>
     </div>
@@ -123,5 +124,18 @@
 
 <script src="script.js"></script>
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <script>
+  (function () {
+    try {
+      var raw = localStorage.getItem('gimpz_last_order');
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      var btn = document.getElementById('trackOrderBtn');
+      if (btn && d.orderNumber) {
+        btn.href = 'track-order.html?order=' + encodeURIComponent(d.orderNumber);
+      }
+    } catch (e) {}
+  })();
+</script>
 </body>
 </html>
