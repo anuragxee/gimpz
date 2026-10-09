@@ -21,13 +21,13 @@
         <a href="new-arrivals.html">✨ New arrivals every week</a>
         <a href="shipping.html">🔒 100% secure payments</a>
         <a href="returns.html">↩️ Easy 7-day returns</a>
-        <a href="https://wa.me/917061086068" target="_blank" rel="noopener">📞 24/7 customer support</a>
+        <a href="mailto:thegimpzzstore@gmail.com">📧 24/7 customer support</a>
         <a href="best-sellers.html">💰 Best prices guaranteed</a>
         <a href="index.html#products">🚚 Free shipping on orders above ₹499</a>
         <a href="new-arrivals.html">✨ New arrivals every week</a>
         <a href="shipping.html">🔒 100% secure payments</a>
         <a href="returns.html">↩️ Easy 7-day returns</a>
-        <a href="https://wa.me/917061086068" target="_blank" rel="noopener">📞 24/7 customer support</a>
+        <a href="mailto:thegimpzzstore@gmail.com">📧 24/7 customer support</a>
         <a href="best-sellers.html">💰 Best prices guaranteed</a>
       </div>
     </div>
@@ -58,12 +58,10 @@
   <div class="container">
     <div class="auth-wrap">
 
-      <!-- LOGIN CARD -->
       <div class="auth-card" id="loginCard">
         <div class="auth-logo"><span class="logo-mark">G</span></div>
         <h1>Welcome back</h1>
         <p class="auth-sub">Sign in to your GIMPZ account</p>
-
         <form id="loginForm" class="auth-form">
           <div class="auth-field">
             <label for="loginEmail">Email</label>
@@ -78,18 +76,15 @@
             <button type="button" class="auth-link" id="forgotLink">Forgot password?</button>
           </div>
         </form>
-
         <p class="auth-switch-bottom">
           New to GIMPZ? <button type="button" class="auth-link" id="goSignup">Create account</button>
         </p>
       </div>
 
-      <!-- SIGNUP CARD -->
       <div class="auth-card" id="signupCard" style="display:none;">
         <div class="auth-logo"><span class="logo-mark">G</span></div>
         <h1>Create your account</h1>
         <p class="auth-sub">Sign up to place orders</p>
-
         <form id="signupForm" class="auth-form">
           <div class="auth-field">
             <label for="signupName">Full Name</label>
@@ -109,18 +104,15 @@
           </div>
           <button type="submit" class="btn btn-primary btn-lg btn-block" id="signupBtn">Create Account</button>
         </form>
-
         <p class="auth-switch-bottom">
           Already have an account? <button type="button" class="auth-link" id="goLogin">Sign in</button>
         </p>
       </div>
 
-      <!-- FORGOT PASSWORD CARD -->
       <div class="auth-card" id="forgotCard" style="display:none;">
         <div class="auth-logo"><span class="logo-mark">G</span></div>
         <h1>Reset password</h1>
         <p class="auth-sub">We'll email you a reset link</p>
-
         <form id="forgotForm" class="auth-form">
           <div class="auth-field">
             <label for="forgotEmail">Email</label>
@@ -128,13 +120,11 @@
           </div>
           <button type="submit" class="btn btn-primary btn-lg btn-block" id="forgotBtn">Send Reset Link</button>
         </form>
-
         <p class="auth-switch-bottom">
           <button type="button" class="auth-link" id="backToLogin">← Back to sign in</button>
         </p>
       </div>
 
-      <!-- VERIFY CARD -->
       <div class="auth-card" id="verifyCard" style="display:none;">
         <div class="auth-logo">
           <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M22 6L12 13L2 6"/></svg>
@@ -181,7 +171,6 @@
       <h3>Contact</h3>
       <ul>
         <li><a href="mailto:thegimpzzstore@gmail.com">thegimpzzstore@gmail.com</a></li>
-        <li><a href="https://wa.me/917061086068" target="_blank" rel="noopener">+91 7061086068</a></li>
       </ul>
     </div>
   </div>
@@ -240,7 +229,6 @@ $('goLogin').addEventListener('click', () => showCard('loginCard'));
 $('forgotLink').addEventListener('click', () => showCard('forgotCard'));
 $('backToLogin').addEventListener('click', () => showCard('loginCard'));
 
-// Save profile to Supabase
 async function saveProfile(uid, data) {
   try {
     await fetch(SB_URL + '/rest/v1/profiles', {
@@ -261,7 +249,6 @@ async function saveProfile(uid, data) {
   } catch (e) { console.warn('Profile save failed:', e); }
 }
 
-// SIGNUP
 $('signupForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = $('signupBtn');
@@ -291,7 +278,6 @@ $('signupForm').addEventListener('submit', async (e) => {
   btn.textContent = 'Create Account';
 });
 
-// LOGIN
 $('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = $('loginBtn');
@@ -326,7 +312,6 @@ $('loginForm').addEventListener('submit', async (e) => {
   }
 });
 
-// FORGOT
 $('forgotForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = $('forgotBtn');
@@ -343,7 +328,6 @@ $('forgotForm').addEventListener('submit', async (e) => {
   btn.textContent = 'Send Reset Link';
 });
 
-// RESEND
 $('resendBtn').addEventListener('click', async () => {
   const user = auth.currentUser;
   if (!user) return showStatus('Please sign in again.', 'err');
@@ -355,7 +339,6 @@ $('resendBtn').addEventListener('click', async () => {
   }
 });
 
-// CHECK VERIFIED
 $('checkVerifiedBtn').addEventListener('click', async () => {
   const user = auth.currentUser;
   if (!user) return showStatus('Please sign in again.', 'err');
