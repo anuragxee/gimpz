@@ -21,13 +21,13 @@
         <a href="new-arrivals.html">✨ New arrivals every week</a>
         <a href="shipping.html">🔒 100% secure payments</a>
         <a href="returns.html">↩️ Easy 7-day returns</a>
-        <a href="https://wa.me/917061086068" target="_blank" rel="noopener">📞 24/7 customer support</a>
+        <a href="mailto:thegimpzzstore@gmail.com">📧 24/7 customer support</a>
         <a href="best-sellers.html">💰 Best prices guaranteed</a>
         <a href="index.html#products">🚚 Free shipping on orders above ₹499</a>
         <a href="new-arrivals.html">✨ New arrivals every week</a>
         <a href="shipping.html">🔒 100% secure payments</a>
         <a href="returns.html">↩️ Easy 7-day returns</a>
-        <a href="https://wa.me/917061086068" target="_blank" rel="noopener">📞 24/7 customer support</a>
+        <a href="mailto:thegimpzzstore@gmail.com">📧 24/7 customer support</a>
         <a href="best-sellers.html">💰 Best prices guaranteed</a>
       </div>
     </div>
@@ -57,7 +57,6 @@
 <main id="main" class="page-info">
   <div class="container">
 
-    <!-- Not signed in -->
     <div id="notSignedIn" style="display:none;text-align:center;padding:60px 20px;max-width:420px;margin:0 auto;">
       <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#22d3ee);color:#fff;display:grid;place-items:center;margin:0 auto 20px;">
         <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>
@@ -67,10 +66,7 @@
       <a class="btn btn-primary btn-lg" href="login.html?redirect=account.html">Sign In</a>
     </div>
 
-    <!-- Signed in dashboard -->
     <div id="signedIn" style="display:none;">
-
-      <!-- Header bar -->
       <div class="account-header">
         <div class="account-avatar" id="accountAvatar">A</div>
         <div class="account-info">
@@ -80,19 +76,16 @@
         <button class="btn btn-outline" id="signOutBtn">Sign Out</button>
       </div>
 
-      <!-- Tabs -->
       <div class="account-tabs">
         <button class="account-tab active" data-tab="orders">My Orders</button>
         <button class="account-tab" data-tab="profile">Profile</button>
       </div>
 
-      <!-- Orders tab -->
       <section class="account-panel" id="panel-orders">
         <div id="ordersLoading" style="text-align:center;padding:40px;color:#64748b;">Loading orders...</div>
         <div id="ordersList"></div>
       </section>
 
-      <!-- Profile tab -->
       <section class="account-panel" id="panel-profile" style="display:none;">
         <div class="admin-card" style="padding:26px;">
           <h2 style="font-size:1.05rem;margin-bottom:20px;color:#0a2540;">Your Profile</h2>
@@ -167,7 +160,6 @@
       <h3>Contact</h3>
       <ul>
         <li><a href="mailto:thegimpzzstore@gmail.com">thegimpzzstore@gmail.com</a></li>
-        <li><a href="https://wa.me/917061086068" target="_blank" rel="noopener">+91 7061086068</a></li>
       </ul>
     </div>
   </div>
@@ -218,7 +210,6 @@ function statusPill(status) {
 
 let currentUser = null;
 
-// Tab switching
 document.querySelectorAll('.account-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.account-tab').forEach(t => t.classList.remove('active'));
@@ -229,14 +220,12 @@ document.querySelectorAll('.account-tab').forEach(tab => {
   });
 });
 
-// Sign out
 $('signOutBtn').addEventListener('click', async () => {
   await signOut(auth);
   localStorage.removeItem('gimpz_user');
   window.location.href = 'index.html';
 });
 
-// Load orders
 async function loadOrders(uid) {
   $('ordersLoading').style.display = 'block';
   $('ordersList').innerHTML = '';
@@ -253,7 +242,6 @@ async function loadOrders(uid) {
       return;
     }
 
-    // For each order, fetch items
     let html = '';
     for (const o of orders) {
       const ir = await fetch(SB_URL + '/rest/v1/order_items?order_id=eq.' + o.id + '&order=id.asc', {
@@ -294,7 +282,6 @@ async function loadOrders(uid) {
   }
 }
 
-// Load profile
 async function loadProfile(uid) {
   try {
     const r = await fetch(SB_URL + '/rest/v1/profiles?id=eq.' + encodeURIComponent(uid) + '&select=*', {
@@ -315,7 +302,6 @@ async function loadProfile(uid) {
   }
 }
 
-// Save profile
 $('profileForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = $('saveProfileBtn');
@@ -357,14 +343,12 @@ $('profileForm').addEventListener('submit', async (e) => {
   btn.textContent = 'Save Profile';
 });
 
-// Auth state
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   if (user && user.emailVerified) {
     $('notSignedIn').style.display = 'none';
     $('signedIn').style.display = 'block';
 
-    // Store user in localStorage for cart/checkout
     localStorage.setItem('gimpz_user', JSON.stringify({
       uid: user.uid,
       email: user.email
