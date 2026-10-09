@@ -582,3 +582,54 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
   .info-table th,.info-table td{padding:10px 8px;font-size:.82rem}
   .info-actions .btn{flex:1;min-width:0}
 }
+/* ============================================================
+   TRACK ORDER FORM + CONTACT PAGE
+   ============================================================ */
+.track-form{display:flex;flex-direction:column;gap:14px;max-width:480px;margin:18px 0 16px}
+.track-note{
+  font-size:.82rem;color:var(--muted);
+  background:#f8fbff;border:1px solid #dbeafe;
+  border-radius:9px;padding:11px 14px;line-height:1.55;
+}
+
+/* Contact page: form + info side by side */
+.contact-page-grid{
+  display:grid;grid-template-columns:1.4fr 1fr;gap:22px;align-items:start;
+}
+.contact-page-form,
+.contact-page-info{
+  background:#fff;border-radius:12px;padding:26px;
+  border:1px solid var(--line);
+}
+.contact-page-form h2,
+.contact-page-info h2{
+  font-size:1.15rem;color:var(--navy);margin-bottom:8px;
+}
+.contact-page-form p,
+.contact-page-info > p{color:var(--slate);font-size:.9rem;line-height:1.6;margin-bottom:18px}
+.contact-page-form .checkout-form{margin-top:18px}
+
+.contact-channel{
+  display:flex;gap:14px;padding:16px 0;
+  border-bottom:1px solid var(--line);
+}
+.contact-channel:last-child{border-bottom:0;padding-bottom:0}
+.contact-channel:first-of-type{padding-top:0}
+.contact-channel-icon{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(34,211,238,.12));
+  display:grid;place-items:center;font-size:1.4rem;
+}
+.contact-channel strong{display:block;font-size:.9rem;color:var(--navy);margin-bottom:3px}
+.contact-channel p{font-size:.8rem;color:var(--muted);margin-bottom:6px;line-height:1.5}
+.contact-channel a{color:var(--blue);font-size:.85rem;font-weight:600;word-break:break-all}
+.contact-channel a:hover{text-decoration:underline}
+.contact-channel span{color:var(--slate);font-size:.85rem}
+
+@media (max-width:900px){
+  .contact-page-grid{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .contact-page-form,
+  .contact-page-info{padding:20px}
+}
