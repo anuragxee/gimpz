@@ -622,3 +622,47 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
 }
+/* ============================================================
+   PRODUCT IMAGE GALLERY
+   ============================================================ */
+.pd-gallery{display:flex;flex-direction:column;gap:12px}
+
+.pd-image{
+  position:relative;
+  aspect-ratio:1/1;border-radius:14px;
+  background:linear-gradient(160deg,#eef2ff 0%,#e0e7ff 100%);
+  display:grid;place-items:center;padding:32px;
+  overflow:hidden;
+}
+.pd-image img{width:100%;height:100%;object-fit:contain;transition:opacity .25s ease}
+.pd-img-count{
+  position:absolute;top:12px;right:12px;
+  background:rgba(10,37,64,.85);color:#fff;
+  font-size:.7rem;font-weight:600;
+  padding:4px 10px;border-radius:999px;
+  backdrop-filter:blur(6px);
+}
+
+.pd-thumbs{
+  display:flex;gap:10px;overflow-x:auto;
+  padding:4px 0 6px;scrollbar-width:thin;
+}
+.pd-thumbs::-webkit-scrollbar{height:6px}
+.pd-thumbs::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+
+.pd-thumb{
+  width:72px;height:72px;flex-shrink:0;
+  border-radius:10px;overflow:hidden;
+  border:2px solid transparent;
+  background:#f1f5f9;
+  padding:6px;cursor:pointer;
+  transition:.2s;
+}
+.pd-thumb img{width:100%;height:100%;object-fit:contain;display:block}
+.pd-thumb:hover{border-color:#bfdbfe}
+.pd-thumb.active{border-color:#2563eb;box-shadow:0 4px 12px rgba(37,99,235,.25)}
+
+@media (max-width:640px){
+  .pd-image{padding:20px}
+  .pd-thumb{width:60px;height:60px}
+}
