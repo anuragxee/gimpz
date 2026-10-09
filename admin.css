@@ -638,3 +638,8 @@
 @media (max-width:900px){
   .admin-menu-toggle{display:grid;place-items:center}
 }
+/* ============================================================
+   ORDER DETAILS MODAL
+   ============================================================ */
+#orderModalBody strong{font-weight:700}
+#orderModalBody small{font-size:.76rem}
