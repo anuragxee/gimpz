@@ -15,38 +15,28 @@
 </head>
 <body class="admin-body">
 
-<!-- ===================== LOGIN ===================== -->
+<!-- LOGIN -->
 <div id="loginScreen" class="admin-login">
   <div class="login-card">
     <div class="login-logo"><span class="logo-mark">G</span></div>
     <h1>Admin Login</h1>
     <p class="login-sub">Sign in to manage GIMPZ</p>
     <form id="loginForm">
-      <div class="admin-field">
-        <label for="adminEmail">Email</label>
-        <input type="email" id="adminEmail" placeholder="admin@example.com" autocomplete="username" required>
-      </div>
-      <div class="admin-field">
-        <label for="adminPassword">Password</label>
-        <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password" required>
-      </div>
+      <div class="admin-field"><label for="adminEmail">Email</label><input type="email" id="adminEmail" placeholder="admin@example.com" autocomplete="username" required></div>
+      <div class="admin-field"><label for="adminPassword">Password</label><input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password" required></div>
       <button type="submit" class="btn btn-primary btn-lg btn-block" id="loginBtn">Sign In</button>
       <p class="login-status" id="loginStatus"></p>
     </form>
   </div>
 </div>
 
-<!-- ===================== DASHBOARD ===================== -->
+<!-- DASHBOARD -->
 <div id="dashboard" class="admin-dashboard" style="display:none;">
 
-  <!-- Sidebar -->
   <aside class="admin-sidebar" id="adminSidebar">
     <div class="admin-brand">
       <span class="logo-mark">G</span>
-      <div>
-        <strong>GIMPZ</strong>
-        <span>Admin Panel</span>
-      </div>
+      <div><strong>GIMPZ</strong><span>Admin Panel</span></div>
     </div>
 
     <nav class="admin-nav">
@@ -80,6 +70,18 @@
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
         Analytics
       </button>
+      <button class="admin-nav-btn" data-tab="marketing">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6L12 13L2 6"/><rect x="2" y="5" width="20" height="14" rx="2"/></svg>
+        Marketing
+      </button>
+      <button class="admin-nav-btn" data-tab="staff">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        Staff
+      </button>
+      <button class="admin-nav-btn" data-tab="activity">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Activity Log
+      </button>
     </nav>
 
     <div class="admin-sidebar-footer">
@@ -97,7 +99,6 @@
     </div>
   </aside>
 
-  <!-- Main -->
   <main class="admin-main">
     <header class="admin-topbar">
       <button class="admin-menu-toggle" id="menuToggle" aria-label="Menu">
@@ -112,204 +113,160 @@
       </div>
     </header>
 
-    <!-- ========== OVERVIEW ========== -->
+    <!-- OVERVIEW -->
     <section class="admin-tab" id="tab-overview">
       <div class="stats-grid-admin">
-        <div class="stat-card">
-          <div class="stat-icon blue"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
-          <div><span class="stat-label-admin">Total Products</span><strong class="stat-value" id="statProducts">—</strong></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon green"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div>
-          <div><span class="stat-label-admin">Total Orders</span><strong class="stat-value" id="statOrders">—</strong></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon orange"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-          <div><span class="stat-label-admin">Total Revenue</span><strong class="stat-value" id="statRevenue">—</strong></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon purple"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
-          <div><span class="stat-label-admin">Pending Orders</span><strong class="stat-value" id="statPending">—</strong></div>
-        </div>
+        <div class="stat-card"><div class="stat-icon blue"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div><span class="stat-label-admin">Total Products</span><strong class="stat-value" id="statProducts">—</strong></div></div>
+        <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div><div><span class="stat-label-admin">Total Orders</span><strong class="stat-value" id="statOrders">—</strong></div></div>
+        <div class="stat-card"><div class="stat-icon orange"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div><span class="stat-label-admin">Total Revenue</span><strong class="stat-value" id="statRevenue">—</strong></div></div>
+        <div class="stat-card"><div class="stat-icon purple"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div><span class="stat-label-admin">Pending Orders</span><strong class="stat-value" id="statPending">—</strong></div></div>
       </div>
-
       <div class="admin-card">
-        <div class="admin-card-head">
-          <h2>Recent Orders</h2>
-          <button class="admin-btn-sm" data-goto="orders">View All</button>
-        </div>
+        <div class="admin-card-head"><h2>Recent Orders</h2><button class="admin-btn-sm" data-goto="orders">View All</button></div>
         <div id="recentOrders" class="recent-orders"><p class="admin-empty">Loading...</p></div>
       </div>
-
       <div class="admin-card" id="stockAlertsCard" style="display:none;">
-        <div class="admin-card-head">
-          <h2 style="color:#dc2626;">⚠️ Low Stock Alert</h2>
-          <button class="admin-btn-sm" data-goto="products">Manage</button>
-        </div>
+        <div class="admin-card-head"><h2 style="color:#dc2626;">⚠️ Low Stock Alert</h2><button class="admin-btn-sm" data-goto="products">Manage</button></div>
         <div id="stockAlertsList" class="recent-orders"></div>
       </div>
     </section>
 
-    <!-- ========== PRODUCTS ========== -->
+    <!-- PRODUCTS -->
     <section class="admin-tab" id="tab-products" style="display:none;">
       <div class="admin-card">
         <div class="admin-card-head">
           <h2>All Products</h2>
-          <button class="btn btn-primary admin-btn-sm" id="addProductBtn">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            Add Product
-          </button>
+          <button class="btn btn-primary admin-btn-sm" id="addProductBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
         </div>
         <div class="admin-table-wrap">
-          <table class="admin-table" id="productsTable">
-            <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th style="text-align:right;">Actions</th></tr></thead>
-            <tbody id="productsBody"><tr><td colspan="6" class="admin-empty">Loading products...</td></tr></tbody>
-          </table>
+          <table class="admin-table"><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="productsBody"><tr><td colspan="6" class="admin-empty">Loading products...</td></tr></tbody></table>
         </div>
       </div>
     </section>
 
-    <!-- ========== ORDERS ========== -->
+    <!-- ORDERS -->
     <section class="admin-tab" id="tab-orders" style="display:none;">
       <div class="admin-card">
-        <div class="admin-card-head">
-          <h2>All Orders</h2>
-          <button class="admin-btn-sm" id="refreshOrdersBtn">Refresh</button>
-        </div>
+        <div class="admin-card-head"><h2>All Orders</h2><button class="admin-btn-sm" id="refreshOrdersBtn">Refresh</button></div>
         <div class="admin-order-filters">
-          <div class="admin-search-input">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
-            <input type="text" id="orderSearch" placeholder="Search order #, name, phone, email...">
-          </div>
+          <div class="admin-search-input"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><input type="text" id="orderSearch" placeholder="Search order #, name, phone, email..."></div>
           <select id="orderStatusFilter" class="admin-filter-select">
-            <option value="">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Shipped">Shipped</option>
-            <option value="Delivered">Delivered</option>
-            <option value="Cancelled">Cancelled</option>
+            <option value="">All Status</option><option value="Pending">Pending</option><option value="Shipped">Shipped</option><option value="Delivered">Delivered</option><option value="Cancelled">Cancelled</option>
           </select>
           <select id="orderRegFilter" class="admin-filter-select">
-            <option value="">All Users</option>
-            <option value="registered">Registered</option>
-            <option value="guest">Guest</option>
+            <option value="">All Users</option><option value="registered">Registered</option><option value="guest">Guest</option>
           </select>
         </div>
         <div class="admin-table-wrap">
-          <table class="admin-table" id="ordersTable">
-            <thead><tr><th>Order #</th><th>Customer</th><th>Phone</th><th>Total</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead>
-            <tbody id="ordersBody"><tr><td colspan="6" class="admin-empty">Loading orders...</td></tr></tbody>
-          </table>
+          <table class="admin-table"><thead><tr><th>Order #</th><th>Customer</th><th>Phone</th><th>Total</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="ordersBody"><tr><td colspan="6" class="admin-empty">Loading orders...</td></tr></tbody></table>
         </div>
       </div>
     </section>
 
-    <!-- ========== CUSTOMERS ========== -->
+    <!-- CUSTOMERS -->
     <section class="admin-tab" id="tab-customers" style="display:none;">
       <div class="admin-card">
-        <div class="admin-card-head">
-          <h2>Registered Customers</h2>
-          <button class="admin-btn-sm" id="refreshCustomersBtn">Refresh</button>
-        </div>
+        <div class="admin-card-head"><h2>Registered Customers</h2><button class="admin-btn-sm" id="refreshCustomersBtn">Refresh</button></div>
         <div class="admin-order-filters">
-          <div class="admin-search-input">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
-            <input type="text" id="customerSearch" placeholder="Search name, email, phone...">
+          <div class="admin-search-input"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><input type="text" id="customerSearch" placeholder="Search name, email, phone..."></div>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table"><thead><tr><th>Customer</th><th>Phone</th><th>Orders</th><th>Total Spent</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="customersBody"><tr><td colspan="5" class="admin-empty">Loading customers...</td></tr></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section class="admin-tab" id="tab-categories" style="display:none;">
+      <div class="admin-card">
+        <div class="admin-card-head"><h2>Categories</h2><button class="btn btn-primary admin-btn-sm" id="addCategoryBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Category</button></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table"><thead><tr><th>Icon</th><th>Name</th><th>Slug</th><th>Order</th><th>Active</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="categoriesBody"><tr><td colspan="6" class="admin-empty">Loading categories...</td></tr></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- COUPONS -->
+    <section class="admin-tab" id="tab-coupons" style="display:none;">
+      <div class="admin-card">
+        <div class="admin-card-head"><h2>Coupon Codes</h2><button class="btn btn-primary admin-btn-sm" id="addCouponBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Create Coupon</button></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table"><thead><tr><th>Code</th><th>Discount</th><th>Min Order</th><th>Uses</th><th>Expires</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="couponsBody"><tr><td colspan="7" class="admin-empty">Loading coupons...</td></tr></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANALYTICS -->
+    <section class="admin-tab" id="tab-analytics" style="display:none;">
+      <div class="stats-grid-admin">
+        <div class="stat-card"><div class="stat-icon blue"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg></div><div><span class="stat-label-admin">Today's Revenue</span><strong class="stat-value" id="anaTodayRevenue">—</strong></div></div>
+        <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><div><span class="stat-label-admin">This Month</span><strong class="stat-value" id="anaMonthRevenue">—</strong></div></div>
+        <div class="stat-card"><div class="stat-icon orange"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div><span class="stat-label-admin">Avg Order Value</span><strong class="stat-value" id="anaAvgOrder">—</strong></div></div>
+        <div class="stat-card"><div class="stat-icon purple"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div><span class="stat-label-admin">Repeat Customers</span><strong class="stat-value" id="anaRepeat">—</strong></div></div>
+      </div>
+      <div class="admin-card"><div class="admin-card-head"><h2>Last 14 Days — Orders &amp; Revenue</h2></div><div id="chartDaily" class="admin-chart"></div></div>
+      <div class="admin-card"><div class="admin-card-head"><h2>Revenue by Category</h2></div><div id="chartCategories" class="admin-chart"></div></div>
+      <div class="admin-card"><div class="admin-card-head"><h2>Top Selling Products</h2></div><div id="topProductsList" class="recent-orders"><p class="admin-empty">Loading...</p></div></div>
+    </section>
+
+    <!-- MARKETING -->
+    <section class="admin-tab" id="tab-marketing" style="display:none;">
+      <div class="admin-card">
+        <div class="admin-card-head"><h2>Marketing Lists</h2><button class="btn btn-primary admin-btn-sm" id="addListBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New List</button></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table"><thead><tr><th>List Name</th><th>Recipients</th><th>Created</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="marketingBody"><tr><td colspan="4" class="admin-empty">Loading...</td></tr></tbody></table>
+        </div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-head"><h2>All Customer Emails</h2><button class="admin-btn-sm" id="copyAllEmailsBtn">Copy All</button></div>
+        <div id="allEmailsList" style="padding:16px 22px;font-size:.85rem;line-height:1.8;color:#475569;max-height:400px;overflow-y:auto;"><p class="admin-empty">Loading...</p></div>
+      </div>
+    </section>
+
+    <!-- STAFF -->
+    <section class="admin-tab" id="tab-staff" style="display:none;">
+      <div class="admin-card">
+        <div class="admin-card-head"><h2>Admin Users</h2><button class="btn btn-primary admin-btn-sm" id="addStaffBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Staff</button></div>
+        <div style="padding:16px 22px;background:#fafbfd;border-bottom:1px solid #e2e8f0;">
+          <p style="margin:0;font-size:.82rem;color:#64748b;">ⓘ Only emails in this list can log in to the admin panel. Create the user in <b>Supabase → Authentication → Users</b> first.</p>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="staffBody"><tr><td colspan="5" class="admin-empty">Loading...</td></tr></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACTIVITY -->
+    <section class="admin-tab" id="tab-activity" style="display:none;">
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <h2>Activity Log</h2>
+          <div style="display:flex;gap:8px;">
+            <select id="activityFilter" class="admin-filter-select">
+              <option value="">All Actions</option>
+              <option value="product_add">Product Added</option>
+              <option value="product_edit">Product Edited</option>
+              <option value="product_delete">Product Deleted</option>
+              <option value="order_status">Order Status</option>
+              <option value="coupon_add">Coupon Added</option>
+              <option value="category_add">Category Added</option>
+            </select>
+            <button class="admin-btn-sm" id="refreshActivityBtn">Refresh</button>
           </div>
         </div>
         <div class="admin-table-wrap">
-          <table class="admin-table" id="customersTable">
-            <thead><tr><th>Customer</th><th>Phone</th><th>Orders</th><th>Total Spent</th><th style="text-align:right;">Actions</th></tr></thead>
-            <tbody id="customersBody"><tr><td colspan="5" class="admin-empty">Loading customers...</td></tr></tbody>
-          </table>
+          <table class="admin-table"><thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Details</th></tr></thead><tbody id="activityBody"><tr><td colspan="4" class="admin-empty">Loading...</td></tr></tbody></table>
         </div>
-      </div>
-    </section>
-
-    <!-- ========== CATEGORIES ========== -->
-    <section class="admin-tab" id="tab-categories" style="display:none;">
-      <div class="admin-card">
-        <div class="admin-card-head">
-          <h2>Categories</h2>
-          <button class="btn btn-primary admin-btn-sm" id="addCategoryBtn">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            Add Category
-          </button>
-        </div>
-        <div class="admin-table-wrap">
-          <table class="admin-table" id="categoriesTable">
-            <thead><tr><th>Icon</th><th>Name</th><th>Slug</th><th>Order</th><th>Active</th><th style="text-align:right;">Actions</th></tr></thead>
-            <tbody id="categoriesBody"><tr><td colspan="6" class="admin-empty">Loading categories...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========== COUPONS ========== -->
-    <section class="admin-tab" id="tab-coupons" style="display:none;">
-      <div class="admin-card">
-        <div class="admin-card-head">
-          <h2>Coupon Codes</h2>
-          <button class="btn btn-primary admin-btn-sm" id="addCouponBtn">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            Create Coupon
-          </button>
-        </div>
-        <div class="admin-table-wrap">
-          <table class="admin-table" id="couponsTable">
-            <thead><tr><th>Code</th><th>Discount</th><th>Min Order</th><th>Uses</th><th>Expires</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead>
-            <tbody id="couponsBody"><tr><td colspan="7" class="admin-empty">Loading coupons...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========== ANALYTICS ========== -->
-    <section class="admin-tab" id="tab-analytics" style="display:none;">
-      <div class="stats-grid-admin">
-        <div class="stat-card">
-          <div class="stat-icon blue"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg></div>
-          <div><span class="stat-label-admin">Today's Revenue</span><strong class="stat-value" id="anaTodayRevenue">—</strong></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon green"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
-          <div><span class="stat-label-admin">This Month</span><strong class="stat-value" id="anaMonthRevenue">—</strong></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon orange"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-          <div><span class="stat-label-admin">Avg Order Value</span><strong class="stat-value" id="anaAvgOrder">—</strong></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon purple"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
-          <div><span class="stat-label-admin">Repeat Customers</span><strong class="stat-value" id="anaRepeat">—</strong></div>
-        </div>
-      </div>
-
-      <div class="admin-card">
-        <div class="admin-card-head"><h2>Last 14 Days — Orders &amp; Revenue</h2></div>
-        <div id="chartDaily" class="admin-chart"></div>
-      </div>
-
-      <div class="admin-card">
-        <div class="admin-card-head"><h2>Revenue by Category</h2></div>
-        <div id="chartCategories" class="admin-chart"></div>
-      </div>
-
-      <div class="admin-card">
-        <div class="admin-card-head"><h2>Top Selling Products</h2></div>
-        <div id="topProductsList" class="recent-orders"><p class="admin-empty">Loading...</p></div>
       </div>
     </section>
 
   </main>
 </div>
 
-<!-- ===================== PRODUCT MODAL ===================== -->
+<!-- PRODUCT MODAL -->
 <div class="admin-modal" id="productModal">
   <div class="admin-modal-inner">
-    <div class="admin-modal-head">
-      <h2 id="modalTitle">Add Product</h2>
-      <button class="modal-close" id="modalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    </div>
+    <div class="admin-modal-head"><h2 id="modalTitle">Add Product</h2><button class="modal-close" id="modalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
     <form id="productForm" class="admin-form">
       <input type="hidden" id="pf-id">
       <div class="admin-form-row">
@@ -317,10 +274,7 @@
         <div class="admin-field"><label for="pf-brand">Brand *</label><input type="text" id="pf-brand" required></div>
       </div>
       <div class="admin-form-row">
-        <div class="admin-field">
-          <label for="pf-category">Category *</label>
-          <select id="pf-category" required><option value="">Choose category</option></select>
-        </div>
+        <div class="admin-field"><label for="pf-category">Category *</label><select id="pf-category" required><option value="">Choose category</option></select></div>
         <div class="admin-field"><label for="pf-stock">Stock *</label><input type="number" id="pf-stock" min="0" required></div>
       </div>
       <div class="admin-form-row">
@@ -339,7 +293,7 @@
           <div class="upload-inner">
             <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
             <span>Click to upload images</span>
-            <small>They'll be named 1.jpg, 2.jpg...</small>
+            <small>Named 1.jpg, 2.jpg...</small>
           </div>
         </div>
         <div class="upload-preview" id="uploadPreview"></div>
@@ -353,101 +307,122 @@
   </div>
 </div>
 
-<!-- ===================== ORDER MODAL ===================== -->
+<!-- ORDER MODAL -->
 <div class="admin-modal" id="orderModal">
   <div class="admin-modal-inner" style="max-width:560px;">
-    <div class="admin-modal-head">
-      <h2 id="orderModalTitle">Order Details</h2>
-      <button class="modal-close" id="orderModalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    </div>
+    <div class="admin-modal-head"><h2 id="orderModalTitle">Order Details</h2><button class="modal-close" id="orderModalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
     <div id="orderModalBody" style="padding:20px 26px 26px;"></div>
   </div>
 </div>
 
-<!-- ===================== CATEGORY MODAL ===================== -->
+<!-- CATEGORY MODAL -->
 <div class="admin-modal" id="categoryModal">
   <div class="admin-modal-inner" style="max-width:480px;">
-    <div class="admin-modal-head">
-      <h2 id="categoryModalTitle">Add Category</h2>
-      <button class="modal-close" id="categoryModalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    </div>
+    <div class="admin-modal-head"><h2 id="categoryModalTitle">Add Category</h2><button class="modal-close" id="categoryModalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
     <form id="categoryForm" class="admin-form">
       <input type="hidden" id="cat-id">
       <div class="admin-form-row">
-        <div class="admin-field"><label for="cat-name">Category Name *</label><input type="text" id="cat-name" placeholder="Electronics" required></div>
-        <div class="admin-field"><label for="cat-icon">Icon (emoji)</label><input type="text" id="cat-icon" placeholder="📱" maxlength="4"></div>
+        <div class="admin-field"><label for="cat-name">Category Name *</label><input type="text" id="cat-name" required></div>
+        <div class="admin-field"><label for="cat-icon">Icon (emoji)</label><input type="text" id="cat-icon" maxlength="4" placeholder="📱"></div>
       </div>
       <div class="admin-form-row">
-        <div class="admin-field"><label for="cat-slug">Slug *</label><input type="text" id="cat-slug" placeholder="electronics" pattern="[a-z0-9\-]+" required><small>Lowercase, dashes only</small></div>
-        <div class="admin-field"><label for="cat-order">Display Order</label><input type="number" id="cat-order" placeholder="1" min="0" value="0"></div>
+        <div class="admin-field"><label for="cat-slug">Slug *</label><input type="text" id="cat-slug" pattern="[a-z0-9\-]+" required><small>Lowercase, dashes only</small></div>
+        <div class="admin-field"><label for="cat-order">Display Order</label><input type="number" id="cat-order" min="0" value="0"></div>
       </div>
-      <div class="admin-field">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-          <input type="checkbox" id="cat-active" checked style="width:auto;">
-          Active (visible on store)
-        </label>
-      </div>
+      <div class="admin-field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cat-active" checked style="width:auto;">Active</label></div>
       <div class="admin-form-actions">
         <button type="button" class="admin-btn-ghost" id="cancelCategoryBtn">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="saveCategoryBtn">Save Category</button>
+        <button type="submit" class="btn btn-primary" id="saveCategoryBtn">Save</button>
       </div>
       <p class="admin-form-status" id="categoryStatus"></p>
     </form>
   </div>
 </div>
 
-<!-- ===================== COUPON MODAL ===================== -->
+<!-- COUPON MODAL -->
 <div class="admin-modal" id="couponModal">
   <div class="admin-modal-inner" style="max-width:480px;">
-    <div class="admin-modal-head">
-      <h2 id="couponModalTitle">Create Coupon</h2>
-      <button class="modal-close" id="couponModalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    </div>
+    <div class="admin-modal-head"><h2 id="couponModalTitle">Create Coupon</h2><button class="modal-close" id="couponModalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
     <form id="couponForm" class="admin-form">
       <input type="hidden" id="cpn-id">
-      <div class="admin-field"><label for="cpn-code">Coupon Code *</label><input type="text" id="cpn-code" placeholder="SAVE10" style="text-transform:uppercase;" required><small>Letters and numbers only</small></div>
+      <div class="admin-field"><label for="cpn-code">Coupon Code *</label><input type="text" id="cpn-code" placeholder="SAVE10" style="text-transform:uppercase;" required></div>
       <div class="admin-form-row">
-        <div class="admin-field">
-          <label for="cpn-type">Discount Type *</label>
-          <select id="cpn-type" required>
-            <option value="percent">Percentage (%)</option>
-            <option value="flat">Flat (₹)</option>
-          </select>
-        </div>
-        <div class="admin-field"><label for="cpn-value">Discount Value *</label><input type="number" id="cpn-value" placeholder="10" min="1" required></div>
+        <div class="admin-field"><label for="cpn-type">Discount Type *</label><select id="cpn-type" required><option value="percent">Percentage (%)</option><option value="flat">Flat (₹)</option></select></div>
+        <div class="admin-field"><label for="cpn-value">Discount Value *</label><input type="number" id="cpn-value" min="1" required></div>
       </div>
       <div class="admin-form-row">
-        <div class="admin-field"><label for="cpn-min">Minimum Order (₹)</label><input type="number" id="cpn-min" placeholder="0" min="0" value="0"></div>
-        <div class="admin-field"><label for="cpn-max">Max Uses (blank = unlimited)</label><input type="number" id="cpn-max" placeholder="" min="1"></div>
+        <div class="admin-field"><label for="cpn-min">Min Order (₹)</label><input type="number" id="cpn-min" min="0" value="0"></div>
+        <div class="admin-field"><label for="cpn-max">Max Uses</label><input type="number" id="cpn-max" min="1" placeholder="unlimited"></div>
       </div>
-      <div class="admin-field"><label for="cpn-expires">Expires On (blank = never)</label><input type="date" id="cpn-expires"></div>
-      <div class="admin-field">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-          <input type="checkbox" id="cpn-active" checked style="width:auto;">
-          Active
-        </label>
-      </div>
+      <div class="admin-field"><label for="cpn-expires">Expires On</label><input type="date" id="cpn-expires"></div>
+      <div class="admin-field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpn-active" checked style="width:auto;">Active</label></div>
       <div class="admin-form-actions">
         <button type="button" class="admin-btn-ghost" id="cancelCouponBtn">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="saveCouponBtn">Save Coupon</button>
+        <button type="submit" class="btn btn-primary" id="saveCouponBtn">Save</button>
       </div>
       <p class="admin-form-status" id="couponStatus"></p>
     </form>
   </div>
 </div>
 
-<!-- ===================== PRINT INVOICE ===================== -->
+<!-- INVOICE MODAL -->
 <div class="admin-modal" id="invoiceModal">
   <div class="admin-modal-inner" style="max-width:720px;">
-    <div class="admin-modal-head">
-      <h2>Invoice</h2>
-      <button class="modal-close" id="invoiceModalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    </div>
+    <div class="admin-modal-head"><h2>Invoice</h2><button class="modal-close" id="invoiceModalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
     <div id="invoiceBody" style="padding:26px;"></div>
     <div style="padding:0 26px 26px;display:flex;gap:10px;justify-content:flex-end;">
       <button class="admin-btn-ghost" id="invoiceCancelBtn">Close</button>
       <button class="btn btn-primary" id="invoicePrintBtn">Print</button>
     </div>
+  </div>
+</div>
+
+<!-- MARKETING LIST MODAL -->
+<div class="admin-modal" id="listModal">
+  <div class="admin-modal-inner" style="max-width:520px;">
+    <div class="admin-modal-head"><h2 id="listModalTitle">New Marketing List</h2><button class="modal-close" id="listModalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <form id="listForm" class="admin-form">
+      <input type="hidden" id="list-id">
+      <div class="admin-field"><label for="list-name">List Name *</label><input type="text" id="list-name" placeholder="VIP Customers" required></div>
+      <div class="admin-field">
+        <label for="list-emails">Emails (one per line or comma-separated)</label>
+        <textarea id="list-emails" rows="8" placeholder="customer1@example.com&#10;customer2@example.com" required></textarea>
+        <small id="list-email-count" style="color:#64748b;">0 emails</small>
+      </div>
+      <div class="admin-field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="list-autofill" style="width:auto;">Auto-fill with all registered customer emails</label></div>
+      <div class="admin-form-actions">
+        <button type="button" class="admin-btn-ghost" id="cancelListBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveListBtn">Save</button>
+      </div>
+      <p class="admin-form-status" id="listStatus"></p>
+    </form>
+  </div>
+</div>
+
+<!-- STAFF MODAL -->
+<div class="admin-modal" id="staffModal">
+  <div class="admin-modal-inner" style="max-width:480px;">
+    <div class="admin-modal-head"><h2 id="staffModalTitle">Add Staff</h2><button class="modal-close" id="staffModalClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <form id="staffForm" class="admin-form">
+      <input type="hidden" id="staff-id">
+      <div class="admin-field"><label for="staff-name">Name *</label><input type="text" id="staff-name" required></div>
+      <div class="admin-field"><label for="staff-email">Email *</label><input type="email" id="staff-email" required><small>Must exist in Supabase → Authentication → Users</small></div>
+      <div class="admin-field">
+        <label for="staff-role">Role</label>
+        <select id="staff-role">
+          <option value="admin">Admin (full access)</option>
+          <option value="manager">Manager (no delete)</option>
+          <option value="viewer">Viewer (read-only)</option>
+          <option value="owner">Owner</option>
+        </select>
+      </div>
+      <div class="admin-field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="staff-active" checked style="width:auto;">Active</label></div>
+      <div class="admin-form-actions">
+        <button type="button" class="admin-btn-ghost" id="cancelStaffBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveStaffBtn">Save</button>
+      </div>
+      <p class="admin-form-status" id="staffStatus"></p>
+    </form>
   </div>
 </div>
 
