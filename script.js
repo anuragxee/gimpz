@@ -449,3 +449,34 @@
   }
 
 })();
+
+/* ============================================================
+   SMOOTH SCROLL FOR SAME-PAGE ANCHOR LINKS
+   ============================================================ */
+(function () {
+  'use strict';
+
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('a[href*="index.html#"]');
+    if (!link) return;
+
+    var path = window.location.pathname;
+    var isHome = path === '/' ||
+                 path.endsWith('/') ||
+                 path.endsWith('index.html') ||
+                 path.indexOf('index.html') !== -1;
+    if (!isHome) return;
+
+    var href = link.getAttribute('href');
+    var hash = href.split('#')[1];
+    if (!hash) return;
+
+    var target = document.getElementById(hash);
+    if (!target) return;
+
+    e.preventDefault();
+    var top = target.getBoundingClientRect().top + window.pageYOffset - 90;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+    history.pushState(null, '', '#' + hash);
+  });
+})();
