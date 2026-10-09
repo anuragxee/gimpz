@@ -76,14 +76,16 @@
         <div class="products-sort">
           <label for="sortSelect">Sort by:</label>
           <select id="sortSelect">
-            <option value="popular">Popular</option>
+            <option value="newest">Newest First</option>
             <option value="price-asc">Price: Low to High</option>
             <option value="price-desc">Price: High to Low</option>
             <option value="rating">Highest Rated</option>
           </select>
         </div>
       </div>
-      <div class="product-grid" id="productGrid"></div>
+      <div class="product-grid" id="productGrid">
+        <div class="no-products">Loading products…</div>
+      </div>
     </section>
 
     <section class="info-section" style="margin-top:28px">
@@ -142,46 +144,207 @@
   </div>
 </footer>
 
-<script src="products.js"></script>
-<script src="script.js"></script>
 <script>
+(function () {
+  'use strict';
+
+  var SUPABASE_URL = 'https://qyzevydprpkjslnesrxq.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5emV2eWRwcnBranNsbmVzcnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTk2NDksImV4cCI6MjEwNzA5NTY0OX0.BE-ijSGGNmkQjaeSZ8RX6mQGMW5dY2Y2Gzj9vitRK0g';
+
+  var products = [];
+  var currentSort = 'newest';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function fmtPrice(n) {
+    return '₹' + Number(n || 0).toLocaleString('en-IN');
+  }
+
+  function getCoverImage(p) {
+    if (p && p.image_folder) return 'assets/products/' + p.image_folder + '/1.jpg';
+    return 'assets/products/placeholder.svg';
+  }
+
+  function cardHtml(p) {
+    var discount = p.mrp > p.price
+      ? Math.round(((p.mrp - p.price) / p.mrp) * 100)
+      : 0;
+    var cover = getCoverImage(p);
+    var rating = (typeof p.rating === 'number') ? p.rating : parseFloat(p.rating || 4.5);
+
+    return '<article class="product-card">' +
+      '<a class="product-card-link" href="product.html?id=' + p.id + '">' +
+        '<div class="product-card-thumb">' +
+          '<img src="' + cover + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.onerror=null;this.src=\'assets/products/placeholder.svg\'">' +
+          (discount > 0 ? '<span class="discount-tag">' + discount + '% OFF</span>' : '') +
+        '</div>' +
+        '<div class="product-card-body">' +
+          '<span class="product-brand">' + esc(p.brand) + '</span>' +
+          '<h3 class="product-name">' + esc(p.name) + '</h3>' +
+          '<div class="product-rating"><span class="rating-pill">' + rating.toFixed(1) + ' ★</span></div>' +
+          '<div class="product-price-row">' +
+            '<span class="price">' + fmtPrice(p.price) + '</span>' +
+            (p.mrp > p.price ? '<span class="mrp">' + fmtPrice(p.mrp) + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+      '</a>' +
+      '<button class="add-cart-btn" data-id="' + p.id + '">Add to Cart</button>' +
+    '</article>';
+  }
+
+  function render(list) {
+    var grid = document.getElementById('productGrid');
+    var countEl = document.getElementById('productsCount');
+    if (!grid) return;
+
+    if (!list || !list.length) {
+      grid.innerHTML = '<div class="no-products">No products found.</div>';
+      if (countEl) countEl.textContent = 'No products';
+      return;
+    }
+
+    var html = '';
+    list.forEach(function (p) { html += cardHtml(p); });
+    grid.innerHTML = html;
+
+    if (countEl) {
+      countEl.textContent = 'Showing ' + list.length + ' new product' + (list.length === 1 ? '' : 's');
+    }
+
+    grid.querySelectorAll('.add-cart-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var id = parseInt(btn.getAttribute('data-id'), 10);
+        addToCart(id);
+      });
+    });
+  }
+
+  function addToCart(productId) {
+    var CART_KEY = 'gimpz_cart';
+    var cart = [];
+    try {
+      var raw = localStorage.getItem(CART_KEY);
+      cart = raw ? JSON.parse(raw) : [];
+    } catch (e) { cart = []; }
+
+    var found = false;
+    for (var i = 0; i < cart.length; i++) {
+      if (cart[i].id === productId) { cart[i].qty++; found = true; break; }
+    }
+    if (!found) cart.push({ id: productId, qty: 1 });
+
+    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {}
+
+    var total = 0;
+    cart.forEach(function (it) { total += it.qty; });
+    document.querySelectorAll('.cart-badge').forEach(function (b) {
+      b.textContent = total;
+      b.style.display = total > 0 ? 'grid' : 'none';
+    });
+
+    // Toast
+    var t = document.getElementById('toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'toast';
+      t.className = 'toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = 'Added to cart';
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function () { t.classList.remove('show'); }, 1800);
+  }
+
+  function applySort() {
+    var list = products.slice();
+    if (currentSort === 'price-asc') {
+      list.sort(function (a, b) { return a.price - b.price; });
+    } else if (currentSort === 'price-desc') {
+      list.sort(function (a, b) { return b.price - a.price; });
+    } else if (currentSort === 'rating') {
+      list.sort(function (a, b) { return (b.rating || 0) - (a.rating || 0); });
+    } else {
+      list.sort(function (a, b) { return b.id - a.id; });
+    }
+    render(list);
+  }
+
+  function loadProducts() {
+    var url = SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=id.desc&limit=12';
+
+    fetch(url, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Accept': 'application/json'
+      }
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (rows) {
+        if (!Array.isArray(rows)) rows = [];
+        products = rows.map(function (row) {
+          return {
+            id: row.id,
+            name: row.name,
+            brand: row.brand,
+            category: row.category,
+            price: row.price,
+            mrp: row.mrp,
+            rating: typeof row.rating === 'number' ? row.rating : parseFloat(row.rating || 4.5),
+            stock: row.stock || 0,
+            image_folder: row.image_folder || ''
+          };
+        });
+        applySort();
+      })
+      .catch(function (err) {
+        var grid = document.getElementById('productGrid');
+        if (grid) {
+          grid.innerHTML = '<div class="no-products">Could not load products. Please refresh.</div>';
+        }
+        console.warn('[GIMPZ] Fetch failed:', err);
+      });
+  }
+
+  // Init
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // New arrivals = highest ID first (newest additions), top 12
-  document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(function () {
-      if (typeof PRODUCTS === 'undefined' || !PRODUCTS.length) return;
+  var sortSel = document.getElementById('sortSelect');
+  if (sortSel) {
+    sortSel.value = 'newest';
+    sortSel.addEventListener('change', function () {
+      currentSort = this.value;
+      applySort();
+    });
+  }
 
-      var newProducts = PRODUCTS.slice().sort(function (a, b) {
-        return b.id - a.id;
-      }).slice(0, 12);
+  // Update cart badge on load
+  try {
+    var raw = localStorage.getItem('gimpz_cart');
+    var cart = raw ? JSON.parse(raw) : [];
+    var total = 0;
+    cart.forEach(function (it) { total += it.qty; });
+    if (total > 0) {
+      document.querySelectorAll('.cart-badge').forEach(function (b) {
+        b.textContent = total;
+        b.style.display = 'grid';
+      });
+    }
+  } catch (e) {}
 
-      var countEl = document.getElementById('productsCount');
-      var grid = document.getElementById('productGrid');
-      if (countEl) {
-        countEl.textContent = 'Showing ' + newProducts.length + ' new product' + (newProducts.length === 1 ? '' : 's');
-      }
+  loadProducts();
 
-      var sortSel = document.getElementById('sortSelect');
-      if (sortSel) {
-        sortSel.addEventListener('change', function () {
-          var v = this.value;
-          var list = newProducts.slice();
-          if (v === 'price-asc') list.sort(function (a, b) { return a.price - b.price; });
-          else if (v === 'price-desc') list.sort(function (a, b) { return b.price - a.price; });
-          else if (v === 'rating') list.sort(function (a, b) { return b.rating - a.rating; });
-
-          if (typeof window.gimpzRenderGrid === 'function' && grid) {
-            window.gimpzRenderGrid(grid, list);
-          }
-        });
-      }
-
-      if (grid && typeof window.gimpzRenderGrid === 'function') {
-        window.gimpzRenderGrid(grid, newProducts);
-      }
-    }, 1500);
-  });
+})();
 </script>
 </body>
 </html>
