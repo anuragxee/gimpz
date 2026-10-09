@@ -1,11 +1,14 @@
 /* ============================================================
    GIMPZ — CART, FILTERS, SEARCH LOGIC
+   + AUTO IMAGE DETECTION FROM FOLDERS
    ============================================================ */
 (function () {
   'use strict';
 
   var CART_KEY = 'gimpz_cart';
+  var MAX_IMAGES_PER_PRODUCT = 10; // tries 1..10 in the folder
 
+  /* ---------- CART ---------- */
   function getCart() {
     try {
       var raw = localStorage.getItem(CART_KEY);
@@ -75,16 +78,104 @@
     });
   }
 
+  /* ---------- IMAGE HELPERS ---------- */
+
+  // Cover image for a product on the homepage grid
+  function getCoverImage(product) {
+    if (product && product.folder) {
+      return product.folder + "/1.jpg";
+    }
+    return "assets/products/placeholder.svg";
+  }
+
+  // Attach fallback chain: .jpg → .png → .webp → placeholder
+  function attachImageFallbacks(container) {
+    if (!container) return;
+    container.querySelectorAll('img').forEach(function (img) {
+      if (img.dataset.fallbackAttached) return;
+      img.dataset.fallbackAttached = "1";
+
+      img.addEventListener('error', function () {
+        var src = img.getAttribute('src') || '';
+        if (src.indexOf('placeholder.svg') !== -1) return;
+
+        if (src.indexOf('.jpg') !== -1) {
+          img.setAttribute('src', src.replace('.jpg', '.png'));
+          return;
+        }
+        if (src.indexOf('.png') !== -1) {
+          img.setAttribute('src', src.replace('.png', '.webp'));
+          return;
+        }
+        img.setAttribute('src', 'assets/products/placeholder.svg');
+      });
+    });
+  }
+
+  /* ---------- AUTO-DETECT IMAGES IN A PRODUCT'S FOLDER ----------
+     Tries 1.jpg, 1.png, 1.webp, then 2.jpg... up to MAX_IMAGES
+     Stops after 3 consecutive missing indices (handles gaps)
+     Calls onImage(url, index) for each found image
+     Calls onComplete(foundArray) when done
+  ------------------------------------------------------------ */
+  function detectProductImages(product, onImage, onComplete) {
+    var folder = product && product.folder;
+    var found = [];
+
+    if (!folder) {
+      onComplete(found);
+      return;
+    }
+
+    var index = 1;
+    var consecutiveMisses = 0;
+    var MAX_CONSECUTIVE_MISSES = 3;
+
+    function tryFormat(formats, formatIdx) {
+      if (formatIdx >= formats.length) {
+        // No format worked for this index
+        consecutiveMisses++;
+        index++;
+        next();
+        return;
+      }
+      var url = folder + "/" + index + "." + formats[formatIdx];
+      var testImg = new Image();
+      testImg.onload = function () {
+        found.push(url);
+        consecutiveMisses = 0;
+        if (onImage) onImage(url, index);
+        index++;
+        next();
+      };
+      testImg.onerror = function () {
+        tryFormat(formats, formatIdx + 1);
+      };
+      testImg.src = url;
+    }
+
+    function next() {
+      if (index > MAX_IMAGES_PER_PRODUCT) { onComplete(found); return; }
+      if (consecutiveMisses >= MAX_CONSECUTIVE_MISSES) { onComplete(found); return; }
+      tryFormat(['jpg', 'png', 'webp'], 0);
+    }
+
+    next();
+  }
+
+  /* ---------- PRODUCT CARD ---------- */
   function renderProductCard(product) {
     var discount = product.mrp > product.price
       ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
       : 0;
 
+    var cover = getCoverImage(product);
+
     return '' +
       '<article class="product-card">' +
         '<a class="product-card-link" href="product.html?id=' + product.id + '">' +
           '<div class="product-card-thumb">' +
-            '<img src="' + product.image + '" alt="' + escapeHtml(product.name) + '" loading="lazy">' +
+            '<img src="' + cover + '" alt="' + escapeHtml(product.name) + '" loading="lazy">' +
             (discount > 0 ? '<span class="discount-tag">' + discount + '% OFF</span>' : '') +
           '</div>' +
           '<div class="product-card-body">' +
@@ -117,6 +208,8 @@
     var html = '';
     products.forEach(function (p) { html += renderProductCard(p); });
     grid.innerHTML = html;
+
+    attachImageFallbacks(grid);
 
     grid.querySelectorAll('.add-cart-btn').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
@@ -197,6 +290,7 @@
     t._timer = setTimeout(function () { t.classList.remove('show'); }, 1800);
   }
 
+  /* ---------- PRODUCT DETAIL WITH AUTO GALLERY ---------- */
   function renderProductDetail() {
     var container = document.getElementById('productDetail');
     if (!container) return;
@@ -216,10 +310,16 @@
       ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
       : 0;
 
+    var cover = getCoverImage(product);
+
     container.innerHTML = '' +
       '<div class="pd-grid">' +
-        '<div class="pd-image">' +
-          '<img src="' + product.image + '" alt="' + escapeHtml(product.name) + '">' +
+        '<div class="pd-gallery">' +
+          '<div class="pd-image">' +
+            '<img id="pdMainImage" src="' + cover + '" alt="' + escapeHtml(product.name) + '">' +
+            '<span class="pd-img-count" id="pdImgCount" style="display:none">0 photos</span>' +
+          '</div>' +
+          '<div class="pd-thumbs" id="pdThumbs"></div>' +
         '</div>' +
         '<div class="pd-info">' +
           '<span class="pd-brand">' + escapeHtml(product.brand) + '</span>' +
@@ -243,6 +343,47 @@
         '</div>' +
       '</div>';
 
+    attachImageFallbacks(container);
+
+    var mainImg = document.getElementById('pdMainImage');
+    var thumbsEl = document.getElementById('pdThumbs');
+    var countEl = document.getElementById('pdImgCount');
+    var detectedImages = [];
+
+    // Auto-detect every image in the product's folder
+    detectProductImages(product, function (url, index) {
+      detectedImages.push(url);
+
+      // Create thumbnail
+      var btn = document.createElement('button');
+      btn.className = 'pd-thumb' + (detectedImages.length === 1 ? ' active' : '');
+      btn.setAttribute('data-src', url);
+      btn.innerHTML = '<img src="' + url + '" alt="View ' + index + '">';
+      btn.addEventListener('click', function () {
+        if (mainImg) mainImg.src = url;
+        thumbsEl.querySelectorAll('.pd-thumb').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+      });
+      thumbsEl.appendChild(btn);
+
+      // Update main image on the first detected image
+      if (detectedImages.length === 1 && mainImg) {
+        mainImg.src = url;
+      }
+
+      attachImageFallbacks(thumbsEl);
+    }, function (allFound) {
+      // Done detecting
+      if (countEl && allFound.length > 1) {
+        countEl.style.display = 'block';
+        countEl.textContent = allFound.length + ' photos';
+      }
+      // If only 1 image found, hide thumbs
+      if (allFound.length <= 1 && thumbsEl) {
+        thumbsEl.style.display = 'none';
+      }
+    });
+
     document.getElementById('pdAddCart').addEventListener('click', function () {
       addToCart(product.id, 1);
       showToast('Added to cart');
@@ -254,6 +395,7 @@
     });
   }
 
+  /* ---------- CART PAGE ---------- */
   function renderCartPage() {
     var cartList = document.getElementById('cartList');
     if (!cartList) return;
@@ -279,10 +421,11 @@
       var p = getProduct(item.id);
       if (!p) return;
       var lineTotal = p.price * item.qty;
+      var img = getCoverImage(p);
       itemsHtml += '' +
         '<div class="cart-item">' +
           '<div class="cart-item-img">' +
-            '<img src="' + p.image + '" alt="' + escapeHtml(p.name) + '">' +
+            '<img src="' + img + '" alt="' + escapeHtml(p.name) + '">' +
           '</div>' +
           '<div class="cart-item-info">' +
             '<h3>' + escapeHtml(p.name) + '</h3>' +
@@ -300,6 +443,7 @@
     });
 
     cartList.innerHTML = itemsHtml;
+    attachImageFallbacks(cartList);
 
     cartList.querySelectorAll('.qty-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -452,7 +596,6 @@
 
 /* ============================================================
    SMOOTH SCROLL FOR SAME-PAGE ANCHOR LINKS
-   Fixes footer links like index.html#products when already on homepage
    ============================================================ */
 (function () {
   'use strict';
@@ -467,8 +610,7 @@
                  path.indexOf('index.html') !== -1;
     if (!isHome) return;
 
-    var href = link.getAttribute('href');
-    var hash = href.split('#')[1];
+    var hash = link.getAttribute('href').split('#')[1];
     if (!hash) return;
 
     var target = document.getElementById(hash);
