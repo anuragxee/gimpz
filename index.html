@@ -16,10 +16,25 @@
 </head>
 <body>
 
-<!-- ===================== TOP BAR ===================== -->
+<!-- ===================== TOP BAR (with marquee) ===================== -->
 <div class="topbar">
   <div class="container topbar-inner">
-    <span>🚚 Free shipping on orders above ₹500</span>
+    <div class="topbar-marquee">
+      <div class="topbar-marquee-track">
+        <span>🚚 Free shipping on orders above ₹500</span>
+        <span>✨ New arrivals every week</span>
+        <span>🔒 100% secure payments</span>
+        <span>↩️ Easy 7-day returns</span>
+        <span>📞 24/7 customer support</span>
+        <span>💰 Best prices guaranteed</span>
+        <span>🚚 Free shipping on orders above ₹500</span>
+        <span>✨ New arrivals every week</span>
+        <span>🔒 100% secure payments</span>
+        <span>↩️ Easy 7-day returns</span>
+        <span>📞 24/7 customer support</span>
+        <span>💰 Best prices guaranteed</span>
+      </div>
+    </div>
     <span class="topbar-links">
       <a href="#">Track Order</a>
       <a href="#">Help</a>
@@ -30,7 +45,6 @@
 <!-- ===================== HEADER ===================== -->
 <header class="site-header" id="header">
   <div class="container header-inner">
-
     <a class="logo" href="index.html" aria-label="GIMPZ home">
       <span class="logo-mark">G</span>
       <span class="logo-text">GIMPZ</span>
@@ -53,10 +67,8 @@
         <span class="cart-badge" style="display:none">0</span>
       </a>
     </nav>
-
   </div>
 
-  <!-- Mobile search bar -->
   <div class="container search-bar" id="searchBar">
     <input type="search" placeholder="Search products..." aria-label="Search products mobile">
   </div>
@@ -78,7 +90,7 @@
 
 <main id="main">
 
-  <!-- ===================== HERO BANNER ===================== -->
+  <!-- ===================== HERO ===================== -->
   <section class="hero-banner">
     <div class="container hero-banner-inner">
       <div class="hero-banner-copy">
@@ -90,7 +102,7 @@
           <a class="btn btn-ghost" href="#categories">Browse Categories</a>
         </div>
       </div>
-      <div class="hero-banner-visual" aria-hidden="true">
+      <div class="hero-banner-visual">
         <a class="hero-featured" href="product.html?id=1">
           <div class="hero-featured-img">
             <img src="assets/products/placeholder.svg" alt="Featured product">
@@ -105,28 +117,6 @@
             <span class="hero-featured-btn">Shop Now →</span>
           </div>
         </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== TRUST STRIP ===================== -->
-  <section class="trust-strip">
-    <div class="container trust-grid">
-      <div class="trust-item">
-        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-        <div><strong>Fast Delivery</strong><span>All over India</span></div>
-      </div>
-      <div class="trust-item">
-        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.4-3 8.2-7 9-4-.8-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
-        <div><strong>Secure Payments</strong><span>100% protected</span></div>
-      </div>
-      <div class="trust-item">
-        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
-        <div><strong>Easy Returns</strong><span>7-day policy</span></div>
-      </div>
-      <div class="trust-item">
-        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <div><strong>24/7 Support</strong><span>Always here</span></div>
       </div>
     </div>
   </section>
@@ -190,6 +180,28 @@
     </div>
   </section>
 
+  <!-- ===================== TRUST STRIP (at bottom) ===================== -->
+  <section class="trust-strip">
+    <div class="container trust-grid">
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <div><strong>Fast Delivery</strong><span>All over India</span></div>
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.4-3 8.2-7 9-4-.8-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+        <div><strong>Secure Payments</strong><span>100% protected</span></div>
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        <div><strong>Easy Returns</strong><span>7-day policy</span></div>
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div><strong>24/7 Support</strong><span>Always here</span></div>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <!-- ===================== FOOTER ===================== -->
@@ -234,16 +246,13 @@
   </div>
 </footer>
 
-<!-- ===================== SCRIPTS ===================== -->
 <script src="products.js"></script>
 <script src="script.js"></script>
 <script>
-  // Footer year
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // Category cards → jump to product grid + trigger filter
   document.querySelectorAll('[data-cat-nav]').forEach(function (link) {
-    link.addEventListener('click', function (e) {
+    link.addEventListener('click', function () {
       var cat = link.getAttribute('data-cat-nav');
       setTimeout(function () {
         var btn = document.querySelector('.category-filter[data-cat="' + cat + '"]');
@@ -252,7 +261,6 @@
     });
   });
 
-  // Update product count
   var countEl = document.getElementById('productsCount');
   var grid = document.getElementById('productGrid');
   if (countEl && grid) {
