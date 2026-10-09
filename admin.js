@@ -512,7 +512,9 @@
     rows.forEach(function (o) {
       html += '<tr data-id="' + o.id + '">' +
         '<td><strong>' + escapeHtml(o.order_number || '—') + '</strong><br><small style="color:#94a3b8;">' + formatDate(o.created_at) + '</small></td>' +
-        '<td>' + escapeHtml(o.customer_name || '—') + '<br><small style="color:#64748b;">' + escapeHtml(o.city || '') + '</small></td>' +
+       '<td>' + escapeHtml(o.customer_name || '—') +
+  (o.email ? '<br><small style="color:#2563eb;">' + escapeHtml(o.email) + '</small>' : '') +
+  (o.user_id ? '<br><small style="color:#16a34a;font-size:.68rem;">✓ Registered</small>' : '<br><small style="color:#94a3b8;font-size:.68rem;">Guest</small>') + '</td>' +
         '<td>' + escapeHtml(o.phone || '—') + '</td>' +
         '<td><strong>' + formatPrice(o.total) + '</strong></td>' +
         '<td>' + statusPill(o.status) + '</td>' +
