@@ -720,3 +720,41 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
 }
+/* ============================================================
+   PRODUCT DETAIL SKELETON (loading state)
+   ============================================================ */
+.pd-skeleton{
+  display:grid;grid-template-columns:1fr 1fr;gap:36px;
+  background:#fff;border-radius:16px;padding:28px;box-shadow:var(--shadow);
+}
+.pd-skel-gallery{display:flex;flex-direction:column;gap:12px}
+.pd-skel-image{
+  aspect-ratio:1/1;border-radius:14px;
+  background:linear-gradient(90deg,#eef2ff 0%,#e0e7ff 50%,#eef2ff 100%);
+  background-size:200% 100%;
+  animation:pdShimmer 1.4s ease-in-out infinite;
+}
+.pd-skel-info{display:flex;flex-direction:column;gap:14px;padding-top:6px}
+.pd-skel-line{
+  height:14px;border-radius:6px;
+  background:linear-gradient(90deg,#f1f5f9 0%,#e2e8f0 50%,#f1f5f9 100%);
+  background-size:200% 100%;
+  animation:pdShimmer 1.4s ease-in-out infinite;
+}
+.pd-skel-line.short{width:30%;height:11px}
+.pd-skel-line.title{width:80%;height:24px;border-radius:8px}
+.pd-skel-line.medium{width:50%;height:12px}
+.pd-skel-line.price{width:40%;height:28px;border-radius:8px;margin-top:6px}
+.pd-skel-btn{
+  height:46px;width:100%;border-radius:10px;margin-top:12px;
+  background:linear-gradient(90deg,#f1f5f9 0%,#e2e8f0 50%,#f1f5f9 100%);
+  background-size:200% 100%;
+  animation:pdShimmer 1.4s ease-in-out infinite;
+}
+@keyframes pdShimmer{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+@media(max-width:900px){
+  .pd-skeleton{grid-template-columns:1fr;gap:22px;padding:20px}
+}
