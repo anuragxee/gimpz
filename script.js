@@ -1009,4 +1009,12 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+     /* ============ PUBLIC HELPERS (for account.html wishlist) ============ */
+  window.gimpzFindProduct = function (id) {
+    for (var i = 0; i < PRODUCTS.length; i++) {
+      if (PRODUCTS[i].id === id) return PRODUCTS[i];
+    }
+    return null;
+  };
+  window.gimpzAllProducts = function () { return PRODUCTS; };
 })();
