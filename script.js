@@ -1,5 +1,5 @@
 /* ============================================================
-   GIMPZ — MAIN SCRIPT (standalone)
+   GIMPZ — MAIN SCRIPT (standalone + product cache)
    Reads from Supabase. No products.js dependency.
    ============================================================ */
 (function () {
@@ -9,6 +9,10 @@
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5emV2eWRwcnBranNsbmVzcnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTk2NDksImV4cCI6MjEwNzA5NTY0OX0.BE-ijSGGNmkQjaeSZ8RX6mQGMW5dY2Y2Gzj9vitRK0g';
   var CART_KEY = 'gimpz_cart';
   var MAX_IMAGES_PER_PRODUCT = 10;
+
+  /* ---- Product cache (5 min) — makes repeat visits instant ---- */
+  var CACHE_KEY = 'gimpz_products_cache_v1';
+  var CACHE_TTL = 5 * 60 * 1000;
 
   var PRODUCTS = [];
 
@@ -41,6 +45,27 @@
     };
   }
 
+  /* ============ CACHE ============ */
+  function readCache() {
+    try {
+      var raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      if (!obj || !obj.ts || !Array.isArray(obj.products)) return null;
+      if (Date.now() - obj.ts > CACHE_TTL) return null;
+      return obj.products;
+    } catch (e) { return null; }
+  }
+
+  function writeCache(products) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        ts: Date.now(),
+        products: products
+      }));
+    } catch (e) {}
+  }
+
   /* ============ FETCH PRODUCTS ============ */
   function fetchProducts() {
     var url = SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&order=id.asc';
@@ -58,6 +83,7 @@
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
         PRODUCTS = rows.map(mapRow);
+        writeCache(PRODUCTS);
         console.log('[GIMPZ] Loaded ' + PRODUCTS.length + ' products from Supabase');
         return PRODUCTS;
       })
@@ -673,17 +699,32 @@
         return;
       }
 
-      // Instant skeleton
+      // 1) Try cache — instant render, no skeleton
+      var cached = readCache();
+      var cachedProduct = null;
+      if (cached) {
+        for (var i = 0; i < cached.length; i++) {
+          if (cached[i].id === id) { cachedProduct = cached[i]; break; }
+        }
+      }
+
+      if (cachedProduct) {
+        PRODUCTS = cached;
+        renderProductDetail(cachedProduct);
+        // Refresh cache in background for next time
+        fetchProducts();
+        return;
+      }
+
+      // 2) No cache — show skeleton + fast single-product fetch
       showProductSkeleton(detailContainer);
 
-      // Fetch only this product — very fast
       fetchSingleProduct(id)
         .then(function (p) {
           if (!p) {
             detailContainer.innerHTML = '<p style="text-align:center;padding:60px 20px;">Product not found. <a href="index.html" style="color:#2563eb;">Back to store</a></p>';
             return;
           }
-          // Make sure cart functions can find it
           if (!getProduct(p.id)) PRODUCTS.push(p);
           renderProductDetail(p);
         })
@@ -692,7 +733,7 @@
           detailContainer.innerHTML = '<p style="text-align:center;padding:60px 20px;">Could not load product. <a href="index.html" style="color:#2563eb;">Back to store</a></p>';
         });
 
-      // Quietly preload full list for cart navigation
+      // Quietly preload full list for cart navigation + next visit
       fetchProducts();
       return;
     }
