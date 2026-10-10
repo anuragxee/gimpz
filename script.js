@@ -118,7 +118,6 @@
     updateCartBadge();
   }
 
-  /* Accepts full product object OR product id (backward compatible) */
   function addToCart(productOrId, qty) {
     qty = qty || 1;
     var product = (typeof productOrId === 'object' && productOrId)
@@ -134,7 +133,6 @@
 
     if (existing) {
       existing.qty += qty;
-      // Refresh details
       existing.name = product.name;
       existing.brand = product.brand;
       existing.price = product.price;
@@ -443,7 +441,7 @@
     });
   }
 
-  /* ============ CART PAGE — renders from cart data, no fetch ============ */
+  /* ============ CART PAGE ============ */
   function renderCartPage() {
     var list = $('cartList');
     if (!list) return;
@@ -461,7 +459,6 @@
     var needsUpgrade = false;
 
     cart.forEach(function (item) {
-      /* Backward compat: if item has no name/price, look up in PRODUCTS or mark for backfill */
       if (!item.name || !item.price) {
         var p = getProduct(item.id);
         if (p) {
@@ -501,7 +498,6 @@
     list.innerHTML = html;
     attachImageFallbacks(list);
 
-    /* Persist upgraded cart if we filled missing fields */
     if (!needsUpgrade) saveCart(cart);
 
     list.querySelectorAll('.qty-btn').forEach(function (btn) {
@@ -611,7 +607,7 @@
         var price = Number(item.price) || 0;
         var lt = price * item.qty;
         subtotal += lt;
-               items.push({
+        items.push({
           product_id: item.id,
           product_name: item.name || ('Product #' + item.id),
           product_brand: item.brand || '',
@@ -669,7 +665,7 @@
               'Content-Type': 'application/json',
               'Prefer': 'return=minimal'
             },
-               body: JSON.stringify(items.map(function (it) {
+            body: JSON.stringify(items.map(function (it) {
               return {
                 order_id: orderId,
                 product_id: it.product_id,
@@ -720,7 +716,7 @@
     } catch (e) {}
   }
 
-  /* ============ PREFETCH CART (instant buy-now) ============ */
+  /* ============ PREFETCH ============ */
   function prefetchCart() {
     if (document.querySelector('link[data-prefetch="cart"]')) return;
     var link = document.createElement('link');
@@ -741,7 +737,6 @@
 
     /* ───── PRODUCT DETAIL PAGE ───── */
     if (detailContainer) {
-      // Prefetch cart.html so Buy Now is instant
       prefetchCart();
 
       var params = new URLSearchParams(window.location.search);
@@ -752,7 +747,6 @@
         return;
       }
 
-      // Try cache first
       var cached = readCache();
       var cachedProduct = null;
       if (cached) {
@@ -764,11 +758,10 @@
       if (cachedProduct) {
         PRODUCTS = cached;
         renderProductDetail(cachedProduct);
-        fetchProducts(); // refresh cache in background
+        fetchProducts();
         return;
       }
 
-      // No cache — show skeleton + fetch single product
       showProductSkeleton(detailContainer);
 
       fetchSingleProduct(id)
@@ -785,24 +778,20 @@
           detailContainer.innerHTML = '<p style="text-align:center;padding:60px 20px;">Could not load product. <a href="index.html" style="color:#2563eb;">Back to store</a></p>';
         });
 
-      fetchProducts(); // preload full list for cart fallback
+      fetchProducts();
       return;
     }
 
-    /* ───── CART PAGE — render immediately from localStorage, no fetch ───── */
+    /* ───── CART PAGE ───── */
     if ($('cartList')) {
-      // Render cart FIRST — instant
       var cachedCart = readCache();
       if (cachedCart) {
         PRODUCTS = cachedCart;
         renderCartPage();
       } else {
-        renderCartPage(); // will try getProduct() fallback internally
+        renderCartPage();
       }
-      // Refresh product cache in background (for future price updates)
-      fetchProducts().then(function () {
-        renderCartPage(); // re-render once real prices are known
-      });
+      fetchProducts().then(function () { renderCartPage(); });
       setupCheckout();
       return;
     }
@@ -817,8 +806,7 @@
     var cachedHome = readCache();
     if (cachedHome && $('productGrid')) {
       PRODUCTS = cachedHome;
-      applyFilters(); // instant render from cache
-      // Refresh in background
+      applyFilters();
       fetchProducts().then(function () { applyFilters(); });
     } else {
       fetchProducts().then(function () {
@@ -826,7 +814,6 @@
       });
     }
 
-    // Wire listeners immediately (don't wait for network)
     var searchInput = $('searchInput');
     if (searchInput) {
       var searchTimer = null;
