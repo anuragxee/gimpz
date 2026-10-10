@@ -30,6 +30,13 @@
   ],
   "screenshots": [
     {
+      "src": "assets/screenshot-mobile.png",
+      "sizes": "738x1600",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Browse GIMPZ on mobile"
+    },
+    {
       "src": "assets/screenshot-desktop.png",
       "sizes": "1350x3097",
       "type": "image/png",
