@@ -1836,3 +1836,115 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
 .pwa-install-btn.show {
   display: inline-flex;
 }
+/* ============================================================
+   NEWSLETTER SIGNUP (footer)
+   ============================================================ */
+.newsletter-block {
+  padding: 28px 0 24px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  margin-top: 8px;
+}
+
+.newsletter-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: center;
+}
+
+.newsletter-copy h3 {
+  color: #fff;
+  font-size: 1.15rem;
+  margin-bottom: 4px;
+  letter-spacing: -.02em;
+}
+
+.newsletter-copy p {
+  color: #94a3b8;
+  font-size: .86rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.newsletter-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.newsletter-form input {
+  flex: 1;
+  min-width: 200px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, .14);
+  background: rgba(255, 255, 255, .06);
+  color: #fff;
+  font-size: .92rem;
+  font-family: inherit;
+  transition: .2s;
+}
+
+.newsletter-form input::placeholder { color: #64748b; }
+
+.newsletter-form input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: rgba(255, 255, 255, .1);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, .15);
+}
+
+.newsletter-form button {
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: 0;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff;
+  font-weight: 700;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: .2s;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, .3);
+}
+
+.newsletter-form button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(37, 99, 235, .4);
+}
+
+.newsletter-form button:disabled {
+  opacity: .7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.newsletter-status {
+  flex-basis: 100%;
+  font-size: .8rem;
+  margin: 4px 0 0;
+  min-height: 1.1em;
+  font-weight: 600;
+}
+
+.newsletter-status.ok { color: #4ade80; }
+.newsletter-status.err { color: #fca5a5; }
+
+@media (max-width: 900px) {
+  .newsletter-inner {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .newsletter-block { padding: 22px 0 20px; }
+  .newsletter-copy h3 { font-size: 1rem; }
+  .newsletter-copy p { font-size: .82rem; }
+  .newsletter-form input { min-width: 0; width: 100%; padding: 11px 14px; font-size: .88rem; }
+  .newsletter-form button { width: 100%; padding: 11px 20px; }
+}
