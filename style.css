@@ -1059,3 +1059,64 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
   animation: pdShimmer 1.4s ease-in-out infinite;
   border-radius: 12px;
 }
+/* ============================================================
+   SAVED ADDRESSES — cart page
+   ============================================================ */
+.saved-address-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.saved-address-card {
+  text-align: left;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 11px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: .15s;
+  font-family: inherit;
+  color: inherit;
+  width: 100%;
+}
+
+.saved-address-card:hover {
+  border-color: #bfdbfe;
+  background: #f8fbff;
+}
+
+.saved-address-card.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .08);
+}
+
+.saved-address-label {
+  font-size: .74rem;
+  font-weight: 700;
+  color: #2563eb;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.saved-address-body {
+  font-size: .85rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.saved-address-body strong {
+  color: #0a2540;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .saved-address-card {
+    padding: 11px 12px;
+  }
+  .saved-address-body {
+    font-size: .82rem;
+  }
+}
