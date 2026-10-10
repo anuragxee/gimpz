@@ -1,5 +1,5 @@
 /* ============================================================
-   GIMPZ — ADMIN PANEL LOGIC (ALL 10 TABS)
+   GIMPZ — ADMIN PANEL LOGIC (ALL TABS + REALTIME)
    ============================================================ */
 (function () {
   'use strict';
@@ -18,64 +18,12 @@
   var currentCategories = [];
   var currentCoupons = [];
   var currentMarketingLists = [];
-  var currentMessages = [];
   var currentStaff = [];
   var currentActivity = [];
+  var currentMessages = [];
   var pendingImages = [];
-
-   
-  /* Auto-refresh */
-  var autoRefreshTimer = null;
-  var AUTO_REFRESH_MS = 20000;   /* 20 seconds */
-
-     /* ============ AUTO-REFRESH ============ */
-  function startAutoRefresh() {
-    stopAutoRefresh();
-    autoRefreshTimer = setInterval(function () {
-      /* Don't refresh if the browser tab is hidden */
-      if (document.hidden) return;
-
-      /* Refresh messages badge always (top of sidebar) */
-      updateMessagesBadge();
-
-      /* Refresh whichever tab is currently active */
-      var activeBtn = document.querySelector('.admin-nav-btn.active');
-      var tab = activeBtn ? activeBtn.getAttribute('data-tab') : 'overview';
-
-      if (tab === 'overview') {
-        loadOverview();
-        checkStockAlerts();
-      } else if (tab === 'orders') {
-        loadOrders();
-      } else if (tab === 'messages') {
-        loadMessages();
-      } else if (tab === 'customers') {
-        loadCustomers();
-      }
-    }, AUTO_REFRESH_MS);
-  }
-
-  function stopAutoRefresh() {
-    if (autoRefreshTimer) {
-      clearInterval(autoRefreshTimer);
-      autoRefreshTimer = null;
-    }
-  }
-
-  /* When browser tab becomes visible again, refresh immediately */
-  document.addEventListener('visibilitychange', function () {
-    if (document.hidden) return;
-    if (session && session.access_token) {
-      var activeBtn = document.querySelector('.admin-nav-btn.active');
-      var tab = activeBtn ? activeBtn.getAttribute('data-tab') : 'overview';
-      if (tab === 'overview') { loadOverview(); checkStockAlerts(); }
-      else if (tab === 'orders') loadOrders();
-      else if (tab === 'messages') loadMessages();
-      else if (tab === 'customers') loadCustomers();
-      updateMessagesBadge();
-    }
-  });
-
+  var realtimeChannel = null;
+  var supaClient = null;
 
   /* ============ HELPERS ============ */
   function $(id) { return document.getElementById(id); }
@@ -131,6 +79,66 @@
     if (type) el.classList.add(type);
   }
 
+  /* ============ REALTIME ============ */
+  function initRealtime() {
+    if (!window.supabase || !window.supabase.createClient) {
+      console.warn('[GIMPZ] Supabase SDK not loaded — realtime disabled');
+      return;
+    }
+    if (!session || !session.access_token) return;
+
+    supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+
+    supaClient.auth.setSession({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token
+    }).catch(function () {});
+
+    stopRealtime();
+
+    realtimeChannel = supaClient
+      .channel('gimpz-admin-realtime')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        function (payload) {
+          console.log('[GIMPZ] Realtime orders event:', payload.eventType);
+          refreshCurrentTab();
+          updateMessagesBadge();
+          loadOverview();
+        }
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'contact_messages' },
+        function () {
+          updateMessagesBadge();
+          var activeBtn = document.querySelector('.admin-nav-btn.active');
+          if (activeBtn && activeBtn.getAttribute('data-tab') === 'messages') {
+            loadMessages();
+          }
+        }
+      )
+      .subscribe(function (status) {
+        console.log('[GIMPZ] Realtime channel status:', status);
+      });
+  }
+
+  function stopRealtime() {
+    if (realtimeChannel && supaClient) {
+      try { supaClient.removeChannel(realtimeChannel); } catch (e) {}
+      realtimeChannel = null;
+    }
+  }
+
+  function refreshCurrentTab() {
+    var activeBtn = document.querySelector('.admin-nav-btn.active');
+    var tab = activeBtn ? activeBtn.getAttribute('data-tab') : 'overview';
+    if (tab === 'overview') { loadOverview(); checkStockAlerts(); }
+    else if (tab === 'orders') loadOrders();
+    else if (tab === 'customers') loadCustomers();
+  }
+
   /* ============ ACTIVITY LOG ============ */
   function logActivity(action, targetType, targetId, details) {
     if (!session || !session.access_token) return;
@@ -150,7 +158,7 @@
         target_id: targetId ? String(targetId) : null,
         details: details || null
       })
-    }).catch(function () { /* silent */ });
+    }).catch(function () {});
   }
 
   /* ============ SESSION ============ */
@@ -189,8 +197,8 @@
     });
   }
 
-   function logout() {
-    stopAutoRefresh();
+  function logout() {
+    stopRealtime();
     session = null;
     saveSession();
     showLoginScreen();
@@ -212,7 +220,7 @@
     loadCategoriesIntoSelect();
     checkStockAlerts();
     updateMessagesBadge();
-    startAutoRefresh();
+    initRealtime();
   }
 
   /* ============ TABS ============ */
@@ -227,10 +235,11 @@
     var titles = {
       overview: 'Overview', products: 'Products', orders: 'Orders',
       customers: 'Customers', categories: 'Categories', coupons: 'Coupons',
-      analytics: 'Analytics', marketing: 'Marketing', messages: 'Messages', staff: 'Staff',
-      activity: 'Activity Log'
+      analytics: 'Analytics', marketing: 'Marketing', messages: 'Messages',
+      staff: 'Staff', activity: 'Activity Log'
     };
-    $('pageTitle').textContent = titles[tab] || 'Admin';
+    var titleEl = $('pageTitle');
+    if (titleEl) titleEl.textContent = titles[tab] || 'Admin';
 
     var sb = $('adminSidebar');
     if (sb) sb.classList.remove('open');
@@ -252,8 +261,11 @@
   function loadOverview() {
     fetch(SUPABASE_URL + '/rest/v1/products?select=id&active=eq.true', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
-      .then(function (rows) { $('statProducts').textContent = Array.isArray(rows) ? rows.length : '0'; })
-      .catch(function () { $('statProducts').textContent = '—'; });
+      .then(function (rows) {
+        var el = $('statProducts');
+        if (el) el.textContent = Array.isArray(rows) ? rows.length : '0';
+      })
+      .catch(function () { var el = $('statProducts'); if (el) el.textContent = '—'; });
 
     fetch(SUPABASE_URL + '/rest/v1/orders?select=*&order=created_at.desc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
@@ -265,14 +277,14 @@
           if ((o.status || 'Pending').toLowerCase() !== 'cancelled') totalRev += Number(o.total || 0);
           if ((o.status || 'Pending').toLowerCase() === 'pending') pending++;
         });
-        $('statOrders').textContent = rows.length;
-        $('statRevenue').textContent = fmtPrice(totalRev);
-        $('statPending').textContent = pending;
+        var so = $('statOrders'); if (so) so.textContent = rows.length;
+        var sr = $('statRevenue'); if (sr) sr.textContent = fmtPrice(totalRev);
+        var sp = $('statPending'); if (sp) sp.textContent = pending;
         var b = $('ordersCount');
         if (b) { b.textContent = rows.length; b.setAttribute('data-count', rows.length); }
         renderRecentOrders(rows.slice(0, 5));
       })
-      .catch(function () { $('statOrders').textContent = '—'; });
+      .catch(function () { var so = $('statOrders'); if (so) so.textContent = '—'; });
   }
 
   function renderRecentOrders(rows) {
@@ -379,39 +391,41 @@
 
   function openProductModal(id) {
     pendingImages = [];
-    $('uploadPreview').innerHTML = '';
-    $('formStatus').textContent = '';
-    $('productForm').reset();
-    $('pf-rating').value = '4.5';
+    var up = $('uploadPreview'); if (up) up.innerHTML = '';
+    var fs = $('formStatus'); if (fs) fs.textContent = '';
+    var pf = $('productForm'); if (pf) pf.reset();
+    var rt = $('pf-rating'); if (rt) rt.value = '4.5';
     if (id) {
       var p = currentProducts.find(function (x) { return x.id === id; });
       if (!p) return;
-      $('modalTitle').textContent = 'Edit Product';
-      $('pf-id').value = p.id;
-      $('pf-name').value = p.name || '';
-      $('pf-brand').value = p.brand || '';
-      $('pf-category').value = p.category || '';
-      $('pf-stock').value = p.stock || 0;
-      $('pf-price').value = p.price || '';
-      $('pf-mrp').value = p.mrp || '';
-      $('pf-rating').value = p.rating || 4.5;
-      $('pf-folder').value = p.image_folder || '';
-      $('pf-description').value = p.description || '';
+      var mt = $('modalTitle'); if (mt) mt.textContent = 'Edit Product';
+      var setV = function (fid, v) { var el = $(fid); if (el) el.value = v == null ? '' : v; };
+      setV('pf-id', p.id);
+      setV('pf-name', p.name);
+      setV('pf-brand', p.brand);
+      setV('pf-category', p.category);
+      setV('pf-stock', p.stock || 0);
+      setV('pf-price', p.price);
+      setV('pf-mrp', p.mrp);
+      setV('pf-rating', p.rating || 4.5);
+      setV('pf-folder', p.image_folder || '');
+      setV('pf-description', p.description || '');
     } else {
-      $('modalTitle').textContent = 'Add Product';
-      $('pf-id').value = '';
+      var mt2 = $('modalTitle'); if (mt2) mt2.textContent = 'Add Product';
+      var idf = $('pf-id'); if (idf) idf.value = '';
     }
-    $('productModal').classList.add('open');
+    var pm = $('productModal'); if (pm) pm.classList.add('open');
   }
 
   function closeProductModal() {
-    $('productModal').classList.remove('open');
+    var pm = $('productModal'); if (pm) pm.classList.remove('open');
     pendingImages = [];
-    $('uploadPreview').innerHTML = '';
+    var up = $('uploadPreview'); if (up) up.innerHTML = '';
   }
 
   function handleImageSelect(files) {
     var preview = $('uploadPreview');
+    if (!preview) return;
     Array.prototype.forEach.call(files, function (file) {
       if (!file.type.startsWith('image/')) return;
       pendingImages.push(file);
@@ -431,25 +445,23 @@
     e.preventDefault();
     var btn = $('saveProductBtn');
     var status = $('formStatus');
-    var id = $('pf-id').value;
+    var id = ($('pf-id') && $('pf-id').value) || '';
     var data = {
-      name: $('pf-name').value.trim(),
-      brand: $('pf-brand').value.trim(),
-      category: $('pf-category').value,
-      stock: parseInt($('pf-stock').value, 10) || 0,
-      price: parseInt($('pf-price').value, 10) || 0,
-      mrp: parseInt($('pf-mrp').value, 10) || 0,
-      rating: parseFloat($('pf-rating').value) || 4.5,
-      image_folder: $('pf-folder').value.trim().toLowerCase(),
-      description: $('pf-description').value.trim(),
+      name: ($('pf-name') || {}).value ? $('pf-name').value.trim() : '',
+      brand: ($('pf-brand') || {}).value ? $('pf-brand').value.trim() : '',
+      category: ($('pf-category') || {}).value || '',
+      stock: parseInt(($('pf-stock') || {}).value, 10) || 0,
+      price: parseInt(($('pf-price') || {}).value, 10) || 0,
+      mrp: parseInt(($('pf-mrp') || {}).value, 10) || 0,
+      rating: parseFloat(($('pf-rating') || {}).value) || 4.5,
+      image_folder: ($('pf-folder') || {}).value ? $('pf-folder').value.trim().toLowerCase() : '',
+      description: ($('pf-description') || {}).value ? $('pf-description').value.trim() : '',
       active: true
     };
     if (!data.name || !data.brand || !data.category || !data.price || !data.mrp) {
-      showStatus(status, 'Please fill all required fields', 'err');
-      return;
+      showStatus(status, 'Please fill all required fields', 'err'); return;
     }
-    btn.disabled = true;
-    btn.innerHTML = '<span class="admin-spinner"></span> Saving...';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="admin-spinner"></span> Saving...'; }
     showStatus(status, '', '');
     var url = SUPABASE_URL + '/rest/v1/products';
     var method = 'POST';
@@ -475,10 +487,11 @@
         setTimeout(closeProductModal, 900);
       })
       .catch(function (err) { showStatus(status, err.message || 'Save failed', 'err'); })
-      .finally(function () { btn.disabled = false; btn.textContent = 'Save Product'; });
+      .then(function () { if (btn) { btn.disabled = false; btn.textContent = 'Save Product'; } });
   }
 
   function uploadImages(folder, files) {
+    if (!session || !session.access_token) return Promise.resolve();
     var uploads = files.map(function (file, i) {
       var ext = file.name.split('.').pop().toLowerCase();
       if (ext === 'jpeg') ext = 'jpg';
@@ -533,9 +546,9 @@
   }
 
   function applyOrderFilters() {
-    var search = ($('orderSearch') && $('orderSearch').value || '').trim().toLowerCase();
-    var status = ($('orderStatusFilter') && $('orderStatusFilter').value) || '';
-    var reg = ($('orderRegFilter') && $('orderRegFilter').value) || '';
+    var search = (($('orderSearch') || {}).value || '').trim().toLowerCase();
+    var status = (($('orderStatusFilter') || {}).value) || '';
+    var reg = (($('orderRegFilter') || {}).value) || '';
     var filtered = currentOrders.filter(function (o) {
       if (status && (o.status || 'Pending') !== status) return false;
       if (reg === 'registered' && !o.user_id) return false;
@@ -607,6 +620,7 @@
     var modal = $('orderModal');
     var title = $('orderModalTitle');
     var body = $('orderModalBody');
+    if (!modal || !title || !body) return;
     title.textContent = 'Order ' + (order.order_number || '');
     body.innerHTML = '<p style="color:#64748b;text-align:center;padding:30px;">Loading...</p>';
     modal.classList.add('open');
@@ -709,7 +723,7 @@
   }
 
   function applyCustomerFilter() {
-    var search = ($('customerSearch') && $('customerSearch').value || '').trim().toLowerCase();
+    var search = (($('customerSearch') || {}).value || '').trim().toLowerCase();
     var filtered = currentCustomers.filter(function (c) {
       if (!search) return true;
       var hay = ((c.full_name || '') + ' ' + (c.email || '') + ' ' + (c.phone || '')).toLowerCase();
@@ -793,43 +807,43 @@
   }
 
   function openCategoryModal(id) {
-    $('categoryForm').reset();
-    $('categoryStatus').textContent = '';
-    $('cat-active').checked = true;
+    var cf = $('categoryForm'); if (cf) cf.reset();
+    var cs = $('categoryStatus'); if (cs) cs.textContent = '';
+    var ca = $('cat-active'); if (ca) ca.checked = true;
     if (id) {
       var c = currentCategories.find(function (x) { return x.id === id; });
       if (!c) return;
-      $('categoryModalTitle').textContent = 'Edit Category';
-      $('cat-id').value = c.id;
-      $('cat-name').value = c.name || '';
-      $('cat-slug').value = c.slug || '';
-      $('cat-icon').value = c.icon || '';
-      $('cat-order').value = c.display_order || 0;
-      $('cat-active').checked = c.active !== false;
+      var ct = $('categoryModalTitle'); if (ct) ct.textContent = 'Edit Category';
+      var setV = function (fid, v) { var el = $(fid); if (el) el.value = v == null ? '' : v; };
+      setV('cat-id', c.id);
+      setV('cat-name', c.name);
+      setV('cat-slug', c.slug);
+      setV('cat-icon', c.icon || '');
+      setV('cat-order', c.display_order || 0);
+      var ca2 = $('cat-active'); if (ca2) ca2.checked = c.active !== false;
     } else {
-      $('categoryModalTitle').textContent = 'Add Category';
-      $('cat-id').value = '';
+      var ct2 = $('categoryModalTitle'); if (ct2) ct2.textContent = 'Add Category';
+      var ci = $('cat-id'); if (ci) ci.value = '';
     }
-    $('categoryModal').classList.add('open');
+    var cm = $('categoryModal'); if (cm) cm.classList.add('open');
   }
 
-  function closeCategoryModal() { $('categoryModal').classList.remove('open'); }
+  function closeCategoryModal() { var m = $('categoryModal'); if (m) m.classList.remove('open'); }
 
   function saveCategory(e) {
     e.preventDefault();
     var btn = $('saveCategoryBtn');
     var status = $('categoryStatus');
-    var id = $('cat-id').value;
+    var id = ($('cat-id') || {}).value || '';
     var data = {
-      name: $('cat-name').value.trim(),
-      slug: $('cat-slug').value.trim().toLowerCase(),
-      icon: $('cat-icon').value.trim() || '📦',
-      display_order: parseInt($('cat-order').value, 10) || 0,
-      active: $('cat-active').checked
+      name: ($('cat-name') || {}).value ? $('cat-name').value.trim() : '',
+      slug: ($('cat-slug') || {}).value ? $('cat-slug').value.trim().toLowerCase() : '',
+      icon: ($('cat-icon') || {}).value ? $('cat-icon').value.trim() || '📦' : '📦',
+      display_order: parseInt(($('cat-order') || {}).value, 10) || 0,
+      active: $('cat-active') ? $('cat-active').checked : true
     };
     if (!data.name || !data.slug) { showStatus(status, 'Name and slug required', 'err'); return; }
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
     var url = SUPABASE_URL + '/rest/v1/categories';
     var method = 'POST';
     if (id) { url += '?id=eq.' + id; method = 'PATCH'; }
@@ -843,7 +857,7 @@
         setTimeout(closeCategoryModal, 700);
       })
       .catch(function () { showStatus(status, 'Save failed', 'err'); })
-      .finally(function () { btn.disabled = false; btn.textContent = 'Save'; });
+      .then(function () { if (btn) { btn.disabled = false; btn.textContent = 'Save'; } });
   }
 
   function deleteCategory(id) {
@@ -933,41 +947,42 @@
   }
 
   function openCouponModal(id) {
-    $('couponForm').reset();
-    $('couponStatus').textContent = '';
-    $('cpn-active').checked = true;
+    var cf = $('couponForm'); if (cf) cf.reset();
+    var cs = $('couponStatus'); if (cs) cs.textContent = '';
+    var ca = $('cpn-active'); if (ca) ca.checked = true;
     if (id) {
       var c = currentCoupons.find(function (x) { return x.id === id; });
       if (!c) return;
-      $('couponModalTitle').textContent = 'Edit Coupon';
-      $('cpn-id').value = c.id;
-      $('cpn-code').value = c.code || '';
-      $('cpn-type').value = c.discount_type || 'percent';
-      $('cpn-value').value = c.discount_value || '';
-      $('cpn-min').value = c.min_order || 0;
-      $('cpn-max').value = c.max_uses || '';
-      $('cpn-expires').value = c.expires_at ? c.expires_at.split('T')[0] : '';
-      $('cpn-active').checked = c.active !== false;
+      var ct = $('couponModalTitle'); if (ct) ct.textContent = 'Edit Coupon';
+      var setV = function (fid, v) { var el = $(fid); if (el) el.value = v == null ? '' : v; };
+      setV('cpn-id', c.id);
+      setV('cpn-code', c.code || '');
+      setV('cpn-type', c.discount_type || 'percent');
+      setV('cpn-value', c.discount_value || '');
+      setV('cpn-min', c.min_order || 0);
+      setV('cpn-max', c.max_uses || '');
+      setV('cpn-expires', c.expires_at ? c.expires_at.split('T')[0] : '');
+      var ca2 = $('cpn-active'); if (ca2) ca2.checked = c.active !== false;
     } else {
-      $('couponModalTitle').textContent = 'Create Coupon';
-      $('cpn-id').value = '';
+      var ct2 = $('couponModalTitle'); if (ct2) ct2.textContent = 'Create Coupon';
+      var ci = $('cpn-id'); if (ci) ci.value = '';
     }
-    $('couponModal').classList.add('open');
+    var cm = $('couponModal'); if (cm) cm.classList.add('open');
   }
 
-  function closeCouponModal() { $('couponModal').classList.remove('open'); }
+  function closeCouponModal() { var m = $('couponModal'); if (m) m.classList.remove('open'); }
 
   function saveCoupon(e) {
     e.preventDefault();
     var btn = $('saveCouponBtn');
     var status = $('couponStatus');
-    var id = $('cpn-id').value;
-    var code = $('cpn-code').value.trim().toUpperCase();
-    var type = $('cpn-type').value;
-    var val = parseInt($('cpn-value').value, 10);
-    var min = parseInt($('cpn-min').value, 10) || 0;
-    var max = $('cpn-max').value ? parseInt($('cpn-max').value, 10) : null;
-    var exp = $('cpn-expires').value || null;
+    var id = ($('cpn-id') || {}).value || '';
+    var code = ($('cpn-code') || {}).value ? $('cpn-code').value.trim().toUpperCase() : '';
+    var type = ($('cpn-type') || {}).value || 'percent';
+    var val = parseInt(($('cpn-value') || {}).value, 10);
+    var min = parseInt(($('cpn-min') || {}).value, 10) || 0;
+    var max = ($('cpn-max') || {}).value ? parseInt($('cpn-max').value, 10) : null;
+    var exp = ($('cpn-expires') || {}).value || null;
     if (!code || !val) { showStatus(status, 'Code and value required', 'err'); return; }
     if (type === 'percent' && (val < 1 || val > 100)) { showStatus(status, 'Percent must be 1-100', 'err'); return; }
     var data = {
@@ -977,10 +992,9 @@
       min_order: min,
       max_uses: max,
       expires_at: exp ? new Date(exp).toISOString() : null,
-      active: $('cpn-active').checked
+      active: $('cpn-active') ? $('cpn-active').checked : true
     };
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
     var url = SUPABASE_URL + '/rest/v1/coupons';
     var method = 'POST';
     if (id) { url += '?id=eq.' + id; method = 'PATCH'; }
@@ -993,7 +1007,7 @@
         setTimeout(closeCouponModal, 700);
       })
       .catch(function () { showStatus(status, 'Save failed. Code may already exist.', 'err'); })
-      .finally(function () { btn.disabled = false; btn.textContent = 'Save'; });
+      .then(function () { if (btn) { btn.disabled = false; btn.textContent = 'Save'; } });
   }
 
   function deleteCoupon(id) {
@@ -1020,16 +1034,16 @@
           if (d.indexOf(monthKey) === 0) monthRev += Number(o.total || 0);
           totalRev += Number(o.total || 0);
         });
-        $('anaTodayRevenue').textContent = fmtPrice(todayRev);
-        $('anaMonthRevenue').textContent = fmtPrice(monthRev);
-        $('anaAvgOrder').textContent = valid.length ? fmtPrice(Math.round(totalRev / valid.length)) : '₹0';
+        var e1 = $('anaTodayRevenue'); if (e1) e1.textContent = fmtPrice(todayRev);
+        var e2 = $('anaMonthRevenue'); if (e2) e2.textContent = fmtPrice(monthRev);
+        var e3 = $('anaAvgOrder'); if (e3) e3.textContent = valid.length ? fmtPrice(Math.round(totalRev / valid.length)) : '₹0';
         var uCount = {};
         valid.forEach(function (o) {
           if (!o.user_id) return;
           uCount[o.user_id] = (uCount[o.user_id] || 0) + 1;
         });
         var repeat = Object.keys(uCount).filter(function (k) { return uCount[k] > 1; }).length;
-        $('anaRepeat').textContent = repeat;
+        var e4 = $('anaRepeat'); if (e4) e4.textContent = repeat;
 
         var days = [];
         for (var i = 13; i >= 0; i--) {
@@ -1068,6 +1082,7 @@
               .sort(function (a, b) { return b.total - a.total; })
               .slice(0, 10);
             var el = $('topProductsList');
+            if (!el) return;
             if (!top.length) { el.innerHTML = '<p class="admin-empty">No sales yet</p>'; return; }
             var html = '';
             top.forEach(function (t, i) {
@@ -1107,7 +1122,6 @@
     var tbody = $('marketingBody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">Loading...</td></tr>';
-
     fetch(SUPABASE_URL + '/rest/v1/marketing_lists?select=*&order=created_at.desc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
@@ -1118,7 +1132,6 @@
       .catch(function (err) {
         tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">Failed: ' + esc(err.message) + '</td></tr>';
       });
-
     loadAllCustomerEmails();
   }
 
@@ -1192,46 +1205,46 @@
   }
 
   function openListModal(id) {
-    $('listForm').reset();
-    $('listStatus').textContent = '';
-    $('list-email-count').textContent = '0 emails';
+    var lf = $('listForm'); if (lf) lf.reset();
+    var ls = $('listStatus'); if (ls) ls.textContent = '';
+    var lc = $('list-email-count'); if (lc) lc.textContent = '0 emails';
     if (id) {
       var l = currentMarketingLists.find(function (x) { return x.id === id; });
       if (!l) return;
-      $('listModalTitle').textContent = 'Edit List';
-      $('list-id').value = l.id;
-      $('list-name').value = l.name || '';
-      $('list-emails').value = (l.emails || []).join('\n');
+      var lt = $('listModalTitle'); if (lt) lt.textContent = 'Edit List';
+      var setV = function (fid, v) { var el = $(fid); if (el) el.value = v == null ? '' : v; };
+      setV('list-id', l.id);
+      setV('list-name', l.name || '');
+      setV('list-emails', (l.emails || []).join('\n'));
       updateListEmailCount();
     } else {
-      $('listModalTitle').textContent = 'New Marketing List';
-      $('list-id').value = '';
+      var lt2 = $('listModalTitle'); if (lt2) lt2.textContent = 'New Marketing List';
+      var li = $('list-id'); if (li) li.value = '';
     }
-    $('listModal').classList.add('open');
+    var lm = $('listModal'); if (lm) lm.classList.add('open');
   }
 
-  function closeListModal() { $('listModal').classList.remove('open'); }
+  function closeListModal() { var m = $('listModal'); if (m) m.classList.remove('open'); }
 
   function updateListEmailCount() {
-    var raw = $('list-emails').value || '';
+    var raw = ($('list-emails') || {}).value || '';
     var emails = raw.split(/[\s,;]+/).filter(function (e) { return /@/.test(e); });
-    $('list-email-count').textContent = emails.length + ' emails';
+    var el = $('list-email-count');
+    if (el) el.textContent = emails.length + ' emails';
   }
 
   function saveList(e) {
     e.preventDefault();
     var btn = $('saveListBtn');
     var status = $('listStatus');
-    var id = $('list-id').value;
-    var name = $('list-name').value.trim();
-    var raw = $('list-emails').value || '';
+    var id = ($('list-id') || {}).value || '';
+    var name = ($('list-name') || {}).value ? $('list-name').value.trim() : '';
+    var raw = ($('list-emails') || {}).value || '';
     var emails = raw.split(/[\s,;]+/).filter(function (e) { return /@/.test(e); }).map(function (e) { return e.trim(); });
 
     if (!name) { showStatus(status, 'Name required', 'err'); return; }
     if (!emails.length) { showStatus(status, 'At least one email required', 'err'); return; }
-
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
 
     var url = SUPABASE_URL + '/rest/v1/marketing_lists';
     var method = 'POST';
@@ -1248,7 +1261,7 @@
       loadMarketing();
       setTimeout(closeListModal, 700);
     }).catch(function () { showStatus(status, 'Save failed', 'err'); })
-      .finally(function () { btn.disabled = false; btn.textContent = 'Save'; });
+      .then(function () { if (btn) { btn.disabled = false; btn.textContent = 'Save'; } });
   }
 
   function deleteMarketingList(id) {
@@ -1259,7 +1272,7 @@
       .then(function () { logActivity('list_delete', 'marketing_list', id, l.name); loadMarketing(); })
       .catch(function (err) { alert(err.message); });
   }
-   
+
   /* ============ MESSAGES ============ */
   function loadMessages() {
     var list = $('messagesList');
@@ -1426,46 +1439,44 @@
   }
 
   function openStaffModal(id) {
-    $('staffForm').reset();
-    $('staffStatus').textContent = '';
-    $('staff-active').checked = true;
+    var sf = $('staffForm'); if (sf) sf.reset();
+    var ss = $('staffStatus'); if (ss) ss.textContent = '';
+    var sa = $('staff-active'); if (sa) sa.checked = true;
     if (id) {
       var s = currentStaff.find(function (x) { return x.id === id; });
       if (!s) return;
-      $('staffModalTitle').textContent = 'Edit Staff';
-      $('staff-id').value = s.id;
-      $('staff-name').value = s.name || '';
-      $('staff-email').value = s.email || '';
-      $('staff-role').value = s.role || 'admin';
-      $('staff-active').checked = s.active !== false;
+      var st = $('staffModalTitle'); if (st) st.textContent = 'Edit Staff';
+      var setV = function (fid, v) { var el = $(fid); if (el) el.value = v == null ? '' : v; };
+      setV('staff-id', s.id);
+      setV('staff-name', s.name || '');
+      setV('staff-email', s.email || '');
+      setV('staff-role', s.role || 'admin');
+      var sa2 = $('staff-active'); if (sa2) sa2.checked = s.active !== false;
     } else {
-      $('staffModalTitle').textContent = 'Add Staff';
-      $('staff-id').value = '';
+      var st2 = $('staffModalTitle'); if (st2) st2.textContent = 'Add Staff';
+      var si = $('staff-id'); if (si) si.value = '';
     }
-    $('staffModal').classList.add('open');
+    var sm = $('staffModal'); if (sm) sm.classList.add('open');
   }
 
-  function closeStaffModal() { $('staffModal').classList.remove('open'); }
+  function closeStaffModal() { var m = $('staffModal'); if (m) m.classList.remove('open'); }
 
   function saveStaff(e) {
     e.preventDefault();
     var btn = $('saveStaffBtn');
     var status = $('staffStatus');
-    var id = $('staff-id').value;
+    var id = ($('staff-id') || {}).value || '';
     var data = {
-      name: $('staff-name').value.trim(),
-      email: $('staff-email').value.trim().toLowerCase(),
-      role: $('staff-role').value,
-      active: $('staff-active').checked
+      name: ($('staff-name') || {}).value ? $('staff-name').value.trim() : '',
+      email: ($('staff-email') || {}).value ? $('staff-email').value.trim().toLowerCase() : '',
+      role: ($('staff-role') || {}).value || 'admin',
+      active: $('staff-active') ? $('staff-active').checked : true
     };
     if (!data.name || !data.email) { showStatus(status, 'Name and email required', 'err'); return; }
-
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
     var url = SUPABASE_URL + '/rest/v1/admin_users';
     var method = 'POST';
     if (id) { url += '?id=eq.' + id; method = 'PATCH'; }
-
     fetch(url, { method: method, headers: apiHeaders(true), body: JSON.stringify(data) })
       .then(function (r) {
         if (!r.ok) return r.text().then(function () { throw new Error('Failed'); });
@@ -1475,7 +1486,7 @@
         setTimeout(closeStaffModal, 700);
       })
       .catch(function () { showStatus(status, 'Save failed. Email may already exist.', 'err'); })
-      .finally(function () { btn.disabled = false; btn.textContent = 'Save'; });
+      .then(function () { if (btn) { btn.disabled = false; btn.textContent = 'Save'; } });
   }
 
   function deleteStaff(id) {
@@ -1493,11 +1504,9 @@
     var tbody = $('activityBody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">Loading...</td></tr>';
-
     var filter = ($('activityFilter') && $('activityFilter').value) || '';
     var url = SUPABASE_URL + '/rest/v1/activity_log?select=*&order=created_at.desc&limit=200';
     if (filter) url += '&action=eq.' + encodeURIComponent(filter);
-
     fetch(url, { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
@@ -1518,21 +1527,13 @@
       return;
     }
     var actionLabels = {
-      product_add: '➕ Product Added',
-      product_edit: '✏️ Product Edited',
-      product_delete: '🗑️ Product Deleted',
+      product_add: '➕ Product Added', product_edit: '✏️ Product Edited', product_delete: '🗑️ Product Deleted',
       order_status: '📦 Order Status Changed',
-      coupon_add: '🎟️ Coupon Added',
-      coupon_edit: '✏️ Coupon Edited',
-      category_add: '📁 Category Added',
-      category_edit: '✏️ Category Edited',
-      category_delete: '🗑️ Category Deleted',
-      list_add: '📧 Marketing List Added',
-      list_edit: '✏️ Marketing List Edited',
-      list_delete: '🗑️ Marketing List Deleted',
-      staff_add: '👤 Staff Added',
-      staff_edit: '✏️ Staff Edited',
-      staff_delete: '🗑️ Staff Removed'
+      coupon_add: '🎟️ Coupon Added', coupon_edit: '✏️ Coupon Edited',
+      category_add: '📁 Category Added', category_edit: '✏️ Category Edited', category_delete: '🗑️ Category Deleted',
+      list_add: '📧 Marketing List Added', list_edit: '✏️ Marketing List Edited', list_delete: '🗑️ Marketing List Deleted',
+      message_status: '💬 Message Status Changed', message_delete: '🗑️ Message Deleted',
+      staff_add: '👤 Staff Added', staff_edit: '✏️ Staff Edited', staff_delete: '🗑️ Staff Removed'
     };
     var html = '';
     rows.forEach(function (a) {
@@ -1553,9 +1554,9 @@
     if (!order) return;
     var modal = $('invoiceModal');
     var body = $('invoiceBody');
+    if (!modal || !body) return;
     body.innerHTML = '<p style="text-align:center;color:#64748b;">Loading...</p>';
     modal.classList.add('open');
-
     fetch(SUPABASE_URL + '/rest/v1/order_items?select=*&order_id=eq.' + orderId + '&order=id.asc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (items) {
@@ -1570,7 +1571,6 @@
             '<td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right;">' + fmtPrice(it.line_total) + '</td>' +
           '</tr>';
         });
-
         var html = '' +
           '<div style="text-align:center;margin-bottom:20px;">' +
             '<div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:6px;">' +
@@ -1639,16 +1639,16 @@
         var btn = $('loginBtn');
         var status = $('loginStatus');
         if (!email || !password) return;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="admin-spinner"></span> Signing in...';
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="admin-spinner"></span> Signing in...'; }
         login(email, password)
           .then(function () { showDashboard(); })
           .catch(function (err) { showStatus(status, err.message || 'Login failed', 'err'); })
-          .finally(function () { btn.disabled = false; btn.textContent = 'Sign In'; });
+          .then(function () { if (btn) { btn.disabled = false; btn.textContent = 'Sign In'; } });
       });
     }
 
-    $('logoutBtn') && $('logoutBtn').addEventListener('click', function () {
+    var lb = $('logoutBtn');
+    if (lb) lb.addEventListener('click', function () {
       if (confirm('Log out?')) logout();
     });
 
@@ -1665,14 +1665,12 @@
       if (sb) sb.classList.toggle('open');
     });
 
-    /* Product modal */
-    $('addProductBtn') && $('addProductBtn').addEventListener('click', function () { openProductModal(null); });
-    $('modalClose') && $('modalClose').addEventListener('click', closeProductModal);
-    $('cancelFormBtn') && $('cancelFormBtn').addEventListener('click', closeProductModal);
-    $('productModal') && $('productModal').addEventListener('click', function (e) {
-      if (e.target === $('productModal')) closeProductModal();
-    });
-    $('productForm') && $('productForm').addEventListener('submit', saveProduct);
+    var apb = $('addProductBtn'); if (apb) apb.addEventListener('click', function () { openProductModal(null); });
+    var mc = $('modalClose'); if (mc) mc.addEventListener('click', closeProductModal);
+    var cfb = $('cancelFormBtn'); if (cfb) cfb.addEventListener('click', closeProductModal);
+    var pm = $('productModal');
+    if (pm) pm.addEventListener('click', function (e) { if (e.target === pm) closeProductModal(); });
+    var pf = $('productForm'); if (pf) pf.addEventListener('submit', saveProduct);
 
     var upload = $('adminUpload'), input = $('pf-images');
     if (upload && input) {
@@ -1689,111 +1687,110 @@
       });
     }
 
-    /* Order modal */
-    $('orderModalClose') && $('orderModalClose').addEventListener('click', function () { $('orderModal').classList.remove('open'); });
-    $('orderModal') && $('orderModal').addEventListener('click', function (e) {
-      if (e.target === $('orderModal')) $('orderModal').classList.remove('open');
-    });
+    var omc = $('orderModalClose');
+    if (omc) omc.addEventListener('click', function () { var m = $('orderModal'); if (m) m.classList.remove('open'); });
+    var om = $('orderModal');
+    if (om) om.addEventListener('click', function (e) { if (e.target === om) om.classList.remove('open'); });
 
-    /* Orders */
-    $('refreshOrdersBtn') && $('refreshOrdersBtn').addEventListener('click', loadOrders);
-    $('orderSearch') && $('orderSearch').addEventListener('input', applyOrderFilters);
-    $('orderStatusFilter') && $('orderStatusFilter').addEventListener('change', applyOrderFilters);
-    $('orderRegFilter') && $('orderRegFilter').addEventListener('change', applyOrderFilters);
+    var rob = $('refreshOrdersBtn'); if (rob) rob.addEventListener('click', loadOrders);
+    var os = $('orderSearch'); if (os) os.addEventListener('input', applyOrderFilters);
+    var osf = $('orderStatusFilter'); if (osf) osf.addEventListener('change', applyOrderFilters);
+    var orf = $('orderRegFilter'); if (orf) orf.addEventListener('change', applyOrderFilters);
 
-    /* Customers */
-    $('refreshCustomersBtn') && $('refreshCustomersBtn').addEventListener('click', loadCustomers);
-    $('customerSearch') && $('customerSearch').addEventListener('input', applyCustomerFilter);
+    var rcb = $('refreshCustomersBtn'); if (rcb) rcb.addEventListener('click', loadCustomers);
+    var cs = $('customerSearch'); if (cs) cs.addEventListener('input', applyCustomerFilter);
 
-    /* Categories */
-    $('addCategoryBtn') && $('addCategoryBtn').addEventListener('click', function () { openCategoryModal(null); });
-    $('categoryModalClose') && $('categoryModalClose').addEventListener('click', closeCategoryModal);
-    $('cancelCategoryBtn') && $('cancelCategoryBtn').addEventListener('click', closeCategoryModal);
-    $('categoryForm') && $('categoryForm').addEventListener('submit', saveCategory);
-    $('categoryModal') && $('categoryModal').addEventListener('click', function (e) {
-      if (e.target === $('categoryModal')) closeCategoryModal();
-    });
-    $('cat-name') && $('cat-name').addEventListener('input', function () {
+    var acb = $('addCategoryBtn'); if (acb) acb.addEventListener('click', function () { openCategoryModal(null); });
+    var cmc = $('categoryModalClose'); if (cmc) cmc.addEventListener('click', closeCategoryModal);
+    var ccb = $('cancelCategoryBtn'); if (ccb) ccb.addEventListener('click', closeCategoryModal);
+    var cform = $('categoryForm'); if (cform) cform.addEventListener('submit', saveCategory);
+    var cm = $('categoryModal');
+    if (cm) cm.addEventListener('click', function (e) { if (e.target === cm) closeCategoryModal(); });
+    var cn = $('cat-name');
+    if (cn) cn.addEventListener('input', function () {
       var slug = $('cat-slug');
-      if (slug && !$('cat-id').value) {
+      var catId = $('cat-id');
+      if (slug && (!catId || !catId.value)) {
         slug.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       }
     });
 
-    /* Coupons */
-    $('addCouponBtn') && $('addCouponBtn').addEventListener('click', function () { openCouponModal(null); });
-    $('couponModalClose') && $('couponModalClose').addEventListener('click', closeCouponModal);
-    $('cancelCouponBtn') && $('cancelCouponBtn').addEventListener('click', closeCouponModal);
-    $('couponForm') && $('couponForm').addEventListener('submit', saveCoupon);
-    $('couponModal') && $('couponModal').addEventListener('click', function (e) {
-      if (e.target === $('couponModal')) closeCouponModal();
-    });
+    var acpb = $('addCouponBtn'); if (acpb) acpb.addEventListener('click', function () { openCouponModal(null); });
+    var cpcmc = $('couponModalClose'); if (cpcmc) cpcmc.addEventListener('click', closeCouponModal);
+    var cpcb = $('cancelCouponBtn'); if (cpcb) cpcb.addEventListener('click', closeCouponModal);
+    var cpf = $('couponForm'); if (cpf) cpf.addEventListener('submit', saveCoupon);
+    var cpm = $('couponModal');
+    if (cpm) cpm.addEventListener('click', function (e) { if (e.target === cpm) closeCouponModal(); });
 
-    /* Invoice */
-    $('invoiceModalClose') && $('invoiceModalClose').addEventListener('click', function () { $('invoiceModal').classList.remove('open'); });
-    $('invoiceCancelBtn') && $('invoiceCancelBtn').addEventListener('click', function () { $('invoiceModal').classList.remove('open'); });
-    $('invoicePrintBtn') && $('invoicePrintBtn').addEventListener('click', printInvoice);
-    $('invoiceModal') && $('invoiceModal').addEventListener('click', function (e) {
-      if (e.target === $('invoiceModal')) $('invoiceModal').classList.remove('open');
-    });
+    var imc = $('invoiceModalClose');
+    if (imc) imc.addEventListener('click', function () { var m = $('invoiceModal'); if (m) m.classList.remove('open'); });
+    var icb = $('invoiceCancelBtn');
+    if (icb) icb.addEventListener('click', function () { var m = $('invoiceModal'); if (m) m.classList.remove('open'); });
+    var ipb = $('invoicePrintBtn'); if (ipb) ipb.addEventListener('click', printInvoice);
+    var im = $('invoiceModal');
+    if (im) im.addEventListener('click', function (e) { if (e.target === im) im.classList.remove('open'); });
 
-    /* Marketing */
-    $('addListBtn') && $('addListBtn').addEventListener('click', function () { openListModal(null); });
-    $('listModalClose') && $('listModalClose').addEventListener('click', closeListModal);
-    $('cancelListBtn') && $('cancelListBtn').addEventListener('click', closeListModal);
-    $('listForm') && $('listForm').addEventListener('submit', saveList);
-    $('listModal') && $('listModal').addEventListener('click', function (e) {
-      if (e.target === $('listModal')) closeListModal();
-    });
-    $('list-emails') && $('list-emails').addEventListener('input', updateListEmailCount);
+    var alb = $('addListBtn'); if (alb) alb.addEventListener('click', function () { openListModal(null); });
+    var lmc = $('listModalClose'); if (lmc) lmc.addEventListener('click', closeListModal);
+    var lcb = $('cancelListBtn'); if (lcb) lcb.addEventListener('click', closeListModal);
+    var lf2 = $('listForm'); if (lf2) lf2.addEventListener('submit', saveList);
+    var lm = $('listModal');
+    if (lm) lm.addEventListener('click', function (e) { if (e.target === lm) closeListModal(); });
+    var le = $('list-emails'); if (le) le.addEventListener('input', updateListEmailCount);
 
-    $('list-autofill') && $('list-autofill').addEventListener('change', function () {
+    var la = $('list-autofill');
+    if (la) la.addEventListener('change', function () {
       if (!this.checked) return;
       fetch(SUPABASE_URL + '/rest/v1/profiles?select=email&email=not.is.null', { headers: apiHeaders(true) })
         .then(function (r) { return r.json(); })
         .then(function (rows) {
           if (!Array.isArray(rows)) return;
           var emails = rows.map(function (r) { return r.email; }).filter(Boolean).join('\n');
-          $('list-emails').value = emails;
+          var el = $('list-emails'); if (el) el.value = emails;
           updateListEmailCount();
         });
     });
 
-    $('copyAllEmailsBtn') && $('copyAllEmailsBtn').addEventListener('click', function () {
+    var caeb = $('copyAllEmailsBtn');
+    if (caeb) caeb.addEventListener('click', function () {
       var el = $('allEmailsList');
       if (!el) return;
       var emails = Array.prototype.slice.call(el.querySelectorAll('div')).map(function (d) { return d.textContent.trim(); }).filter(function (e) { return /@/.test(e); });
       if (!emails.length) return;
+      var btn = this;
       navigator.clipboard.writeText(emails.join(', ')).then(function () {
-        this.textContent = '✓ Copied';
-        var btn = this;
+        btn.textContent = '✓ Copied';
         setTimeout(function () { btn.textContent = 'Copy All'; }, 1500);
-      }.bind(this));
+      });
     });
 
-    /* Staff */
-    $('addStaffBtn') && $('addStaffBtn').addEventListener('click', function () { openStaffModal(null); });
-    $('staffModalClose') && $('staffModalClose').addEventListener('click', closeStaffModal);
-    $('cancelStaffBtn') && $('cancelStaffBtn').addEventListener('click', closeStaffModal);
-    $('staffForm') && $('staffForm').addEventListener('submit', saveStaff);
-    $('staffModal') && $('staffModal').addEventListener('click', function (e) {
-      if (e.target === $('staffModal')) closeStaffModal();
-    });
-     
-    /* Messages */
-    $('refreshMessagesBtn') && $('refreshMessagesBtn').addEventListener('click', loadMessages);
-    $('messageFilter') && $('messageFilter').addEventListener('change', loadMessages);
+    var rmb = $('refreshMessagesBtn'); if (rmb) rmb.addEventListener('click', loadMessages);
+    var mf = $('messageFilter'); if (mf) mf.addEventListener('change', loadMessages);
 
-    /* Activity */
-    $('refreshActivityBtn') && $('refreshActivityBtn').addEventListener('click', loadActivity);
-    $('activityFilter') && $('activityFilter').addEventListener('change', loadActivity);
+    var asb = $('addStaffBtn'); if (asb) asb.addEventListener('click', function () { openStaffModal(null); });
+    var smc = $('staffModalClose'); if (smc) smc.addEventListener('click', closeStaffModal);
+    var scb = $('cancelStaffBtn'); if (scb) scb.addEventListener('click', closeStaffModal);
+    var sf = $('staffForm'); if (sf) sf.addEventListener('submit', saveStaff);
+    var sm = $('staffModal');
+    if (sm) sm.addEventListener('click', function (e) { if (e.target === sm) closeStaffModal(); });
 
-    /* ESC closes modals */
+    var rab = $('refreshActivityBtn'); if (rab) rab.addEventListener('click', loadActivity);
+    var af = $('activityFilter'); if (af) af.addEventListener('change', loadActivity);
+
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         ['productModal', 'orderModal', 'categoryModal', 'couponModal', 'invoiceModal', 'listModal', 'staffModal'].forEach(function (id) {
-          $(id) && $(id).classList.remove('open');
+          var m = $(id);
+          if (m) m.classList.remove('open');
         });
+      }
+    });
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) return;
+      if (session && session.access_token) {
+        refreshCurrentTab();
+        updateMessagesBadge();
       }
     });
 
