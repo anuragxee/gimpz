@@ -611,10 +611,11 @@
         var price = Number(item.price) || 0;
         var lt = price * item.qty;
         subtotal += lt;
-        items.push({
+               items.push({
           product_id: item.id,
           product_name: item.name || ('Product #' + item.id),
           product_brand: item.brand || '',
+          image_folder: item.image_folder || '',
           quantity: item.qty,
           price_at_time: price,
           line_total: lt
@@ -668,12 +669,13 @@
               'Content-Type': 'application/json',
               'Prefer': 'return=minimal'
             },
-            body: JSON.stringify(items.map(function (it) {
+               body: JSON.stringify(items.map(function (it) {
               return {
                 order_id: orderId,
                 product_id: it.product_id,
                 product_name: it.product_name,
                 product_brand: it.product_brand,
+                image_folder: it.image_folder,
                 quantity: it.quantity,
                 price_at_time: it.price_at_time,
                 line_total: it.line_total
