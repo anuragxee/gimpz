@@ -18,6 +18,7 @@
   var currentCategories = [];
   var currentCoupons = [];
   var currentMarketingLists = [];
+  var currentMessages = [];
   var currentStaff = [];
   var currentActivity = [];
   var pendingImages = [];
@@ -155,6 +156,7 @@
     switchTab('overview');
     loadCategoriesIntoSelect();
     checkStockAlerts();
+    updateMessagesBadge();
   }
 
   /* ============ TABS ============ */
@@ -169,7 +171,7 @@
     var titles = {
       overview: 'Overview', products: 'Products', orders: 'Orders',
       customers: 'Customers', categories: 'Categories', coupons: 'Coupons',
-      analytics: 'Analytics', marketing: 'Marketing', staff: 'Staff',
+      analytics: 'Analytics', marketing: 'Marketing', messages: 'Messages', staff: 'Staff',
       activity: 'Activity Log'
     };
     $('pageTitle').textContent = titles[tab] || 'Admin';
@@ -185,6 +187,7 @@
     if (tab === 'coupons') loadCoupons();
     if (tab === 'analytics') loadAnalytics();
     if (tab === 'marketing') loadMarketing();
+    if (tab === 'messages') loadMessages();
     if (tab === 'staff') loadStaff();
     if (tab === 'activity') loadActivity();
   }
@@ -1200,6 +1203,123 @@
       .then(function () { logActivity('list_delete', 'marketing_list', id, l.name); loadMarketing(); })
       .catch(function (err) { alert(err.message); });
   }
+   
+  /* ============ MESSAGES ============ */
+  function loadMessages() {
+    var list = $('messagesList');
+    if (!list) return;
+    list.innerHTML = '<p class="admin-empty">Loading messages...</p>';
+
+    var filter = ($('messageFilter') && $('messageFilter').value) || '';
+    var url = SUPABASE_URL + '/rest/v1/contact_messages?select=*&order=created_at.desc&limit=500';
+    if (filter) url += '&status=eq.' + encodeURIComponent(filter);
+
+    fetch(url, { headers: apiHeaders(true) })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        if (!Array.isArray(rows)) rows = [];
+        currentMessages = rows;
+        renderMessages(rows);
+        updateMessagesBadge();
+      })
+      .catch(function (err) {
+        list.innerHTML = '<p class="admin-empty">Failed: ' + esc(err.message) + '</p>';
+      });
+  }
+
+  function updateMessagesBadge() {
+    var badge = $('messagesBadge');
+    if (!badge) return;
+    fetch(SUPABASE_URL + '/rest/v1/contact_messages?select=id&status=eq.New', { headers: apiHeaders(true) })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        var n = Array.isArray(rows) ? rows.length : 0;
+        badge.textContent = n;
+        badge.setAttribute('data-count', n);
+      })
+      .catch(function () {});
+  }
+
+  function renderMessages(rows) {
+    var list = $('messagesList');
+    if (!list) return;
+    if (!rows.length) {
+      list.innerHTML = '<p class="admin-empty">No messages yet.</p>';
+      return;
+    }
+    var html = '';
+    rows.forEach(function (m) {
+      var statusPill = m.status === 'New'
+        ? '<span class="status-pill status-pending">New</span>'
+        : m.status === 'Resolved'
+          ? '<span class="status-pill status-delivered">Resolved</span>'
+          : '<span class="status-pill status-shipped">' + esc(m.status || 'Read') + '</span>';
+
+      var initial = (m.name || '?').charAt(0).toUpperCase();
+
+      html += '<div class="msg-card" data-id="' + m.id + '">' +
+        '<div class="msg-head">' +
+          '<div class="msg-who">' +
+            '<div class="admin-avatar" style="width:40px;height:40px;font-size:.95rem;">' + initial + '</div>' +
+            '<div>' +
+              '<strong>' + esc(m.name) + '</strong>' +
+              '<div class="msg-contact">' +
+                '<a href="mailto:' + esc(m.email) + '">' + esc(m.email) + '</a>' +
+                ' · <a href="tel:' + esc(m.phone) + '">' + esc(m.phone) + '</a>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="msg-meta">' +
+            statusPill +
+            '<small>' + fmtDate(m.created_at) + '</small>' +
+          '</div>' +
+        '</div>' +
+        '<div class="msg-subject"><strong>Subject:</strong> ' + esc(m.subject) + '</div>' +
+        '<div class="msg-body">' + esc(m.message).replace(/\n/g, '<br>') + '</div>' +
+        '<div class="msg-actions">' +
+          '<a class="admin-action-btn" href="mailto:' + esc(m.email) + '?subject=' + encodeURIComponent('Re: ' + m.subject) + '" style="text-decoration:none;">Reply</a>' +
+          (m.status !== 'Read' ? '<button class="admin-action-btn" data-msg-status="Read" data-id="' + m.id + '">Mark Read</button>' : '') +
+          (m.status !== 'Resolved' ? '<button class="admin-action-btn" data-msg-status="Resolved" data-id="' + m.id + '">Mark Resolved</button>' : '') +
+          '<button class="admin-action-btn danger" data-msg-delete="' + m.id + '">Delete</button>' +
+        '</div>' +
+      '</div>';
+    });
+    list.innerHTML = html;
+
+    list.querySelectorAll('[data-msg-status]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        updateMessageStatus(parseInt(b.getAttribute('data-id'), 10), b.getAttribute('data-msg-status'));
+      });
+    });
+    list.querySelectorAll('[data-msg-delete]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        deleteMessage(parseInt(b.getAttribute('data-msg-delete'), 10));
+      });
+    });
+  }
+
+  function updateMessageStatus(id, status) {
+    fetch(SUPABASE_URL + '/rest/v1/contact_messages?id=eq.' + id, {
+      method: 'PATCH',
+      headers: apiHeaders(true),
+      body: JSON.stringify({ status: status })
+    }).then(function (r) {
+      if (!r.ok) throw new Error('Update failed');
+      logActivity('message_status', 'contact_message', id, 'Marked ' + status);
+      loadMessages();
+    }).catch(function (err) { alert(err.message); });
+  }
+
+  function deleteMessage(id) {
+    if (!confirm('Delete this message?')) return;
+    fetch(SUPABASE_URL + '/rest/v1/contact_messages?id=eq.' + id, {
+      method: 'DELETE',
+      headers: apiHeaders(true)
+    }).then(function () {
+      logActivity('message_delete', 'contact_message', id, '');
+      loadMessages();
+    }).catch(function (err) { alert(err.message); });
+  }
 
   /* ============ STAFF ============ */
   function loadStaff() {
@@ -1603,6 +1723,10 @@
     $('staffModal') && $('staffModal').addEventListener('click', function (e) {
       if (e.target === $('staffModal')) closeStaffModal();
     });
+     
+    /* Messages */
+    $('refreshMessagesBtn') && $('refreshMessagesBtn').addEventListener('click', loadMessages);
+    $('messageFilter') && $('messageFilter').addEventListener('change', loadMessages);
 
     /* Activity */
     $('refreshActivityBtn') && $('refreshActivityBtn').addEventListener('click', loadActivity);
