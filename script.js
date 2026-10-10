@@ -744,12 +744,18 @@
       if ($('cartList')) renderCartPage();
       if ($('orderSuccessContent')) renderOrderSuccess();
 
+      // Debounced search — prevents lag while typing
+      var searchTimer = null;
       var searchInput = $('searchInput');
-      if (searchInput) searchInput.addEventListener('input', applyFilters);
+      if (searchInput) {
+        searchInput.addEventListener('input', function () {
+          clearTimeout(searchTimer);
+          searchTimer = setTimeout(applyFilters, 180);
+        }, { passive: true });
+      }
 
       var sortSel = $('sortSelect');
-      if (sortSel) sortSel.addEventListener('change', applyFilters);
-
+      if (sortSel) sortSel.addEventListener('change', applyFilters, { passive: true });
       document.querySelectorAll('.category-filter').forEach(function (btn) {
         btn.addEventListener('click', function () {
           document.querySelectorAll('.category-filter').forEach(function (b) { b.classList.remove('active'); });
