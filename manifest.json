@@ -1,0 +1,37 @@
+{
+  "name": "GIMPZ — Everything You Need, One Store",
+  "short_name": "GIMPZ",
+  "description": "Shop electronics, fashion, home essentials, beauty, sports, toys and more.",
+  "start_url": "/gimpz/",
+  "scope": "/gimpz/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a2540",
+  "theme_color": "#0a2540",
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "New Arrivals",
+      "url": "/gimpz/new-arrivals.html",
+      "description": "See the newest products"
+    },
+    {
+      "name": "Best Sellers",
+      "url": "/gimpz/best-sellers.html",
+      "description": "Shop top-rated products"
+    },
+    {
+      "name": "My Cart",
+      "url": "/gimpz/cart.html",
+      "description": "View your cart"
+    }
+  ]
+}
