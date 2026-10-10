@@ -23,6 +23,60 @@
   var currentActivity = [];
   var pendingImages = [];
 
+   
+  /* Auto-refresh */
+  var autoRefreshTimer = null;
+  var AUTO_REFRESH_MS = 20000;   /* 20 seconds */
+
+     /* ============ AUTO-REFRESH ============ */
+  function startAutoRefresh() {
+    stopAutoRefresh();
+    autoRefreshTimer = setInterval(function () {
+      /* Don't refresh if the browser tab is hidden */
+      if (document.hidden) return;
+
+      /* Refresh messages badge always (top of sidebar) */
+      updateMessagesBadge();
+
+      /* Refresh whichever tab is currently active */
+      var activeBtn = document.querySelector('.admin-nav-btn.active');
+      var tab = activeBtn ? activeBtn.getAttribute('data-tab') : 'overview';
+
+      if (tab === 'overview') {
+        loadOverview();
+        checkStockAlerts();
+      } else if (tab === 'orders') {
+        loadOrders();
+      } else if (tab === 'messages') {
+        loadMessages();
+      } else if (tab === 'customers') {
+        loadCustomers();
+      }
+    }, AUTO_REFRESH_MS);
+  }
+
+  function stopAutoRefresh() {
+    if (autoRefreshTimer) {
+      clearInterval(autoRefreshTimer);
+      autoRefreshTimer = null;
+    }
+  }
+
+  /* When browser tab becomes visible again, refresh immediately */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) return;
+    if (session && session.access_token) {
+      var activeBtn = document.querySelector('.admin-nav-btn.active');
+      var tab = activeBtn ? activeBtn.getAttribute('data-tab') : 'overview';
+      if (tab === 'overview') { loadOverview(); checkStockAlerts(); }
+      else if (tab === 'orders') loadOrders();
+      else if (tab === 'messages') loadMessages();
+      else if (tab === 'customers') loadCustomers();
+      updateMessagesBadge();
+    }
+  });
+
+
   /* ============ HELPERS ============ */
   function $(id) { return document.getElementById(id); }
 
@@ -135,7 +189,8 @@
     });
   }
 
-  function logout() {
+   function logout() {
+    stopAutoRefresh();
     session = null;
     saveSession();
     showLoginScreen();
@@ -157,6 +212,7 @@
     loadCategoriesIntoSelect();
     checkStockAlerts();
     updateMessagesBadge();
+    startAutoRefresh();
   }
 
   /* ============ TABS ============ */
