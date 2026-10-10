@@ -11,6 +11,14 @@
 <link rel="preconnect" href="https://qyzevydprpkjslnesrxq.supabase.co" crossorigin>
 <link rel="dns-prefetch" href="https://qyzevydprpkjslnesrxq.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JSHQ0GHMHV"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JSHQ0GHMHV', { send_page_view: true });
+</script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -87,13 +95,11 @@
           <section class="cart-block" id="checkoutBlock">
             <h2 class="block-title">Shipping Address</h2>
 
-            <!-- Saved addresses -->
             <div id="savedAddressesSection" style="display:none;margin-bottom:18px;">
               <p style="font-size:.82rem;font-weight:600;color:#0a2540;margin-bottom:10px;">Use a saved address</p>
               <div id="savedAddressesList" class="saved-address-list"></div>
             </div>
 
-            <!-- Address form -->
             <form id="checkoutForm" class="checkout-form" novalidate>
               <div id="addressFormHeading" style="font-size:.82rem;font-weight:600;color:#0a2540;margin-bottom:6px;display:none;">
                 Enter a new address
