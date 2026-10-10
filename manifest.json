@@ -28,6 +28,15 @@
       "purpose": "maskable"
     }
   ],
+  "screenshots": [
+    {
+      "src": "assets/screenshot-desktop.png",
+      "sizes": "1350x3097",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Shop the full GIMPZ catalog"
+    }
+  ],
   "categories": ["shopping", "lifestyle"],
   "shortcuts": [
     {
