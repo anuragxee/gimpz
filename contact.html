@@ -91,8 +91,9 @@
             </select>
           </div>
           <div class="form-field"><label for="cMessage">Message *</label><textarea id="cMessage" rows="5" placeholder="Tell us how we can help..." required></textarea></div>
-          <button type="submit" class="btn btn-primary btn-lg btn-block">Send Message →</button>
-          <p class="checkout-note">This opens your email app with the details filled in. You can also reach us at <b>thegimpzzstore@gmail.com</b>.</p>
+          <button type="submit" class="btn btn-primary btn-lg btn-block" id="contactSubmitBtn">Send Message →</button>
+          <p class="form-status" id="contactStatus" role="status"></p>
+          <p class="checkout-note">Your message is saved securely. You can also reach us at <b>thegimpzzstore@gmail.com</b>.</p>
         </form>
       </div>
 
@@ -190,31 +191,84 @@
 
 <script src="script.js"></script>
 <script>
-document.getElementById('year').textContent = new Date().getFullYear();
+(function () {
+  'use strict';
 
-document.getElementById('contactPageForm').addEventListener('submit', function (e) {
-  e.preventDefault();
-  var name = document.getElementById('cName').value.trim();
-  var phone = document.getElementById('cPhone').value.trim();
-  var email = document.getElementById('cEmail').value.trim();
-  var subject = document.getElementById('cSubject').value;
-  var message = document.getElementById('cMessage').value.trim();
+  var SUPABASE_URL = 'https://qyzevydprpkjslnesrxq.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5emV2eWRwcnBranNsbmVzcnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTk2NDksImV4cCI6MjEwNzA5NTY0OX0.BE-ijSGGNmkQjaeSZ8RX6mQGMW5dY2Y2Gzj9vitRK0g';
 
-  if (!name || !phone || !email || !subject || !message) { alert('Please fill all fields'); return; }
-  if (!/^[6-9][0-9]{9}$/.test(phone)) { alert('Please enter a valid mobile number'); return; }
+  function $(id) { return document.getElementById(id); }
 
-  var lines = [];
-  lines.push('Contact Form — GIMPZ');
-  lines.push('');
-  lines.push('From: ' + name);
-  lines.push('Phone: ' + phone);
-  lines.push('Email: ' + email);
-  lines.push('Subject: ' + subject);
-  lines.push('');
-  lines.push(message);
+  document.getElementById('year').textContent = new Date().getFullYear();
 
-  window.location.href = 'mailto:thegimpzzstore@gmail.com?subject=' + encodeURIComponent('[GIMPZ] ' + subject) + '&body=' + encodeURIComponent(lines.join('\n'));
-});
+  $('contactPageForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    var name = $('cName').value.trim();
+    var phone = $('cPhone').value.trim();
+    var email = $('cEmail').value.trim();
+    var subject = $('cSubject').value;
+    var message = $('cMessage').value.trim();
+    var btn = $('contactSubmitBtn');
+    var status = $('contactStatus');
+
+    status.textContent = '';
+    status.className = 'form-status';
+
+    if (!name || !phone || !email || !subject || !message) {
+      status.textContent = 'Please fill all fields';
+      status.className = 'form-status err';
+      return;
+    }
+    if (!/^[6-9][0-9]{9}$/.test(phone)) {
+      status.textContent = 'Please enter a valid 10-digit mobile number';
+      status.className = 'form-status err';
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      status.textContent = 'Please enter a valid email address';
+      status.className = 'form-status err';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    fetch(SUPABASE_URL + '/rest/v1/contact_messages', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        name: name,
+        phone: phone,
+        email: email,
+        subject: subject,
+        message: message,
+        status: 'New'
+      })
+    })
+      .then(function (r) {
+        if (!r.ok) return r.text().then(function (t) { throw new Error(t || 'Failed'); });
+        status.textContent = '✓ Message sent! We\'ll reply within a few hours.';
+        status.className = 'form-status ok';
+        $('contactPageForm').reset();
+        btn.disabled = false;
+        btn.textContent = 'Send Message →';
+      })
+      .catch(function (err) {
+        console.error('[GIMPZ] Contact failed:', err);
+        status.textContent = 'Could not send. Please email us at thegimpzzstore@gmail.com';
+        status.className = 'form-status err';
+        btn.disabled = false;
+        btn.textContent = 'Send Message →';
+      });
+  });
+
+})();
 </script>
 </body>
 </html>
