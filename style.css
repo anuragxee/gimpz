@@ -106,7 +106,7 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
   border-radius:999px;display:grid;place-items:center;border:2px solid #fff;
 }
 
-/* Mobile search bar — hidden by default, collapses fully */
+/* Mobile search bar — hidden by default */
 .search-bar{display:none;padding-bottom:0;height:0;overflow:hidden}
 .search-bar.open{display:block;height:auto;padding-bottom:14px}
 .search-bar input{
@@ -718,7 +718,6 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
 /* Tablet portrait + below (max 900) */
 @media (max-width:900px){
   .hero-banner-inner{grid-template-columns:1fr;gap:22px}
-  .hero-banner-visual{display:block}
   .pd-grid{grid-template-columns:1fr;gap:22px;padding:20px}
   .pd-skeleton{grid-template-columns:1fr;gap:22px;padding:20px}
   .cart-layout{grid-template-columns:1fr}
@@ -742,7 +741,7 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
    MOBILE (max 640)
    ============================================================ */
 @media (max-width:640px){
-  /* Header: tight 60px bar, no extra space */
+  /* Header: tight 60px bar */
   .header-inner{height:60px;padding:0 14px;gap:10px}
   .header-search{display:none}
   #searchToggle{display:none !important}
@@ -754,8 +753,8 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
   .header-actions{gap:2px}
   .icon-btn{width:38px;height:38px}
 
-  /* Category nav sticks below 60px header */
-  .cat-nav{top:60px;position:relative}
+  /* Category nav sticks below 60px header — no gap */
+  .cat-nav{top:60px}
   .cat-nav-inner{padding:10px 14px;gap:6px}
   .category-filter{padding:7px 13px;font-size:.78rem}
 
@@ -773,10 +772,9 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
   .hero-banner p{font-size:.88rem;margin-bottom:16px}
   .hero-banner-actions{gap:10px}
   .hero-banner-actions .btn{flex:1;min-width:0;padding:11px 14px;font-size:.88rem}
-  .hero-featured{padding:12px;gap:10px}
-  .hero-featured-img{width:76px;height:76px;padding:8px}
-  .hero-featured-info h3{font-size:.82rem}
-  .hero-featured-now{font-size:1rem}
+
+  /* Hide "Deal of the Day" hero card on phones */
+  .hero-banner-visual{display:none !important}
 
   /* Sections */
   .section{padding:28px 0}
@@ -796,7 +794,7 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
   .price{font-size:.95rem}
   .add-cart-btn{margin:10px 10px 10px;padding:9px;font-size:.76rem}
 
-  /* Category cards — 3 per row on small phones */
+  /* Category cards — 3 per row */
   .category-grid{grid-template-columns:repeat(3,1fr);gap:8px}
   .cat-card{padding:12px 4px;font-size:.7rem}
   .cat-icon{font-size:1.5rem}
@@ -839,7 +837,7 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
   .auth-card{padding:28px 20px}
   .auth-card h1{font-size:1.3rem}
 
-  /* ============ FOOTER — 2 columns on mobile ============ */
+  /* ============ FOOTER — 2 columns ============ */
   .site-footer{padding:28px 0 0}
   .footer-grid{
     grid-template-columns:1fr 1fr;
