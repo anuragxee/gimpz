@@ -1,5 +1,6 @@
 /* ============================================================
-   GIMPZ — MAIN SCRIPT (coupons + reviews + wishlist + everything)
+   GIMPZ — MAIN SCRIPT (everything: coupons, reviews, wishlist,
+   recently viewed, abandoned cart, PWA, newsletter)
    ============================================================ */
 (function () {
   'use strict';
@@ -187,7 +188,6 @@
   function validateCoupon(code, subtotal) {
     var cleanCode = String(code || '').trim().toUpperCase();
     if (!cleanCode) return Promise.reject(new Error('Enter a coupon code'));
-
     var url = SUPABASE_URL + '/rest/v1/coupons?code=eq.' + encodeURIComponent(cleanCode) + '&active=eq.true&limit=1';
     return fetch(url, {
       headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
@@ -276,7 +276,6 @@
       if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); }
     });
     if (rm) rm.addEventListener('click', removeCoupon);
-    // Re-validate on cart change
     if (ACTIVE_COUPON) {
       var subtotal = cartTotal();
       if (subtotal < (ACTIVE_COUPON.min_order || 0)) {
@@ -292,15 +291,12 @@
     var summary = $('reviewsSummary');
     if (!section || !list) return;
     section.style.display = 'block';
-
     fetch(SUPABASE_URL + '/rest/v1/reviews?product_id=eq.' + productId + '&status=eq.Published&order=created_at.desc', {
       headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
     })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
-
-        // Summary
         if (summary) {
           if (rows.length) {
             var total = 0;
@@ -316,8 +312,6 @@
             summary.innerHTML = '<span class="review-avg-count" style="color:#94a3b8;">No reviews yet — be the first!</span>';
           }
         }
-
-        // List
         if (!rows.length) {
           list.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to review this product!</div>';
           return;
@@ -340,16 +334,14 @@
         });
         list.innerHTML = html;
       })
-      .catch(function (err) {
+      .catch(function () {
         list.innerHTML = '<div class="reviews-empty">Could not load reviews.</div>';
       });
   }
   function starHtml(n) {
     var full = Math.max(0, Math.min(5, Math.round(n || 0)));
     var out = '';
-    for (var i = 0; i < 5; i++) {
-      out += '<span class="star ' + (i < full ? 'full' : '') + '">★</span>';
-    }
+    for (var i = 0; i < 5; i++) out += '<span class="star ' + (i < full ? 'full' : '') + '">★</span>';
     return out;
   }
   function formatDateShort(iso) {
@@ -367,27 +359,19 @@
     var ratingInput = $('reviewRating');
     var status = $('reviewStatus');
     if (!form || !starPicker) return;
-
-    // Auth check
     var user = getUser();
     if (!user || !user.uid) {
       form.style.display = 'none';
       if (signedOut) signedOut.style.display = 'block';
-      if (signInBtn) {
-        signInBtn.href = 'login.html?redirect=' + encodeURIComponent('product.html?id=' + productId);
-      }
+      if (signInBtn) signInBtn.href = 'login.html?redirect=' + encodeURIComponent('product.html?id=' + productId);
       return;
     }
-
     if (signedOut) signedOut.style.display = 'none';
     form.style.display = 'block';
 
-    // Star picker
     starPicker.querySelectorAll('.star-btn').forEach(function (btn, i) {
       btn.addEventListener('mouseenter', function () {
-        starPicker.querySelectorAll('.star-btn').forEach(function (b, j) {
-          b.classList.toggle('hover', j <= i);
-        });
+        starPicker.querySelectorAll('.star-btn').forEach(function (b, j) { b.classList.toggle('hover', j <= i); });
       });
       btn.addEventListener('mouseleave', function () {
         starPicker.querySelectorAll('.star-btn').forEach(function (b) { b.classList.remove('hover'); });
@@ -395,13 +379,10 @@
       btn.addEventListener('click', function () {
         var v = parseInt(btn.getAttribute('data-star'), 10);
         ratingInput.value = v;
-        starPicker.querySelectorAll('.star-btn').forEach(function (b, j) {
-          b.classList.toggle('filled', j < v);
-        });
+        starPicker.querySelectorAll('.star-btn').forEach(function (b, j) { b.classList.toggle('filled', j < v); });
       });
     });
 
-    // Submit
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var rating = parseInt(ratingInput.value, 10) || 0;
@@ -409,13 +390,10 @@
       var comment = $('reviewComment').value.trim();
       if (rating < 1) { status.textContent = 'Please select a rating'; status.className = 'form-status err'; return; }
       if (comment.length < 5) { status.textContent = 'Review must be at least 5 characters'; status.className = 'form-status err'; return; }
-
       var btn = $('reviewSubmitBtn');
       btn.disabled = true;
       btn.textContent = 'Submitting...';
       status.textContent = '';
-
-      // Load user name from profile
       fetch(SUPABASE_URL + '/rest/v1/profiles?id=eq.' + encodeURIComponent(user.uid) + '&select=full_name,email', {
         headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
       })
@@ -431,13 +409,8 @@
               'Prefer': 'return=minimal'
             },
             body: JSON.stringify({
-              product_id: productId,
-              user_id: user.uid,
-              user_name: name,
-              rating: rating,
-              title: title || null,
-              comment: comment,
-              status: 'Published'
+              product_id: productId, user_id: user.uid, user_name: name,
+              rating: rating, title: title || null, comment: comment, status: 'Published'
             })
           });
         })
@@ -455,10 +428,7 @@
           status.textContent = err.message || 'Could not submit. Try again.';
           status.className = 'form-status err';
         })
-        .finally(function () {
-          btn.disabled = false;
-          btn.textContent = 'Submit Review';
-        });
+        .finally(function () { btn.disabled = false; btn.textContent = 'Submit Review'; });
     });
   }
 
@@ -571,9 +541,7 @@
   function updateActiveSearchItem() {
     var dd = searchState.dropdown;
     if (!dd) return;
-    dd.querySelectorAll('.search-item').forEach(function (el, i) {
-      el.classList.toggle('active', i === searchState.activeIndex);
-    });
+    dd.querySelectorAll('.search-item').forEach(function (el, i) { el.classList.toggle('active', i === searchState.activeIndex); });
     var active = dd.querySelector('.search-item.active');
     if (active) active.scrollIntoView({ block: 'nearest' });
   }
@@ -660,17 +628,7 @@
   }
   window.gimpzLoadAddresses = function (uid) { loadAddresses(uid); };
 
-  /* ============ CART ============ */
-  function getCart() {
-    try { var raw = localStorage.getItem(CART_KEY); return raw ? JSON.parse(raw) : []; }
-    catch (e) { return []; }
-  }
-  function saveCart(cart) {
-    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {}
-    updateCartBadge();
-    saveAbandonedCartSnapshot(cart);
-  }
-
+  /* ============ ABANDONED CART ============ */
   function saveAbandonedCartSnapshot(cart) {
     var user = getUser();
     if (!user || !user.uid) return;
@@ -710,6 +668,17 @@
         });
       })
       .catch(function (e) { console.warn('[GIMPZ] Abandoned cart save failed:', e); });
+  }
+
+  /* ============ CART ============ */
+  function getCart() {
+    try { var raw = localStorage.getItem(CART_KEY); return raw ? JSON.parse(raw) : []; }
+    catch (e) { return []; }
+  }
+  function saveCart(cart) {
+    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {}
+    updateCartBadge();
+    saveAbandonedCartSnapshot(cart);
   }
   function addToCart(productOrId, qty) {
     qty = qty || 1;
@@ -988,11 +957,8 @@
     var wBtn = container.querySelector('.pd-wishlist-btn');
     if (wBtn) wBtn.addEventListener('click', function (e) { e.preventDefault(); toggleWishlist(p.id); });
 
-    // Reviews
     loadReviews(p.id);
     setupReviewForm(p.id, p.name);
-
-    // Related
     renderRelatedProducts(p);
     renderRecentlyViewed();
   }
@@ -1207,7 +1173,6 @@
           }).then(function () { return orderId; });
         })
         .then(function () {
-          // Increment coupon use count
           if (ACTIVE_COUPON) {
             var newCount = (ACTIVE_COUPON.times_used || 0) + 1;
             fetch(SUPABASE_URL + '/rest/v1/coupons?id=eq.' + ACTIVE_COUPON.id, {
@@ -1224,7 +1189,9 @@
             })
           });
           if (label) return saveAddressToDb(user, name, phone, address, city, state, pincode, label);
-                     // Clear abandoned cart (order completed)
+        })
+        .then(function () {
+          // Clear abandoned cart (order completed)
           fetch(SUPABASE_URL + '/rest/v1/abandoned_carts?user_id=eq.' + encodeURIComponent(user.uid), {
             method: 'DELETE',
             headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
@@ -1357,25 +1324,23 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+
   /* ============ IMAGE ZOOM ============ */
   function openImageZoom(src) {
     var existing = document.querySelector('.img-zoom-overlay');
     if (existing) existing.remove();
-
     var overlay = document.createElement('div');
     overlay.className = 'img-zoom-overlay';
     overlay.innerHTML =
       '<button class="img-zoom-close" aria-label="Close">×</button>' +
       '<div class="img-zoom-hint">Pinch or scroll to zoom · Tap outside to close</div>' +
       '<img src="' + src + '" class="img-zoom-img" alt="Zoomed product image">';
-
     overlay.addEventListener('click', function (e) {
       if (e.target === overlay || e.target.classList.contains('img-zoom-close')) {
         overlay.remove();
         document.body.style.overflow = '';
       }
     });
-
     document.addEventListener('keydown', function escHandler(e) {
       if (e.key === 'Escape') {
         overlay.remove();
@@ -1383,24 +1348,19 @@
         document.removeEventListener('keydown', escHandler);
       }
     });
-
     document.body.appendChild(overlay);
     document.body.style.overflow = 'hidden';
   }
-
-  /* Attach zoom on product detail page */
   document.addEventListener('click', function (e) {
     var img = e.target.closest('#pdMainImage');
-    if (img && img.src) {
-      openImageZoom(img.src);
-    }
+    if (img && img.src) openImageZoom(img.src);
   });
 
   /* ============ PWA — Register Service Worker ============ */
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js')
-        .then(function (reg) { console.log('[GIMPZ] PWA service worker ready'); })
+        .then(function () { console.log('[GIMPZ] PWA service worker ready'); })
         .catch(function (err) { console.log('[GIMPZ] SW registration skipped:', err.message); });
     });
   }
@@ -1413,8 +1373,6 @@
     var btn = document.getElementById('pwaInstallBtn');
     if (btn) btn.style.display = 'inline-flex';
   });
-
-  // Expose a global function so any "Install App" button can trigger it
   window.gimpzInstallApp = function () {
     if (!deferredInstallPrompt) return false;
     deferredInstallPrompt.prompt();
@@ -1424,32 +1382,26 @@
     });
     return true;
   };
-     /* ============ NEWSLETTER SIGNUP ============ */
+
+  /* ============ NEWSLETTER SIGNUP ============ */
   (function () {
     var form = $('newsletterForm');
     if (!form) return;
-
     var input = $('newsletterEmail');
     var btn = $('newsletterBtn');
     var status = $('newsletterStatus');
-
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-
       var email = (input.value || '').trim().toLowerCase();
       status.textContent = '';
       status.className = 'newsletter-status';
-
-      // Validate email
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         status.textContent = 'Please enter a valid email address';
         status.className = 'newsletter-status err';
         return;
       }
-
       btn.disabled = true;
       btn.textContent = 'Subscribing...';
-
       fetch(SUPABASE_URL + '/rest/v1/newsletter_subscribers', {
         method: 'POST',
         headers: {
@@ -1458,34 +1410,21 @@
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal,resolution=merge-duplicates'
         },
-        body: JSON.stringify({
-          email: email,
-          source: 'footer',
-          unsubscribed: false
-        })
+        body: JSON.stringify({ email: email, source: 'footer', unsubscribed: false })
       })
         .then(function (r) {
           if (!r.ok) {
-            // Duplicate email = Postgres error code 23505 — treat as success
             return r.text().then(function (txt) {
-              if (txt.indexOf('23505') !== -1 || txt.indexOf('duplicate') !== -1) {
-                return 'duplicate';
-              }
+              if (txt.indexOf('23505') !== -1 || txt.indexOf('duplicate') !== -1) return 'duplicate';
               throw new Error('Subscribe failed');
             });
           }
           return 'ok';
         })
         .then(function (result) {
-          if (result === 'duplicate') {
-            status.textContent = '✓ You\'re already subscribed!';
-          } else {
-            status.textContent = '✓ Subscribed! Check your inbox for offers.';
-          }
+          status.textContent = result === 'duplicate' ? '✓ You\'re already subscribed!' : '✓ Subscribed! Check your inbox for offers.';
           status.className = 'newsletter-status ok';
           form.reset();
-
-          // Analytics
           if (typeof window.gtag === 'function') {
             window.gtag('event', 'newsletter_signup', { email_domain: email.split('@')[1] || '' });
           }
