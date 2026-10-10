@@ -8,6 +8,8 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://qyzevydprpkjslnesrxq.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://qyzevydprpkjslnesrxq.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -162,7 +164,6 @@
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // Best sellers = highest rating first, top 12
   document.addEventListener('DOMContentLoaded', function () {
     setTimeout(function () {
       if (typeof PRODUCTS === 'undefined' || !PRODUCTS.length) return;
@@ -195,7 +196,7 @@
       if (grid && typeof window.gimpzRenderGrid === 'function') {
         window.gimpzRenderGrid(grid, topProducts);
       }
-    }, 1500);
+    }, 300);
   });
 </script>
 </body>
