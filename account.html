@@ -88,15 +88,33 @@
 
       <div class="account-tabs">
         <button class="account-tab active" data-tab="orders">My Orders</button>
+        <button class="account-tab" data-tab="wishlist">❤️ Wishlist</button>
         <button class="account-tab" data-tab="addresses">Addresses</button>
         <button class="account-tab" data-tab="profile">Profile</button>
       </div>
 
+      <!-- ORDERS TAB -->
       <section class="account-panel" id="panel-orders">
         <div id="ordersLoading" style="text-align:center;padding:40px;color:#64748b;">Loading orders...</div>
         <div id="ordersList"></div>
       </section>
 
+      <!-- WISHLIST TAB -->
+      <section class="account-panel" id="panel-wishlist" style="display:none;">
+        <div class="admin-card" style="padding:22px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+            <div>
+              <h2 style="font-size:1.05rem;color:#0a2540;margin-bottom:2px;">My Wishlist</h2>
+              <p style="font-size:.82rem;color:#64748b;">Products you've saved for later</p>
+            </div>
+          </div>
+          <div id="wishlistContainer">
+            <div class="product-grid" id="wishlistGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADDRESSES TAB -->
       <section class="account-panel" id="panel-addresses" style="display:none;">
         <div class="admin-card" style="padding:22px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
@@ -109,6 +127,7 @@
         </div>
       </section>
 
+      <!-- PROFILE TAB -->
       <section class="account-panel" id="panel-profile" style="display:none;">
         <div class="admin-card" style="padding:26px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;">
@@ -274,6 +293,9 @@
   </div>
 </div>
 
+<!-- Load script.js first so window.gimpzRenderGrid and PRODUCTS cache are available -->
+<script src="script.js"></script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -327,26 +349,55 @@ function calcAge(dobStr) {
   } catch (e) { return null; }
 }
 
+/* Wishlist helpers (mirror of script.js so we can render on this page) */
+const WISHLIST_KEY = 'gimpz_wishlist';
+function getWishlist() {
+  try { var raw = localStorage.getItem(WISHLIST_KEY); return raw ? JSON.parse(raw) : []; }
+  catch (e) { return []; }
+}
+function saveWishlist(list) {
+  try { localStorage.setItem(WISHLIST_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function toggleWishlist(id) {
+  const list = getWishlist();
+  const idx = list.indexOf(id);
+  let added = false;
+  if (idx === -1) { list.push(id); added = true; }
+  else { list.splice(idx, 1); }
+  saveWishlist(list);
+  document.querySelectorAll('[data-wishlist-id="' + id + '"]').forEach(function (btn) {
+    btn.classList.toggle('active', added);
+    const svg = btn.querySelector('svg');
+    if (svg) svg.setAttribute('fill', added ? 'currentColor' : 'none');
+  });
+  renderWishlistPage();
+}
+
 let currentUser = null;
 let addresses = [];
 
+/* Tab switching */
 document.querySelectorAll('.account-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.account-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     const target = tab.getAttribute('data-tab');
     $('panel-orders').style.display = target === 'orders' ? 'block' : 'none';
+    $('panel-wishlist').style.display = target === 'wishlist' ? 'block' : 'none';
     $('panel-addresses').style.display = target === 'addresses' ? 'block' : 'none';
     $('panel-profile').style.display = target === 'profile' ? 'block' : 'none';
+    if (target === 'wishlist') renderWishlistPage();
   });
 });
 
+/* Sign out */
 $('signOutBtn').addEventListener('click', async () => {
   await signOut(auth);
   localStorage.removeItem('gimpz_user');
   window.location.href = 'index.html';
 });
 
+/* ============ ORDERS ============ */
 async function loadOrders(uid) {
   $('ordersLoading').style.display = 'block';
   $('ordersList').innerHTML = '';
@@ -411,6 +462,69 @@ async function loadOrders(uid) {
   }
 }
 
+/* ============ WISHLIST ============ */
+function renderWishlistPage() {
+  const container = $('wishlistContainer');
+  if (!container) return;
+  const ids = getWishlist();
+
+  if (!ids.length) {
+    container.innerHTML = '<div class="wishlist-empty" id="wishlistEmpty">' +
+      '<div class="wishlist-empty-icon">❤️</div>' +
+      '<h3>Your wishlist is empty</h3>' +
+      '<p>Tap the ❤️ on any product to save it here.</p>' +
+      '<a class="btn btn-primary" href="index.html#products">Browse Products</a>' +
+    '</div>';
+    return;
+  }
+
+  // Rebuild grid container if it was replaced
+  if (!$('wishlistGrid')) {
+    container.innerHTML = '<div class="product-grid" id="wishlistGrid"></div>';
+  }
+  const grid = $('wishlistGrid');
+
+  // Grab products from the shared PRODUCTS array populated by script.js
+  const products = (typeof window.gimpzAllProducts === 'function')
+    ? window.gimpzAllProducts()
+    : (window.PRODUCTS_CACHE || []);
+
+  // Filter to wishlist IDs
+  const items = ids
+    .map(function (id) {
+      // Prefer shared cache; fallback to a scan of PRODUCTS if exposed
+      if (typeof window.gimpzFindProduct === 'function') return window.gimpzFindProduct(id);
+      return null;
+    })
+    .filter(Boolean);
+
+  if (!items.length) {
+    container.innerHTML = '<div class="wishlist-empty">' +
+      '<div class="wishlist-empty-icon">⏳</div>' +
+      '<h3>Loading your wishlist...</h3>' +
+      '<p>Hang tight — products are loading.</p>' +
+    '</div>';
+    // Retry shortly
+    setTimeout(renderWishlistPage, 500);
+    return;
+  }
+
+  // Use the shared grid renderer from script.js
+  if (typeof window.gimpzRenderGrid === 'function' && grid) {
+    window.gimpzRenderGrid(grid, items);
+    // Re-bind wishlist toggle on the newly rendered cards
+    grid.querySelectorAll('[data-wishlist-id]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = parseInt(btn.getAttribute('data-wishlist-id'), 10);
+        toggleWishlist(id);
+      });
+    });
+  }
+}
+
+/* ============ ADDRESSES ============ */
 async function loadAddresses(uid) {
   try {
     const r = await fetch(SB_URL + '/rest/v1/addresses?user_id=eq.' + encodeURIComponent(uid) + '&order=created_at.desc', {
@@ -427,6 +541,7 @@ async function loadAddresses(uid) {
 
 function renderAddresses() {
   const list = $('addressesList');
+  if (!list) return;
   if (!addresses.length) {
     list.innerHTML = '<div style="text-align:center;padding:34px 20px;">' +
       '<div style="font-size:2.5rem;margin-bottom:10px;">📍</div>' +
@@ -564,6 +679,7 @@ async function deleteAddress(id) {
   }
 }
 
+/* ============ PROFILE ============ */
 function updateAgeDisplay() {
   const dob = $('profileDob').value;
   const age = calcAge(dob);
@@ -670,6 +786,7 @@ $('profileForm').addEventListener('submit', async (e) => {
   }
 });
 
+/* ============ AUTH STATE ============ */
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   if (user && user.emailVerified) {
