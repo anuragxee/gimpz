@@ -10,10 +10,22 @@
   "theme_color": "#0a2540",
   "icons": [
     {
-      "src": "assets/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["shopping", "lifestyle"],
@@ -21,17 +33,20 @@
     {
       "name": "New Arrivals",
       "url": "/gimpz/new-arrivals.html",
-      "description": "See the newest products"
+      "description": "See the newest products",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Best Sellers",
       "url": "/gimpz/best-sellers.html",
-      "description": "Shop top-rated products"
+      "description": "Shop top-rated products",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "My Cart",
       "url": "/gimpz/cart.html",
-      "description": "View your cart"
+      "description": "View your cart",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
