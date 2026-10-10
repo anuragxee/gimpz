@@ -15,7 +15,7 @@
 </head>
 <body class="admin-body">
 
-<!-- LOGIN -->
+<!-- LOGIN SCREEN -->
 <div id="loginScreen" class="admin-login">
   <div class="login-card">
     <div class="login-logo"><span class="logo-mark">G</span></div>
@@ -74,7 +74,7 @@
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6L12 13L2 6"/><rect x="2" y="5" width="20" height="14" rx="2"/></svg>
         Marketing
       </button>
-            <button class="admin-nav-btn" data-tab="messages">
+      <button class="admin-nav-btn" data-tab="messages">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Messages
         <span class="nav-badge" id="messagesBadge" data-count="0">0</span>
@@ -109,9 +109,11 @@
       <button class="admin-menu-toggle" id="menuToggle" aria-label="Menu">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </button>
-      <span class="live-badge" title="Auto-refreshing every 20 seconds">
+      <h1 id="pageTitle">Overview</h1>
+      <span class="live-badge" title="Auto-refreshing in real-time">
         <span class="live-dot"></span> Live
       </span>
+      <div class="admin-topbar-actions">
         <a class="admin-btn-ghost" href="index.html" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14L21 3"/></svg>
           View Store
@@ -228,7 +230,7 @@
         <div id="allEmailsList" style="padding:16px 22px;font-size:.85rem;line-height:1.8;color:#475569;max-height:400px;overflow-y:auto;"><p class="admin-empty">Loading...</p></div>
       </div>
     </section>
-    
+
     <!-- MESSAGES -->
     <section class="admin-tab" id="tab-messages" style="display:none;">
       <div class="admin-card">
@@ -451,6 +453,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 <script src="admin.js"></script>
 </body>
 </html>
