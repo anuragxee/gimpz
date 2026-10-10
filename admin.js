@@ -1,5 +1,5 @@
 /* ============================================================
-   GIMPZ — ADMIN PANEL LOGIC (ALL TABS + REALTIME)
+   GIMPZ — ADMIN PANEL LOGIC (ALL TABS + REALTIME + AUTO-REFRESH)
    ============================================================ */
 (function () {
   'use strict';
@@ -24,6 +24,7 @@
   var pendingImages = [];
   var realtimeChannel = null;
   var supaClient = null;
+  var refreshInFlight = null;
 
   /* ============ HELPERS ============ */
   function $(id) { return document.getElementById(id); }
@@ -77,6 +78,74 @@
     el.textContent = msg;
     el.className = el.className.replace(/\b(ok|err)\b/g, '').trim();
     if (type) el.classList.add(type);
+  }
+
+  /* ============ REFRESH TOKEN ============ */
+  function refreshSession() {
+    if (!session || !session.refresh_token) return Promise.reject(new Error('No refresh token'));
+    if (refreshInFlight) return refreshInFlight;
+
+    refreshInFlight = fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ refresh_token: session.refresh_token })
+    })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok) throw new Error(data.error_description || data.msg || 'Refresh failed');
+          return data;
+        });
+      })
+      .then(function (data) {
+        session = {
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          user: {
+            id: (data.user && data.user.id) || (session.user && session.user.id),
+            email: (data.user && data.user.email) || (session.user && session.user.email)
+          }
+        };
+        saveSession();
+        console.log('[GIMPZ] Session refreshed');
+        refreshInFlight = null;
+        return session;
+      })
+      .catch(function (err) {
+        refreshInFlight = null;
+        throw err;
+      });
+
+    return refreshInFlight;
+  }
+
+  /* ============ AUTHENTICATED FETCH (auto-refresh on 401) ============ */
+  function authFetch(url, options) {
+    options = options || {};
+    return fetch(url, options).then(function (res) {
+      if (res.status !== 401 || !session || !session.refresh_token) {
+        return res;
+      }
+      console.warn('[GIMPZ] 401 detected — refreshing session');
+      return refreshSession().then(function () {
+        var newOptions = Object.assign({}, options);
+        newOptions.headers = Object.assign({}, options.headers || {});
+        newOptions.headers['Authorization'] = 'Bearer ' + session.access_token;
+        newOptions.headers['apikey'] = SUPABASE_ANON_KEY;
+        return fetch(url, newOptions);
+      }).catch(function (err) {
+        console.error('[GIMPZ] Refresh failed:', err);
+        stopRealtime();
+        session = null;
+        saveSession();
+        showLoginScreen();
+        var status = $('loginStatus');
+        if (status) showStatus(status, 'Session expired. Please sign in again.', 'err');
+        return res;
+      });
+    });
   }
 
   /* ============ REALTIME ============ */
@@ -143,7 +212,7 @@
   function logActivity(action, targetType, targetId, details) {
     if (!session || !session.access_token) return;
     var adminEmail = (session.user && session.user.email) || 'unknown';
-    fetch(SUPABASE_URL + '/rest/v1/activity_log', {
+    authFetch(SUPABASE_URL + '/rest/v1/activity_log', {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_ANON_KEY,
@@ -206,16 +275,20 @@
 
   /* ============ SCREENS ============ */
   function showLoginScreen() {
-    $('loginScreen').style.display = 'grid';
-    $('dashboard').style.display = 'none';
+    var ls = $('loginScreen');
+    var db = $('dashboard');
+    if (ls) ls.style.display = 'grid';
+    if (db) db.style.display = 'none';
   }
 
   function showDashboard() {
-    $('loginScreen').style.display = 'none';
-    $('dashboard').style.display = 'grid';
+    var ls = $('loginScreen');
+    var db = $('dashboard');
+    if (ls) ls.style.display = 'none';
+    if (db) db.style.display = 'grid';
     var email = (session && session.user && session.user.email) || 'admin';
-    $('adminEmailDisplay').textContent = email;
-    $('adminAvatar').textContent = email.charAt(0).toUpperCase();
+    var ed = $('adminEmailDisplay'); if (ed) ed.textContent = email;
+    var av = $('adminAvatar'); if (av) av.textContent = email.charAt(0).toUpperCase();
     switchTab('overview');
     loadCategoriesIntoSelect();
     checkStockAlerts();
@@ -259,7 +332,7 @@
 
   /* ============ OVERVIEW ============ */
   function loadOverview() {
-    fetch(SUPABASE_URL + '/rest/v1/products?select=id&active=eq.true', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/products?select=id&active=eq.true', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         var el = $('statProducts');
@@ -267,7 +340,7 @@
       })
       .catch(function () { var el = $('statProducts'); if (el) el.textContent = '—'; });
 
-    fetch(SUPABASE_URL + '/rest/v1/orders?select=*&order=created_at.desc', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/orders?select=*&order=created_at.desc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
@@ -309,7 +382,7 @@
 
   /* ============ STOCK ALERTS ============ */
   function checkStockAlerts() {
-    fetch(SUPABASE_URL + '/rest/v1/products?select=id,name,brand,stock,category&stock=lte.' + LOW_STOCK_THRESHOLD + '&active=eq.true&order=stock.asc', {
+    authFetch(SUPABASE_URL + '/rest/v1/products?select=id,name,brand,stock,category&stock=lte.' + LOW_STOCK_THRESHOLD + '&active=eq.true&order=stock.asc', {
       headers: apiHeaders(true)
     }).then(function (r) { return r.json(); }).then(function (rows) {
       if (!Array.isArray(rows) || !rows.length) {
@@ -343,7 +416,7 @@
     var tbody = $('productsBody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">Loading products...</td></tr>';
-    fetch(SUPABASE_URL + '/rest/v1/products?select=*&order=id.desc', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/products?select=*&order=id.desc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
@@ -468,7 +541,7 @@
     var headers = apiHeaders(true);
     headers['Prefer'] = 'return=representation';
     if (id) { url += '?id=eq.' + encodeURIComponent(id); method = 'PATCH'; }
-    fetch(url, { method: method, headers: headers, body: JSON.stringify(data) })
+    authFetch(url, { method: method, headers: headers, body: JSON.stringify(data) })
       .then(function (r) {
         if (!r.ok) return r.text().then(function () { throw new Error('Save failed'); });
         return r.json();
@@ -497,7 +570,7 @@
       if (ext === 'jpeg') ext = 'jpg';
       var path = 'products/' + folder + '/' + (i + 1) + '.' + ext;
       var url = SUPABASE_URL + '/storage/v1/object/product-images/' + path;
-      return fetch(url, {
+      return authFetch(url, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -517,7 +590,7 @@
     var p = currentProducts.find(function (x) { return x.id === id; });
     if (!p) return;
     if (!confirm('Delete "' + p.name + '"?\n\nThis cannot be undone.')) return;
-    fetch(SUPABASE_URL + '/rest/v1/products?id=eq.' + id, { method: 'DELETE', headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/products?id=eq.' + id, { method: 'DELETE', headers: apiHeaders(true) })
       .then(function (r) {
         if (!r.ok) throw new Error('Delete failed');
         logActivity('product_delete', 'product', id, p.name);
@@ -533,7 +606,7 @@
     var tbody = $('ordersBody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">Loading orders...</td></tr>';
-    fetch(SUPABASE_URL + '/rest/v1/orders?select=*&order=created_at.desc', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/orders?select=*&order=created_at.desc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
@@ -624,7 +697,7 @@
     title.textContent = 'Order ' + (order.order_number || '');
     body.innerHTML = '<p style="color:#64748b;text-align:center;padding:30px;">Loading...</p>';
     modal.classList.add('open');
-    fetch(SUPABASE_URL + '/rest/v1/order_items?select=*&order_id=eq.' + orderId + '&order=id.asc', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/order_items?select=*&order_id=eq.' + orderId + '&order=id.asc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (items) {
         if (!Array.isArray(items)) items = [];
@@ -679,7 +752,7 @@
   }
 
   function updateOrderStatus(id, status) {
-    fetch(SUPABASE_URL + '/rest/v1/orders?id=eq.' + id, {
+    authFetch(SUPABASE_URL + '/rest/v1/orders?id=eq.' + id, {
       method: 'PATCH',
       headers: apiHeaders(true),
       body: JSON.stringify({ status: status })
@@ -698,8 +771,8 @@
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Loading customers...</td></tr>';
     Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/profiles?select=*&order=created_at.desc', { headers: apiHeaders(true) }).then(function (r) { return r.json(); }),
-      fetch(SUPABASE_URL + '/rest/v1/orders?select=user_id,total,status', { headers: apiHeaders(true) }).then(function (r) { return r.json(); })
+      authFetch(SUPABASE_URL + '/rest/v1/profiles?select=*&order=created_at.desc', { headers: apiHeaders(true) }).then(function (r) { return r.json(); }),
+      authFetch(SUPABASE_URL + '/rest/v1/orders?select=user_id,total,status', { headers: apiHeaders(true) }).then(function (r) { return r.json(); })
     ]).then(function (results) {
       var profiles = Array.isArray(results[0]) ? results[0] : [];
       var orders = Array.isArray(results[1]) ? results[1] : [];
@@ -764,7 +837,7 @@
     var tbody = $('categoriesBody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">Loading...</td></tr>';
-    fetch(SUPABASE_URL + '/rest/v1/categories?select=*&order=display_order.asc,id.asc', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/categories?select=*&order=display_order.asc,id.asc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
@@ -847,7 +920,7 @@
     var url = SUPABASE_URL + '/rest/v1/categories';
     var method = 'POST';
     if (id) { url += '?id=eq.' + id; method = 'PATCH'; }
-    fetch(url, { method: method, headers: apiHeaders(true), body: JSON.stringify(data) })
+    authFetch(url, { method: method, headers: apiHeaders(true), body: JSON.stringify(data) })
       .then(function (r) {
         if (!r.ok) return r.text().then(function () { throw new Error('Failed'); });
         showStatus(status, '✓ Saved', 'ok');
@@ -864,7 +937,7 @@
     var c = currentCategories.find(function (x) { return x.id === id; });
     if (!c) return;
     if (!confirm('Delete "' + c.name + '"?')) return;
-    fetch(SUPABASE_URL + '/rest/v1/categories?id=eq.' + id, { method: 'DELETE', headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/categories?id=eq.' + id, { method: 'DELETE', headers: apiHeaders(true) })
       .then(function () {
         logActivity('category_delete', 'category', id, c.name);
         loadCategories();
@@ -874,7 +947,7 @@
   }
 
   function loadCategoriesIntoSelect() {
-    fetch(SUPABASE_URL + '/rest/v1/categories?select=name,active&active=eq.true&order=display_order.asc', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/categories?select=name,active&active=eq.true&order=display_order.asc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         var sel = $('pf-category');
@@ -897,7 +970,7 @@
     var tbody = $('couponsBody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">Loading...</td></tr>';
-    fetch(SUPABASE_URL + '/rest/v1/coupons?select=*&order=id.desc', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/coupons?select=*&order=id.desc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
@@ -998,7 +1071,7 @@
     var url = SUPABASE_URL + '/rest/v1/coupons';
     var method = 'POST';
     if (id) { url += '?id=eq.' + id; method = 'PATCH'; }
-    fetch(url, { method: method, headers: apiHeaders(true), body: JSON.stringify(data) })
+    authFetch(url, { method: method, headers: apiHeaders(true), body: JSON.stringify(data) })
       .then(function (r) {
         if (!r.ok) return r.text().then(function () { throw new Error('Failed'); });
         showStatus(status, '✓ Saved', 'ok');
@@ -1012,14 +1085,14 @@
 
   function deleteCoupon(id) {
     if (!confirm('Delete this coupon?')) return;
-    fetch(SUPABASE_URL + '/rest/v1/coupons?id=eq.' + id, { method: 'DELETE', headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/coupons?id=eq.' + id, { method: 'DELETE', headers: apiHeaders(true) })
       .then(function () { loadCoupons(); })
       .catch(function (err) { alert(err.message); });
   }
 
   /* ============ ANALYTICS ============ */
   function loadAnalytics() {
-    fetch(SUPABASE_URL + '/rest/v1/orders?select=*&order=created_at.desc', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/orders?select=*&order=created_at.desc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (orders) {
         if (!Array.isArray(orders)) orders = [];
@@ -1058,7 +1131,7 @@
         });
         renderBarChart('chartDaily', days, 'total');
 
-        fetch(SUPABASE_URL + '/rest/v1/order_items?select=line_total,product_id', { headers: apiHeaders(true) })
+        authFetch(SUPABASE_URL + '/rest/v1/order_items?select=line_total,product_id', { headers: apiHeaders(true) })
           .then(function (r) { return r.json(); })
           .then(function (items) {
             if (!Array.isArray(items)) items = [];
@@ -1122,7 +1195,7 @@
     var tbody = $('marketingBody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">Loading...</td></tr>';
-    fetch(SUPABASE_URL + '/rest/v1/marketing_lists?select=*&order=created_at.desc', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/marketing_lists?select=*&order=created_at.desc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
@@ -1189,7 +1262,7 @@
   function loadAllCustomerEmails() {
     var el = $('allEmailsList');
     if (!el) return;
-    fetch(SUPABASE_URL + '/rest/v1/profiles?select=email&email=not.is.null', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/profiles?select=email&email=not.is.null', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         if (!Array.isArray(rows) || !rows.length) {
@@ -1250,7 +1323,7 @@
     var method = 'POST';
     if (id) { url += '?id=eq.' + id; method = 'PATCH'; }
 
-    fetch(url, {
+    authFetch(url, {
       method: method,
       headers: apiHeaders(true),
       body: JSON.stringify({ name: name, emails: emails, updated_at: new Date().toISOString() })
@@ -1268,7 +1341,7 @@
     var l = currentMarketingLists.find(function (x) { return x.id === id; });
     if (!l) return;
     if (!confirm('Delete list "' + l.name + '"?')) return;
-    fetch(SUPABASE_URL + '/rest/v1/marketing_lists?id=eq.' + id, { method: 'DELETE', headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/marketing_lists?id=eq.' + id, { method: 'DELETE', headers: apiHeaders(true) })
       .then(function () { logActivity('list_delete', 'marketing_list', id, l.name); loadMarketing(); })
       .catch(function (err) { alert(err.message); });
   }
@@ -1283,7 +1356,7 @@
     var url = SUPABASE_URL + '/rest/v1/contact_messages?select=*&order=created_at.desc&limit=500';
     if (filter) url += '&status=eq.' + encodeURIComponent(filter);
 
-    fetch(url, { headers: apiHeaders(true) })
+    authFetch(url, { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
@@ -1299,7 +1372,7 @@
   function updateMessagesBadge() {
     var badge = $('messagesBadge');
     if (!badge) return;
-    fetch(SUPABASE_URL + '/rest/v1/contact_messages?select=id&status=eq.New', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/contact_messages?select=id&status=eq.New', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         var n = Array.isArray(rows) ? rows.length : 0;
@@ -1368,7 +1441,7 @@
   }
 
   function updateMessageStatus(id, status) {
-    fetch(SUPABASE_URL + '/rest/v1/contact_messages?id=eq.' + id, {
+    authFetch(SUPABASE_URL + '/rest/v1/contact_messages?id=eq.' + id, {
       method: 'PATCH',
       headers: apiHeaders(true),
       body: JSON.stringify({ status: status })
@@ -1381,7 +1454,7 @@
 
   function deleteMessage(id) {
     if (!confirm('Delete this message?')) return;
-    fetch(SUPABASE_URL + '/rest/v1/contact_messages?id=eq.' + id, {
+    authFetch(SUPABASE_URL + '/rest/v1/contact_messages?id=eq.' + id, {
       method: 'DELETE',
       headers: apiHeaders(true)
     }).then(function () {
@@ -1395,7 +1468,7 @@
     var tbody = $('staffBody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Loading...</td></tr>';
-    fetch(SUPABASE_URL + '/rest/v1/admin_users?select=*&order=added_at.desc', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/admin_users?select=*&order=added_at.desc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
@@ -1477,7 +1550,7 @@
     var url = SUPABASE_URL + '/rest/v1/admin_users';
     var method = 'POST';
     if (id) { url += '?id=eq.' + id; method = 'PATCH'; }
-    fetch(url, { method: method, headers: apiHeaders(true), body: JSON.stringify(data) })
+    authFetch(url, { method: method, headers: apiHeaders(true), body: JSON.stringify(data) })
       .then(function (r) {
         if (!r.ok) return r.text().then(function () { throw new Error('Failed'); });
         showStatus(status, '✓ Saved', 'ok');
@@ -1494,7 +1567,7 @@
     if (!s) return;
     if (s.role === 'owner') { alert('Cannot remove the owner account.'); return; }
     if (!confirm('Remove "' + s.email + '" from admin panel?')) return;
-    fetch(SUPABASE_URL + '/rest/v1/admin_users?id=eq.' + id, { method: 'DELETE', headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/admin_users?id=eq.' + id, { method: 'DELETE', headers: apiHeaders(true) })
       .then(function () { logActivity('staff_delete', 'admin_user', id, s.email); loadStaff(); })
       .catch(function (err) { alert(err.message); });
   }
@@ -1507,7 +1580,7 @@
     var filter = ($('activityFilter') && $('activityFilter').value) || '';
     var url = SUPABASE_URL + '/rest/v1/activity_log?select=*&order=created_at.desc&limit=200';
     if (filter) url += '&action=eq.' + encodeURIComponent(filter);
-    fetch(url, { headers: apiHeaders(true) })
+    authFetch(url, { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
@@ -1557,7 +1630,7 @@
     if (!modal || !body) return;
     body.innerHTML = '<p style="text-align:center;color:#64748b;">Loading...</p>';
     modal.classList.add('open');
-    fetch(SUPABASE_URL + '/rest/v1/order_items?select=*&order_id=eq.' + orderId + '&order=id.asc', { headers: apiHeaders(true) })
+    authFetch(SUPABASE_URL + '/rest/v1/order_items?select=*&order_id=eq.' + orderId + '&order=id.asc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (items) {
         if (!Array.isArray(items)) items = [];
@@ -1741,7 +1814,7 @@
     var la = $('list-autofill');
     if (la) la.addEventListener('change', function () {
       if (!this.checked) return;
-      fetch(SUPABASE_URL + '/rest/v1/profiles?select=email&email=not.is.null', { headers: apiHeaders(true) })
+      authFetch(SUPABASE_URL + '/rest/v1/profiles?select=email&email=not.is.null', { headers: apiHeaders(true) })
         .then(function (r) { return r.json(); })
         .then(function (rows) {
           if (!Array.isArray(rows)) return;
