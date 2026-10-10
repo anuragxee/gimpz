@@ -758,3 +758,205 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
 @media(max-width:900px){
   .pd-skeleton{grid-template-columns:1fr;gap:22px;padding:20px}
 }
+/* ============================================================
+   GLOBAL DEVICE OPTIMIZATION
+   Covers: small phones, phones, tablet portrait, tablet landscape,
+           laptop, desktop, large desktop, ultra-wide
+   ============================================================ */
+
+/* ---------- Base: fluid typography + better touch targets ---------- */
+html { font-size: 16px; }
+
+/* Prevent horizontal overflow from any stray element */
+html, body { max-width: 100%; overflow-x: hidden; }
+
+/* Better tap targets on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  button, a, .btn, .icon-btn,
+  .add-cart-btn, .qty-btn, .cart-item-remove,
+  .category-filter, .cat-card, .pd-thumb {
+    -webkit-tap-highlight-color: rgba(37,99,235,.15);
+  }
+  .btn { min-height: 44px; }
+  .icon-btn { min-width: 44px; min-height: 44px; }
+  .add-cart-btn { min-height: 42px; }
+  .qty-btn { min-width: 34px; min-height: 34px; }
+  .cart-item-remove { min-width: 32px; min-height: 32px; }
+  .category-filter { padding: 8px 16px; }
+}
+
+/* Prevent font size bump when rotating phone to landscape */
+@media (max-width: 900px) and (orientation: landscape) {
+  html { -webkit-text-size-adjust: 100%; }
+}
+
+/* Safe area for notched phones (iPhone X+) */
+body {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.site-header, .cat-nav, .topbar {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.site-footer {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ---------- Ultra-wide (>1600px): keep content readable ---------- */
+@media (min-width: 1600px) {
+  .container { max-width: 1400px; }
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+  .category-grid { grid-template-columns: repeat(8, 1fr); gap: 14px; }
+  .hero-banner h1 { font-size: 3rem; }
+}
+
+/* ---------- Large desktop (1280–1599) — already default ---------- */
+@media (min-width: 1280px) and (max-width: 1599px) {
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+}
+
+/* ---------- Desktop / laptop (1025–1279) ---------- */
+@media (min-width: 1025px) and (max-width: 1279px) {
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .cat-nav-inner { justify-content: center; }
+}
+
+/* ---------- Tablet landscape (901–1024) ---------- */
+@media (min-width: 901px) and (max-width: 1024px) {
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  .category-grid { grid-template-columns: repeat(4, 1fr); }
+  .hero-banner h1 { font-size: 2.2rem; }
+  .pd-grid { gap: 24px; padding: 22px; }
+  .cart-layout { grid-template-columns: 1.4fr 1fr; }
+  .footer-grid { grid-template-columns: 1.4fr 1fr 1fr; gap: 22px; }
+  .footer-col:last-child { grid-column: 1 / -1; }
+  .trust-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .info-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ---------- Tablet portrait (641–900) — existing block covers most ---------- */
+@media (min-width: 641px) and (max-width: 900px) {
+  .product-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .category-grid { grid-template-columns: repeat(4, 1fr); }
+  .info-grid { grid-template-columns: repeat(2, 1fr); }
+  .contact-page-grid { grid-template-columns: 1fr; }
+  .account-header { padding: 18px; }
+  .signin-gate { padding: 40px 28px; }
+  .hero-banner-visual { display: block; }
+  .hero-banner-inner { grid-template-columns: 1fr; gap: 22px; }
+  .hero-featured-img { width: 90px; height: 90px; }
+  .pd-grid { grid-template-columns: 1fr; gap: 22px; padding: 20px; }
+  .cart-layout { grid-template-columns: 1fr; }
+  .cart-summary { position: static; }
+  .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 22px; }
+}
+
+/* ---------- Large phones (481–640) ---------- */
+@media (min-width: 481px) and (max-width: 640px) {
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .pd-title { font-size: 1.2rem; }
+}
+
+/* ---------- Small phones (360–480) ---------- */
+@media (min-width: 360px) and (max-width: 480px) {
+  .container { padding: 0 14px; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .product-card-body { padding: 10px 10px 0; }
+  .product-name { font-size: .8rem; }
+  .price { font-size: .9rem; }
+  .add-cart-btn { font-size: .74rem; padding: 9px 10px; }
+  .category-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .hero-banner h1 { font-size: 1.5rem; }
+  .hero-banner-actions .btn { width: 100%; }
+  .footer-bottom { font-size: .74rem; }
+  .page-title { font-size: 1.15rem; }
+  .pd-actions .btn { min-width: 100%; }
+  .summary-row { font-size: .85rem; }
+}
+
+/* ---------- Very small phones (<360) ---------- */
+@media (max-width: 359px) {
+  .container { padding: 0 12px; }
+  .product-grid { grid-template-columns: 1fr; }
+  .category-grid { grid-template-columns: repeat(2, 1fr); }
+  .header-inner { height: 56px; }
+  .logo-text { font-size: 1.1rem; }
+  .logo-mark { width: 34px; height: 34px; font-size: 1rem; }
+  .btn { padding: 10px 16px; font-size: .85rem; }
+  .trust-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- Landscape phone — compact header + hero ---------- */
+@media (max-height: 480px) and (orientation: landscape) {
+  .hero-banner { padding: 20px 0 24px; }
+  .hero-banner h1 { font-size: 1.6rem; }
+  .hero-banner p { font-size: .88rem; margin-bottom: 14px; }
+  .site-header, .cat-nav { position: static; }
+  .admin-sidebar { height: auto; max-height: 100vh; overflow-y: auto; }
+}
+
+/* ---------- Foldables / very narrow tall (Galaxy Fold) ---------- */
+@media (max-width: 300px) {
+  .product-grid { grid-template-columns: 1fr; }
+  .category-grid { grid-template-columns: repeat(2, 1fr); }
+  .logo-text { display: none; }
+}
+
+/* ---------- Retina / high-DPI image sharpness ---------- */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .product-card-thumb img,
+  .pd-image img,
+  .cart-item-img img {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* ---------- Better scrollbars on desktop ---------- */
+@media (min-width: 1025px) {
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #f1f5f9; }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1; border-radius: 5px;
+    border: 2px solid #f1f5f9;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+}
+
+/* ---------- Focus states (keyboard users on desktop) ---------- */
+@media (hover: hover) {
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 3px solid rgba(37,99,235,.35);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+/* ---------- Reduced motion (accessibility) — already in your CSS ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .topbar-marquee-track { animation: none !important; }
+}
+
+/* ---------- Dark mode (respects OS preference) ---------- */
+@media (prefers-color-scheme: dark) {
+  /* Currently DISABLED — GIMPZ is light-mode-only for brand consistency.
+     If you want dark mode later, uncomment and adjust below.
+  */
+}
+
+/* ---------- Print styles (customers printing invoices) ---------- */
+@media print {
+  .topbar, .site-header, .cat-nav, .site-footer,
+  .header-actions, .cart-summary, .trust-strip {
+    display: none !important;
+  }
+  body { background: #fff; color: #000; }
+  .container { max-width: 100%; padding: 0; }
+  .pd-grid, .cart-layout { grid-template-columns: 1fr; }
+  a { color: #000; text-decoration: underline; }
+}
