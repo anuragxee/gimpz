@@ -8,7 +8,17 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://qyzevydprpkjslnesrxq.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://qyzevydprpkjslnesrxq.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JSHQ0GHMHV"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JSHQ0GHMHV', { send_page_view: true });
+</script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -266,6 +276,10 @@ $('signupForm').addEventListener('submit', async (e) => {
     await saveProfile(cred.user.uid, { email, full_name: name, phone });
     $('verifyEmail').textContent = email;
     showCard('verifyCard');
+
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'sign_up', { method: 'Firebase' });
+    }
   } catch (err) {
     let msg = err.message;
     if (err.code === 'auth/email-already-in-use') msg = 'This email is already registered. Try signing in.';
@@ -298,6 +312,11 @@ $('loginForm').addEventListener('submit', async (e) => {
       return;
     }
     localStorage.setItem('gimpz_user', JSON.stringify({ uid: cred.user.uid, email: cred.user.email }));
+
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'login', { method: 'Firebase' });
+    }
+
     window.location.href = redirectTo;
   } catch (err) {
     let msg = 'Sign in failed.';
