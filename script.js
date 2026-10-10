@@ -1,5 +1,5 @@
 /* ============================================================
-   GIMPZ — MAIN SCRIPT (standalone + cache + instant cart + analytics)
+   GIMPZ — MAIN SCRIPT (standalone + cache + instant cart + analytics + autocomplete)
    ============================================================ */
 (function () {
   'use strict';
@@ -99,6 +99,221 @@
       .then(function (rows) { if (!Array.isArray(rows) || !rows.length) return null; return mapRow(rows[0]); });
   }
 
+  /* ============ SEARCH AUTOCOMPLETE ============ */
+  var searchState = {
+    input: null,
+    dropdown: null,
+    results: [],
+    activeIndex: -1
+  };
+
+  function initSearchAutocomplete() {
+    var form = document.querySelector('.header-search');
+    var input = $('searchInput');
+    if (!form || !input) return;
+
+    searchState.input = input;
+
+    // Create dropdown element
+    var dropdown = document.createElement('div');
+    dropdown.className = 'search-suggestions';
+    dropdown.setAttribute('role', 'listbox');
+    dropdown.style.display = 'none';
+    form.appendChild(dropdown);
+    searchState.dropdown = dropdown;
+
+    form.style.position = 'relative';
+
+    // Input events
+    var debounceTimer = null;
+    input.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function () {
+        handleSearchInput(input.value.trim());
+      }, 120);
+    });
+
+    input.addEventListener('focus', function () {
+      if (input.value.trim().length >= 1) {
+        handleSearchInput(input.value.trim());
+      }
+    });
+
+    input.addEventListener('keydown', handleSearchKeydown);
+
+    // Close on click outside
+    document.addEventListener('click', function (e) {
+      if (!form.contains(e.target)) {
+        closeSearchDropdown();
+      }
+    });
+
+    // Close on ESC
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        closeSearchDropdown();
+        input.blur();
+      }
+    });
+
+    // Form submit — go to first result or filter homepage
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (searchState.activeIndex >= 0 && searchState.results[searchState.activeIndex]) {
+        var p = searchState.results[searchState.activeIndex];
+        window.location.href = 'product.html?id=' + p.id;
+        return;
+      }
+      // No active selection — filter the page grid
+      closeSearchDropdown();
+      if (typeof applyFilters === 'function') applyFilters();
+      var grid = $('productGrid');
+      if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  function handleSearchInput(q) {
+    if (!q || q.length < 1) {
+      closeSearchDropdown();
+      return;
+    }
+
+    var query = q.toLowerCase();
+    var results = PRODUCTS.filter(function (p) {
+      return (p.name && p.name.toLowerCase().indexOf(query) !== -1) ||
+             (p.brand && p.brand.toLowerCase().indexOf(query) !== -1) ||
+             (p.category && p.category.toLowerCase().indexOf(query) !== -1);
+    }).slice(0, 6);
+
+    // Smart ranking: exact name match first, then brand, then category
+    results.sort(function (a, b) {
+      var aName = (a.name || '').toLowerCase();
+      var bName = (b.name || '').toLowerCase();
+      var aStarts = aName.indexOf(query) === 0;
+      var bStarts = bName.indexOf(query) === 0;
+      if (aStarts && !bStarts) return -1;
+      if (!aStarts && bStarts) return 1;
+      return 0;
+    });
+
+    searchState.results = results;
+    searchState.activeIndex = -1;
+
+    if (!results.length) {
+      renderSearchEmpty(q);
+    } else {
+      renderSearchResults(results, query);
+    }
+  }
+
+  function renderSearchResults(results, query) {
+    var dd = searchState.dropdown;
+    if (!dd) return;
+
+    var html = '';
+    results.forEach(function (p, i) {
+      var cover = getCoverImage(p);
+      var nameHtml = highlightMatch(p.name, query);
+      var brandHtml = p.brand ? highlightMatch(p.brand, query) : '';
+
+      html += '<a class="search-item" href="product.html?id=' + p.id + '" data-index="' + i + '" role="option">' +
+        '<div class="search-item-thumb">' +
+          '<img src="' + cover + '" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'assets/products/placeholder.svg\'">' +
+        '</div>' +
+        '<div class="search-item-info">' +
+          '<div class="search-item-name">' + nameHtml + '</div>' +
+          (brandHtml ? '<div class="search-item-brand">' + brandHtml + '</div>' : '') +
+        '</div>' +
+        '<div class="search-item-price">' + fmtPrice(p.price) + '</div>' +
+      '</a>';
+    });
+
+    // Footer link to search all
+    html += '<div class="search-footer" data-search-all="1">' +
+      'Press <kbd>Enter</kbd> to see all results for "<b>' + esc(query) + '</b>"' +
+    '</div>';
+
+    dd.innerHTML = html;
+    dd.style.display = 'block';
+
+    // Click handlers
+    dd.querySelectorAll('.search-item').forEach(function (el) {
+      el.addEventListener('mouseenter', function () {
+        searchState.activeIndex = parseInt(el.getAttribute('data-index'), 10);
+        updateActiveSearchItem();
+      });
+    });
+  }
+
+  function renderSearchEmpty(q) {
+    var dd = searchState.dropdown;
+    if (!dd) return;
+    dd.innerHTML = '<div class="search-empty">' +
+      '<div class="search-empty-icon">🔍</div>' +
+      '<div>No products found for "<b>' + esc(q) + '</b>"</div>' +
+      '<div class="search-empty-hint">Try a different keyword like "earbuds", "watch" or "shirt"</div>' +
+    '</div>';
+    dd.style.display = 'block';
+  }
+
+  function highlightMatch(text, query) {
+    var safe = esc(text || '');
+    if (!query) return safe;
+    var safeQuery = esc(query);
+    var lowerText = safe.toLowerCase();
+    var lowerQuery = safeQuery.toLowerCase();
+    var idx = lowerText.indexOf(lowerQuery);
+    if (idx === -1) return safe;
+    return safe.substring(0, idx) +
+      '<mark>' + safe.substring(idx, idx + safeQuery.length) + '</mark>' +
+      safe.substring(idx + safeQuery.length);
+  }
+
+  function handleSearchKeydown(e) {
+    var dd = searchState.dropdown;
+    if (!dd || dd.style.display === 'none') return;
+
+    var items = dd.querySelectorAll('.search-item');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      searchState.activeIndex = (searchState.activeIndex + 1) % items.length;
+      updateActiveSearchItem();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      searchState.activeIndex = (searchState.activeIndex - 1 + items.length) % items.length;
+      updateActiveSearchItem();
+    } else if (e.key === 'Enter' && searchState.activeIndex >= 0) {
+      e.preventDefault();
+      var active = items[searchState.activeIndex];
+      if (active) {
+        active.click();
+      }
+    }
+  }
+
+  function updateActiveSearchItem() {
+    var dd = searchState.dropdown;
+    if (!dd) return;
+    dd.querySelectorAll('.search-item').forEach(function (el, i) {
+      el.classList.toggle('active', i === searchState.activeIndex);
+    });
+    var active = dd.querySelector('.search-item.active');
+    if (active && active.scrollIntoView) {
+      active.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function closeSearchDropdown() {
+    if (searchState.dropdown) {
+      searchState.dropdown.style.display = 'none';
+      searchState.dropdown.innerHTML = '';
+    }
+    searchState.activeIndex = -1;
+    searchState.results = [];
+  }
+
   /* ============ ADDRESSES ============ */
   function getUser() {
     try { var raw = localStorage.getItem('gimpz_user'); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
@@ -182,12 +397,8 @@
     var payload = {
       user_id: user.uid,
       label: (label || 'Home').trim().slice(0, 20) || 'Home',
-      full_name: name,
-      phone: phone,
-      address: address,
-      city: city,
-      state: state,
-      pincode: pincode
+      full_name: name, phone: phone, address: address,
+      city: city, state: state, pincode: pincode
     };
     return fetch(SUPABASE_URL + '/rest/v1/addresses', {
       method: 'POST',
@@ -233,7 +444,6 @@
     }
     saveCart(cart);
 
-    // Analytics
     track('add_to_cart', {
       currency: 'INR',
       value: (Number(product.price) || 0) * qty,
@@ -378,7 +588,6 @@
     else if (s === 'rating') filtered.sort(function (a, b) { return b.rating - a.rating; });
     renderGrid(grid, filtered);
 
-    // Track visible list
     if (filtered.length) {
       trackViewItemList(cat === 'all' ? 'All Products' : cat, filtered);
     }
@@ -421,17 +630,13 @@
     if (!p) { container.innerHTML = '<p style="text-align:center;padding:60px 20px;">Product not found. <a href="index.html" style="color:#2563eb;">Back to store</a></p>'; return; }
     document.title = p.name + ' — GIMPZ';
 
-    // Analytics: view_item
     track('view_item', {
       currency: 'INR',
       value: Number(p.price) || 0,
       items: [{
-        item_id: String(p.id),
-        item_name: p.name,
-        item_brand: p.brand || '',
-        item_category: p.category || '',
-        price: Number(p.price) || 0,
-        quantity: 1
+        item_id: String(p.id), item_name: p.name,
+        item_brand: p.brand || '', item_category: p.category || '',
+        price: Number(p.price) || 0, quantity: 1
       }]
     });
 
@@ -555,17 +760,14 @@
     });
     updateSummary();
 
-    // Analytics: begin_checkout
     track('begin_checkout', {
       currency: 'INR',
       value: cartTotal(),
       items: cart.map(function (it) {
         return {
-          item_id: String(it.id),
-          item_name: it.name,
+          item_id: String(it.id), item_name: it.name,
           item_brand: it.brand || '',
-          price: Number(it.price) || 0,
-          quantity: it.qty
+          price: Number(it.price) || 0, quantity: it.qty
         };
       })
     });
@@ -656,7 +858,6 @@
           }).then(function () { return orderId; });
         })
         .then(function () {
-          // Analytics: purchase
           track('purchase', {
             transaction_id: orderNo,
             currency: 'INR',
@@ -755,9 +956,13 @@
     if (cachedHome && $('productGrid')) {
       PRODUCTS = cachedHome;
       applyFilters();
+      initSearchAutocomplete();
       fetchProducts().then(function () { applyFilters(); });
     } else {
-      fetchProducts().then(function () { if ($('productGrid')) applyFilters(); });
+      fetchProducts().then(function () {
+        if ($('productGrid')) applyFilters();
+        initSearchAutocomplete();
+      });
     }
 
     var searchInput = $('searchInput');
