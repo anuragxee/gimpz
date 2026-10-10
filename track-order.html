@@ -8,7 +8,24 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://qyzevydprpkjslnesrxq.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://qyzevydprpkjslnesrxq.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JSHQ0GHMHV"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JSHQ0GHMHV', { send_page_view: true });
+</script>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a2540">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GIMPZ">
+<link rel="apple-touch-icon" href="assets/favicon.svg">
 <link rel="stylesheet" href="style.css">
 <style>
   .track-result{margin-top:22px;display:none}
@@ -231,7 +248,6 @@
   var SUPABASE_URL = 'https://qyzevydprpkjslnesrxq.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5emV2eWRwcnBranNsbmVzcnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTk2NDksImV4cCI6MjEwNzA5NTY0OX0.BE-ijSGGNmkQjaeSZ8RX6mQGMW5dY2Y2Gzj9vitRK0g';
 
-  // Status stages in order. "Cancelled" handled separately.
   var STAGES = [
     { key: 'Pending',   label: 'Pending' },
     { key: 'Confirmed', label: 'Confirmed' },
@@ -248,9 +264,7 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-
   function fmtPrice(n) { return '₹' + Number(n || 0).toLocaleString('en-IN'); }
-
   function fmtDate(iso) {
     if (!iso) return '';
     try {
@@ -266,10 +280,7 @@
     el.classList.add('show');
     $('trackResult').classList.remove('show');
   }
-
-  function hideError() {
-    $('trackError').classList.remove('show');
-  }
+  function hideError() { $('trackError').classList.remove('show'); }
 
   function statusPill(status) {
     var s = (status || 'Pending').toLowerCase();
@@ -284,17 +295,11 @@
     if (currentStatus === 'Cancelled') {
       return '<div style="padding:14px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;color:#991b1b;font-size:.9rem;">❌ This order has been cancelled. If this is a mistake, please <a href="contact.html" style="color:#991b1b;text-decoration:underline;">contact us</a>.</div>';
     }
-
     var currentIdx = 0;
     for (var i = 0; i < STAGES.length; i++) {
-      if (STAGES[i].key.toLowerCase() === (currentStatus || 'Pending').toLowerCase()) {
-        currentIdx = i;
-        break;
-      }
+      if (STAGES[i].key.toLowerCase() === (currentStatus || 'Pending').toLowerCase()) { currentIdx = i; break; }
     }
-
     var pct = STAGES.length > 1 ? (currentIdx / (STAGES.length - 1)) * 100 : 0;
-
     var html = '<div class="track-progress">';
     html += '<div class="track-progress-fill" style="width:calc(' + pct + '% - 24px * ' + pct / 100 + ');"></div>';
     STAGES.forEach(function (stage, i) {
@@ -312,18 +317,13 @@
 
   function renderResult(order, items) {
     var html = '';
-
     html += '<div class="track-status-card">';
-    html += '<div class="track-status-head">';
-    html += '<div>' +
-      '<h3>Order ' + esc(order.order_number) + '</h3>' +
-      '<small>Placed on ' + fmtDate(order.created_at) + '</small>' +
+    html += '<div class="track-status-head">' +
+      '<div><h3>Order ' + esc(order.order_number) + '</h3>' +
+      '<small>Placed on ' + fmtDate(order.created_at) + '</small></div>' +
+      statusPill(order.status) +
     '</div>';
-    html += statusPill(order.status);
-    html += '</div>';
-
     html += renderProgress(order.status);
-
     html += '<div style="margin-top:22px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:.88rem;color:#475569;line-height:1.7;">' +
       '<strong style="color:#0a2540;">Delivery to</strong><br>' +
       esc(order.customer_name || '') + '<br>' +
@@ -331,12 +331,10 @@
       esc(order.state || '') + ' — ' + esc(order.pincode || '') + '<br>' +
       '📞 ' + esc(order.phone || '') +
     '</div>';
-
     html += '</div>';
 
     html += '<div class="track-status-card">';
     html += '<h3 style="font-size:1rem;color:#0a2540;margin-bottom:12px;">Items (' + items.length + ')</h3>';
-
     if (items.length) {
       html += '<div class="track-items-list">';
       items.forEach(function (it) {
@@ -350,17 +348,13 @@
       });
       html += '</div>';
     }
-
     html += '<div class="track-totals">' +
       '<div class="track-total-row"><span>Subtotal</span><span>' + fmtPrice(order.subtotal) + '</span></div>' +
       '<div class="track-total-row"><span>Shipping</span><span>' + (order.shipping > 0 ? fmtPrice(order.shipping) : 'FREE') + '</span></div>' +
       '<div class="track-total-row grand"><span>Total</span><span>' + fmtPrice(order.total) + '</span></div>' +
     '</div>';
-
     html += '<div style="margin-top:14px;font-size:.8rem;color:#64748b;">Payment: <b style="color:#0a2540;">' + esc(order.payment_method || '—') + '</b></div>';
-
     html += '</div>';
-
     return html;
   }
 
@@ -393,10 +387,13 @@
           btn.textContent = 'Track Order →';
           return;
         }
-
         var order = rows[0];
 
-        // Fetch items
+        // Analytics: track event
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'track_order', { order_number: orderNumber });
+        }
+
         return fetch(SUPABASE_URL + '/rest/v1/order_items?order_id=eq.' + order.id + '&order=id.asc', {
           headers: {
             'apikey': SUPABASE_ANON_KEY,
@@ -436,7 +433,7 @@
     trackOrder(orderNumber, phone);
   });
 
-  // Auto-track if URL has ?order=XXX&phone=XXX (used from order-success page)
+  // Auto-track if URL has ?order=XXX&phone=XXX
   var params = new URLSearchParams(window.location.search);
   var qOrder = params.get('order');
   var qPhone = params.get('phone');
