@@ -646,7 +646,7 @@
       .then(function (r) { return r.json(); })
       .then(function (rows) {
         var fullName = (rows[0] && rows[0].full_name) || 'there';
-        return fetch(SUPABASE_URL + '/rest/v1/abandoned_carts', {
+        return fetch(SUPABASE_URL + '/rest/v1/abandoned_carts?on_conflict=user_id', {
           method: 'POST',
           headers: {
             'apikey': SUPABASE_ANON_KEY,
