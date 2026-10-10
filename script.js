@@ -1310,7 +1310,6 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
-})();
   /* ============ IMAGE ZOOM ============ */
   function openImageZoom(src) {
     var existing = document.querySelector('.img-zoom-overlay');
@@ -1378,3 +1377,81 @@
     });
     return true;
   };
+     /* ============ NEWSLETTER SIGNUP ============ */
+  (function () {
+    var form = $('newsletterForm');
+    if (!form) return;
+
+    var input = $('newsletterEmail');
+    var btn = $('newsletterBtn');
+    var status = $('newsletterStatus');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var email = (input.value || '').trim().toLowerCase();
+      status.textContent = '';
+      status.className = 'newsletter-status';
+
+      // Validate email
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        status.textContent = 'Please enter a valid email address';
+        status.className = 'newsletter-status err';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Subscribing...';
+
+      fetch(SUPABASE_URL + '/rest/v1/newsletter_subscribers', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal,resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          email: email,
+          source: 'footer',
+          unsubscribed: false
+        })
+      })
+        .then(function (r) {
+          if (!r.ok) {
+            // Duplicate email = Postgres error code 23505 — treat as success
+            return r.text().then(function (txt) {
+              if (txt.indexOf('23505') !== -1 || txt.indexOf('duplicate') !== -1) {
+                return 'duplicate';
+              }
+              throw new Error('Subscribe failed');
+            });
+          }
+          return 'ok';
+        })
+        .then(function (result) {
+          if (result === 'duplicate') {
+            status.textContent = '✓ You\'re already subscribed!';
+          } else {
+            status.textContent = '✓ Subscribed! Check your inbox for offers.';
+          }
+          status.className = 'newsletter-status ok';
+          form.reset();
+
+          // Analytics
+          if (typeof window.gtag === 'function') {
+            window.gtag('event', 'newsletter_signup', { email_domain: email.split('@')[1] || '' });
+          }
+        })
+        .catch(function (err) {
+          console.error('[GIMPZ] Newsletter error:', err);
+          status.textContent = 'Something went wrong. Try again.';
+          status.className = 'newsletter-status err';
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.textContent = 'Subscribe';
+        });
+    });
+  })();
+})();
