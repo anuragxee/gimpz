@@ -4,7 +4,20 @@
    ============================================================ */
 (function () {
   'use strict';
-
+   
+  /* Aggressive passive listeners for scroll-related events */
+  if (typeof window !== 'undefined') {
+    // Mark all scroll-related events passive to unblock scrolling thread
+    var _addEventListener = EventTarget.prototype.addEventListener;
+    EventTarget.prototype.addEventListener = function (type, fn, opts) {
+      if (type === 'touchstart' || type === 'touchmove' || type === 'wheel' || type === 'mousewheel' || type === 'scroll') {
+        if (typeof opts === 'boolean') opts = { capture: opts, passive: true };
+        else if (typeof opts === 'object' && opts !== null) opts.passive = true;
+        else opts = { passive: true };
+      }
+      return _addEventListener.call(this, type, fn, opts);
+    };
+  }
   var SUPABASE_URL = 'https://qyzevydprpkjslnesrxq.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5emV2eWRwcnBranNsbmVzcnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTk2NDksImV4cCI6MjEwNzA5NTY0OX0.BE-ijSGGNmkQjaeSZ8RX6mQGMW5dY2Y2Gzj9vitRK0g';
   var CART_KEY = 'gimpz_cart';
