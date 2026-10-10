@@ -1,5 +1,6 @@
 /* ============================================================
-   GIMPZ — MAIN SCRIPT (standalone + cache + instant cart + analytics + autocomplete)
+   GIMPZ — MAIN SCRIPT (standalone + cache + cart + analytics +
+   autocomplete + related products)
    ============================================================ */
 (function () {
   'use strict';
@@ -100,71 +101,39 @@
   }
 
   /* ============ SEARCH AUTOCOMPLETE ============ */
-  var searchState = {
-    input: null,
-    dropdown: null,
-    results: [],
-    activeIndex: -1
-  };
+  var searchState = { input: null, dropdown: null, results: [], activeIndex: -1 };
 
   function initSearchAutocomplete() {
     var form = document.querySelector('.header-search');
     var input = $('searchInput');
     if (!form || !input) return;
-
     searchState.input = input;
 
-    // Create dropdown element
     var dropdown = document.createElement('div');
     dropdown.className = 'search-suggestions';
     dropdown.setAttribute('role', 'listbox');
     dropdown.style.display = 'none';
     form.appendChild(dropdown);
     searchState.dropdown = dropdown;
-
     form.style.position = 'relative';
 
-    // Input events
     var debounceTimer = null;
     input.addEventListener('input', function () {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(function () {
-        handleSearchInput(input.value.trim());
-      }, 120);
+      debounceTimer = setTimeout(function () { handleSearchInput(input.value.trim()); }, 120);
     });
-
     input.addEventListener('focus', function () {
-      if (input.value.trim().length >= 1) {
-        handleSearchInput(input.value.trim());
-      }
+      if (input.value.trim().length >= 1) handleSearchInput(input.value.trim());
     });
-
     input.addEventListener('keydown', handleSearchKeydown);
-
-    // Close on click outside
-    document.addEventListener('click', function (e) {
-      if (!form.contains(e.target)) {
-        closeSearchDropdown();
-      }
-    });
-
-    // Close on ESC
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') {
-        closeSearchDropdown();
-        input.blur();
-      }
-    });
-
-    // Form submit — go to first result or filter homepage
+    document.addEventListener('click', function (e) { if (!form.contains(e.target)) closeSearchDropdown(); });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeSearchDropdown(); input.blur(); } });
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       if (searchState.activeIndex >= 0 && searchState.results[searchState.activeIndex]) {
-        var p = searchState.results[searchState.activeIndex];
-        window.location.href = 'product.html?id=' + p.id;
+        window.location.href = 'product.html?id=' + searchState.results[searchState.activeIndex].id;
         return;
       }
-      // No active selection — filter the page grid
       closeSearchDropdown();
       if (typeof applyFilters === 'function') applyFilters();
       var grid = $('productGrid');
@@ -173,19 +142,13 @@
   }
 
   function handleSearchInput(q) {
-    if (!q || q.length < 1) {
-      closeSearchDropdown();
-      return;
-    }
-
+    if (!q || q.length < 1) { closeSearchDropdown(); return; }
     var query = q.toLowerCase();
     var results = PRODUCTS.filter(function (p) {
       return (p.name && p.name.toLowerCase().indexOf(query) !== -1) ||
              (p.brand && p.brand.toLowerCase().indexOf(query) !== -1) ||
              (p.category && p.category.toLowerCase().indexOf(query) !== -1);
     }).slice(0, 6);
-
-    // Smart ranking: exact name match first, then brand, then category
     results.sort(function (a, b) {
       var aName = (a.name || '').toLowerCase();
       var bName = (b.name || '').toLowerCase();
@@ -195,31 +158,22 @@
       if (!aStarts && bStarts) return 1;
       return 0;
     });
-
     searchState.results = results;
     searchState.activeIndex = -1;
-
-    if (!results.length) {
-      renderSearchEmpty(q);
-    } else {
-      renderSearchResults(results, query);
-    }
+    if (!results.length) renderSearchEmpty(q);
+    else renderSearchResults(results, query);
   }
 
   function renderSearchResults(results, query) {
     var dd = searchState.dropdown;
     if (!dd) return;
-
     var html = '';
     results.forEach(function (p, i) {
       var cover = getCoverImage(p);
       var nameHtml = highlightMatch(p.name, query);
       var brandHtml = p.brand ? highlightMatch(p.brand, query) : '';
-
       html += '<a class="search-item" href="product.html?id=' + p.id + '" data-index="' + i + '" role="option">' +
-        '<div class="search-item-thumb">' +
-          '<img src="' + cover + '" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'assets/products/placeholder.svg\'">' +
-        '</div>' +
+        '<div class="search-item-thumb"><img src="' + cover + '" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'assets/products/placeholder.svg\'"></div>' +
         '<div class="search-item-info">' +
           '<div class="search-item-name">' + nameHtml + '</div>' +
           (brandHtml ? '<div class="search-item-brand">' + brandHtml + '</div>' : '') +
@@ -227,16 +181,9 @@
         '<div class="search-item-price">' + fmtPrice(p.price) + '</div>' +
       '</a>';
     });
-
-    // Footer link to search all
-    html += '<div class="search-footer" data-search-all="1">' +
-      'Press <kbd>Enter</kbd> to see all results for "<b>' + esc(query) + '</b>"' +
-    '</div>';
-
+    html += '<div class="search-footer" data-search-all="1">Press <kbd>Enter</kbd> to see all results for "<b>' + esc(query) + '</b>"</div>';
     dd.innerHTML = html;
     dd.style.display = 'block';
-
-    // Click handlers
     dd.querySelectorAll('.search-item').forEach(function (el) {
       el.addEventListener('mouseenter', function () {
         searchState.activeIndex = parseInt(el.getAttribute('data-index'), 10);
@@ -264,32 +211,20 @@
     var lowerQuery = safeQuery.toLowerCase();
     var idx = lowerText.indexOf(lowerQuery);
     if (idx === -1) return safe;
-    return safe.substring(0, idx) +
-      '<mark>' + safe.substring(idx, idx + safeQuery.length) + '</mark>' +
-      safe.substring(idx + safeQuery.length);
+    return safe.substring(0, idx) + '<mark>' + safe.substring(idx, idx + safeQuery.length) + '</mark>' + safe.substring(idx + safeQuery.length);
   }
 
   function handleSearchKeydown(e) {
     var dd = searchState.dropdown;
     if (!dd || dd.style.display === 'none') return;
-
     var items = dd.querySelectorAll('.search-item');
     if (!items.length) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      searchState.activeIndex = (searchState.activeIndex + 1) % items.length;
-      updateActiveSearchItem();
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      searchState.activeIndex = (searchState.activeIndex - 1 + items.length) % items.length;
-      updateActiveSearchItem();
-    } else if (e.key === 'Enter' && searchState.activeIndex >= 0) {
+    if (e.key === 'ArrowDown') { e.preventDefault(); searchState.activeIndex = (searchState.activeIndex + 1) % items.length; updateActiveSearchItem(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); searchState.activeIndex = (searchState.activeIndex - 1 + items.length) % items.length; updateActiveSearchItem(); }
+    else if (e.key === 'Enter' && searchState.activeIndex >= 0) {
       e.preventDefault();
       var active = items[searchState.activeIndex];
-      if (active) {
-        active.click();
-      }
+      if (active) active.click();
     }
   }
 
@@ -300,9 +235,7 @@
       el.classList.toggle('active', i === searchState.activeIndex);
     });
     var active = dd.querySelector('.search-item.active');
-    if (active && active.scrollIntoView) {
-      active.scrollIntoView({ block: 'nearest' });
-    }
+    if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest' });
   }
 
   function closeSearchDropdown() {
@@ -339,16 +272,13 @@
     var list = $('savedAddressesList');
     var heading = $('addressFormHeading');
     if (!section || !list) return;
-
     if (!SAVED_ADDRESSES.length) {
       section.style.display = 'none';
       if (heading) heading.style.display = 'block';
       return;
     }
-
     section.style.display = 'block';
     if (heading) heading.style.display = 'block';
-
     var html = '';
     SAVED_ADDRESSES.forEach(function (a) {
       html += '<button type="button" class="saved-address-card" data-address-id="' + a.id + '">' +
@@ -361,7 +291,6 @@
       '</button>';
     });
     list.innerHTML = html;
-
     list.querySelectorAll('[data-address-id]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var id = parseInt(btn.getAttribute('data-address-id'), 10);
@@ -372,7 +301,6 @@
         btn.classList.add('active');
       });
     });
-
     if (SAVED_ADDRESSES.length) {
       fillAddressForm(SAVED_ADDRESSES[0]);
       var first = list.querySelector('.saved-address-card');
@@ -443,27 +371,20 @@
       });
     }
     saveCart(cart);
-
     track('add_to_cart', {
       currency: 'INR',
       value: (Number(product.price) || 0) * qty,
       items: [{
-        item_id: String(product.id),
-        item_name: product.name,
-        item_brand: product.brand || '',
-        item_category: product.category || '',
-        price: Number(product.price) || 0,
-        quantity: qty
+        item_id: String(product.id), item_name: product.name,
+        item_brand: product.brand || '', item_category: product.category || '',
+        price: Number(product.price) || 0, quantity: qty
       }]
     });
   }
   function removeFromCart(productId) {
     var cart = getCart().filter(function (item) { return item.id !== productId; });
     saveCart(cart);
-    track('remove_from_cart', {
-      currency: 'INR',
-      items: [{ item_id: String(productId) }]
-    });
+    track('remove_from_cart', { currency: 'INR', items: [{ item_id: String(productId) }] });
   }
   function clearCart() { saveCart([]); }
   function getProduct(id) {
@@ -587,10 +508,7 @@
     else if (s === 'price-desc') filtered.sort(function (a, b) { return b.price - a.price; });
     else if (s === 'rating') filtered.sort(function (a, b) { return b.rating - a.rating; });
     renderGrid(grid, filtered);
-
-    if (filtered.length) {
-      trackViewItemList(cat === 'all' ? 'All Products' : cat, filtered);
-    }
+    if (filtered.length) trackViewItemList(cat === 'all' ? 'All Products' : cat, filtered);
   }
 
   function showToast(msg) {
@@ -619,6 +537,69 @@
       '</div>';
   }
 
+  /* ============ RELATED PRODUCTS ============ */
+  function getRelatedProducts(currentProduct, count) {
+    count = count || 4;
+    if (!currentProduct) return [];
+    var currentId = currentProduct.id;
+    var currentCat = currentProduct.category;
+    var currentPrice = Number(currentProduct.price) || 0;
+
+    // Step 1: Same category, exclude self, sort by rating
+    var sameCat = PRODUCTS.filter(function (p) {
+      return p.id !== currentId && p.category === currentCat;
+    }).sort(function (a, b) { return (b.rating || 0) - (a.rating || 0); });
+
+    var result = sameCat.slice(0, count);
+
+    // Step 2: If not enough, add products from other categories
+    // Prefer ones with similar price range, sorted by rating
+    if (result.length < count) {
+      var others = PRODUCTS.filter(function (p) {
+        return p.id !== currentId && p.category !== currentCat;
+      }).sort(function (a, b) {
+        // Prefer similar price first, then higher rating
+        var aDiff = Math.abs(Number(a.price) - currentPrice);
+        var bDiff = Math.abs(Number(b.price) - currentPrice);
+        if (aDiff !== bDiff) return aDiff - bDiff;
+        return (b.rating || 0) - (a.rating || 0);
+      });
+
+      for (var i = 0; i < others.length && result.length < count; i++) {
+        // Avoid duplicates
+        var exists = result.some(function (r) { return r.id === others[i].id; });
+        if (!exists) result.push(others[i]);
+      }
+    }
+
+    return result;
+  }
+
+  function renderRelatedProducts(currentProduct) {
+    var section = $('relatedProductsSection');
+    var grid = $('relatedProductsGrid');
+    var title = $('relatedProductsTitle');
+    if (!section || !grid) return;
+
+    var related = getRelatedProducts(currentProduct, 4);
+
+    if (!related.length) {
+      section.style.display = 'none';
+      return;
+    }
+
+    if (title) {
+      title.textContent = 'More from ' + (currentProduct.category || 'this store');
+    }
+
+    section.style.display = 'block';
+    renderGrid(grid, related);
+
+    // Track view
+    trackViewItemList('Related Products', related);
+  }
+
+  /* ============ PRODUCT DETAIL ============ */
   function renderProductDetail(overrideProduct) {
     var container = $('productDetail');
     if (!container) return;
@@ -704,6 +685,9 @@
       });
       window.location.href = 'cart.html';
     });
+
+    // RENDER RELATED PRODUCTS
+    renderRelatedProducts(p);
   }
 
   function renderCartPage() {
@@ -759,7 +743,6 @@
       btn.addEventListener('click', function () { removeFromCart(parseInt(btn.getAttribute('data-id'), 10)); renderCartPage(); });
     });
     updateSummary();
-
     track('begin_checkout', {
       currency: 'INR',
       value: cartTotal(),
@@ -874,7 +857,6 @@
               };
             })
           });
-
           if (label) {
             return saveAddressToDb(user, name, phone, address, city, state, pincode, label);
           }
