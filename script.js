@@ -668,6 +668,48 @@
   function saveCart(cart) {
     try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {}
     updateCartBadge();
+    saveAbandonedCartSnapshot(cart);
+  }
+
+  function saveAbandonedCartSnapshot(cart) {
+    var user = getUser();
+    if (!user || !user.uid) return;
+    if (!cart || !cart.length) return;
+
+    var items = cart.map(function (it) {
+      return { id: it.id, name: it.name, price: Number(it.price) || 0, qty: it.qty, image_folder: it.image_folder || '' };
+    });
+    var subtotal = 0;
+    cart.forEach(function (it) { subtotal += (Number(it.price) || 0) * it.qty; });
+
+    fetch(SUPABASE_URL + '/rest/v1/profiles?id=eq.' + encodeURIComponent(user.uid) + '&select=full_name', {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        var fullName = (rows[0] && rows[0].full_name) || 'there';
+        return fetch(SUPABASE_URL + '/rest/v1/abandoned_carts', {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates,return=minimal'
+          },
+          body: JSON.stringify({
+            user_id: user.uid,
+            email: user.email,
+            name: fullName,
+            items: items,
+            subtotal: subtotal,
+            updated_at: new Date().toISOString(),
+            email_sent: false,
+            email_sent_at: null,
+            recovered: false
+          })
+        });
+      })
+      .catch(function (e) { console.warn('[GIMPZ] Abandoned cart save failed:', e); });
   }
   function addToCart(productOrId, qty) {
     qty = qty || 1;
@@ -1182,6 +1224,11 @@
             })
           });
           if (label) return saveAddressToDb(user, name, phone, address, city, state, pincode, label);
+                     // Clear abandoned cart (order completed)
+          fetch(SUPABASE_URL + '/rest/v1/abandoned_carts?user_id=eq.' + encodeURIComponent(user.uid), {
+            method: 'DELETE',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+          }).catch(function () {});
         })
         .then(function () {
           try { localStorage.setItem('gimpz_last_order', JSON.stringify({ orderNumber: orderNo, total: total, name: name })); } catch (err) {}
