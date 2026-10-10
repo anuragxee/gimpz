@@ -74,6 +74,11 @@
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6L12 13L2 6"/><rect x="2" y="5" width="20" height="14" rx="2"/></svg>
         Marketing
       </button>
+            <button class="admin-nav-btn" data-tab="messages">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Messages
+        <span class="nav-badge" id="messagesBadge" data-count="0">0</span>
+      </button>
       <button class="admin-nav-btn" data-tab="staff">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
         Staff
@@ -220,6 +225,25 @@
       <div class="admin-card">
         <div class="admin-card-head"><h2>All Customer Emails</h2><button class="admin-btn-sm" id="copyAllEmailsBtn">Copy All</button></div>
         <div id="allEmailsList" style="padding:16px 22px;font-size:.85rem;line-height:1.8;color:#475569;max-height:400px;overflow-y:auto;"><p class="admin-empty">Loading...</p></div>
+      </div>
+    </section>
+    
+    <!-- MESSAGES -->
+    <section class="admin-tab" id="tab-messages" style="display:none;">
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <h2>Contact Messages</h2>
+          <div style="display:flex;gap:8px;">
+            <select id="messageFilter" class="admin-filter-select">
+              <option value="">All Messages</option>
+              <option value="New">New</option>
+              <option value="Read">Read</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+            <button class="admin-btn-sm" id="refreshMessagesBtn">Refresh</button>
+          </div>
+        </div>
+        <div id="messagesList" class="messages-list"><p class="admin-empty">Loading...</p></div>
       </div>
     </section>
 
