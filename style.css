@@ -1182,3 +1182,57 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
   .search-item-price { font-size: .85rem; }
   .search-footer { font-size: .72rem; }
 }
+/* ============================================================
+   RELATED PRODUCTS — product page
+   ============================================================ */
+.related-products {
+  margin-top: 44px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+
+.related-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.related-title {
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  color: #0a2540;
+  letter-spacing: -.02em;
+  margin-bottom: 6px;
+}
+
+.related-sub {
+  font-size: .86rem;
+  color: #64748b;
+  margin: 0;
+}
+
+#relatedProductsGrid {
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .related-products {
+    margin-top: 32px;
+    padding-top: 24px;
+  }
+  .related-header { margin-bottom: 18px; }
+  #relatedProductsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .related-products { margin-top: 24px; padding-top: 18px; }
+  .related-header { margin-bottom: 14px; }
+  #relatedProductsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .related-title { font-size: 1.05rem; }
+  .related-sub { font-size: .78rem; }
+}
