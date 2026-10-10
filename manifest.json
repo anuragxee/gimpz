@@ -34,19 +34,19 @@
       "name": "New Arrivals",
       "url": "/gimpz/new-arrivals.html",
       "description": "See the newest products",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Best Sellers",
       "url": "/gimpz/best-sellers.html",
       "description": "Shop top-rated products",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "My Cart",
       "url": "/gimpz/cart.html",
       "description": "View your cart",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
