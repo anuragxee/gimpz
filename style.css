@@ -1252,3 +1252,70 @@ img { decoding: async; }
   }
   .cat-icon { font-size: 1.5rem; }
 }
+/* ============================================================
+   MOBILE FIX — header whitespace + footer layout
+   ============================================================ */
+
+/* ---------- 1. Kill the empty white space in the header ---------- */
+@media (max-width: 640px) {
+  /* Mobile search bar was reserving space even when hidden */
+  .search-bar,
+  .search-bar.open {
+    display: none !important;
+  }
+  #searchBar { display: none !important; }
+
+  /* Header stays exactly 60px tall */
+  .site-header { padding: 0; }
+  .header-inner { height: 60px; }
+  .cat-nav { margin-top: 0; }
+}
+
+/* ---------- 2. Footer — 2 columns for Shop + Help ---------- */
+@media (max-width: 640px) {
+  .site-footer { padding: 26px 0 0; }
+
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;   /* Shop | Help side by side */
+    gap: 22px 16px;
+    padding-bottom: 20px;
+  }
+
+  /* Brand full width at top */
+  .footer-brand {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+  .footer-brand .logo { margin-bottom: 8px; }
+  .footer-desc {
+    font-size: .82rem;
+    max-width: 100%;
+    line-height: 1.5;
+  }
+
+  /* Shop and Help each in their own column */
+  .footer-col { grid-column: auto; }
+  .footer-col h3 {
+    font-size: .68rem;
+    letter-spacing: .14em;
+    margin-bottom: 10px;
+  }
+  .footer-col ul {
+    gap: 8px;
+    font-size: .82rem;
+  }
+
+  /* Follow Us full width at bottom */
+  .footer-col:nth-child(4) {
+    grid-column: 1 / -1;
+  }
+
+  /* Bottom bar */
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+    gap: 4px;
+    padding: 14px 0;
+    font-size: .72rem;
+  }
+}
