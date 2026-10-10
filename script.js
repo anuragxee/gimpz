@@ -11,7 +11,6 @@
   var MAX_IMAGES_PER_PRODUCT = 10;
 
   var PRODUCTS = [];
-  var isLoaded = false;
 
   /* ============ HELPERS ============ */
   function $(id) { return document.getElementById(id); }
@@ -24,6 +23,22 @@
 
   function fmtPrice(n) {
     return '₹' + Number(n || 0).toLocaleString('en-IN');
+  }
+
+  function mapRow(row) {
+    return {
+      id: row.id,
+      name: row.name,
+      brand: row.brand,
+      category: row.category,
+      price: row.price,
+      mrp: row.mrp,
+      rating: typeof row.rating === 'number' ? row.rating : parseFloat(row.rating || 4.5),
+      stock: row.stock || 0,
+      description: row.description || '',
+      folder: row.image_folder ? ('assets/products/' + row.image_folder) : '',
+      image_folder: row.image_folder || ''
+    };
   }
 
   /* ============ FETCH PRODUCTS ============ */
@@ -42,28 +57,34 @@
       })
       .then(function (rows) {
         if (!Array.isArray(rows)) rows = [];
-        PRODUCTS = rows.map(function (row) {
-          return {
-            id: row.id,
-            name: row.name,
-            brand: row.brand,
-            category: row.category,
-            price: row.price,
-            mrp: row.mrp,
-            rating: typeof row.rating === 'number' ? row.rating : parseFloat(row.rating || 4.5),
-            stock: row.stock || 0,
-            description: row.description || '',
-            folder: row.image_folder ? ('assets/products/' + row.image_folder) : '',
-            image_folder: row.image_folder || ''
-          };
-        });
-        isLoaded = true;
+        PRODUCTS = rows.map(mapRow);
         console.log('[GIMPZ] Loaded ' + PRODUCTS.length + ' products from Supabase');
         return PRODUCTS;
       })
       .catch(function (err) {
         console.error('[GIMPZ] Fetch failed:', err);
         return [];
+      });
+  }
+
+  /* Fast single-product fetch — used on product.html */
+  function fetchSingleProduct(id) {
+    var url = SUPABASE_URL + '/rest/v1/products?select=*&active=eq.true&id=eq.' +
+      encodeURIComponent(id) + '&limit=1';
+    return fetch(url, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Accept': 'application/json'
+      }
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (rows) {
+        if (!Array.isArray(rows) || !rows.length) return null;
+        return mapRow(rows[0]);
       });
   }
 
@@ -274,14 +295,35 @@
     t._timer = setTimeout(function () { t.classList.remove('show'); }, 1800);
   }
 
+  /* ============ PRODUCT DETAIL — SKELETON ============ */
+  function showProductSkeleton(container) {
+    if (!container) return;
+    container.innerHTML =
+      '<div class="pd-skeleton">' +
+        '<div class="pd-skel-gallery"><div class="pd-skel-image"></div></div>' +
+        '<div class="pd-skel-info">' +
+          '<div class="pd-skel-line short"></div>' +
+          '<div class="pd-skel-line title"></div>' +
+          '<div class="pd-skel-line medium"></div>' +
+          '<div class="pd-skel-line price"></div>' +
+          '<div class="pd-skel-line"></div>' +
+          '<div class="pd-skel-line"></div>' +
+          '<div class="pd-skel-btn"></div>' +
+        '</div>' +
+      '</div>';
+  }
+
   /* ============ PRODUCT DETAIL ============ */
-  function renderProductDetail() {
+  function renderProductDetail(overrideProduct) {
     var container = $('productDetail');
     if (!container) return;
 
-    var params = new URLSearchParams(window.location.search);
-    var id = parseInt(params.get('id'), 10);
-    var p = getProduct(id);
+    var p = overrideProduct;
+    if (!p) {
+      var params = new URLSearchParams(window.location.search);
+      var id = parseInt(params.get('id'), 10);
+      p = getProduct(id);
+    }
 
     if (!p) {
       container.innerHTML = '<p style="text-align:center;padding:60px 20px;">Product not found. <a href="index.html" style="color:#2563eb;">Back to store</a></p>';
@@ -619,20 +661,48 @@
   function init() {
     updateCartBadge();
 
+    var detailContainer = $('productDetail');
+
+    /* ─────────── FAST PATH: product detail page ─────────── */
+    if (detailContainer) {
+      var params = new URLSearchParams(window.location.search);
+      var id = parseInt(params.get('id'), 10);
+
+      if (!id) {
+        detailContainer.innerHTML = '<p style="text-align:center;padding:60px 20px;">No product specified. <a href="index.html" style="color:#2563eb;">Back to store</a></p>';
+        return;
+      }
+
+      // Instant skeleton
+      showProductSkeleton(detailContainer);
+
+      // Fetch only this product — very fast
+      fetchSingleProduct(id)
+        .then(function (p) {
+          if (!p) {
+            detailContainer.innerHTML = '<p style="text-align:center;padding:60px 20px;">Product not found. <a href="index.html" style="color:#2563eb;">Back to store</a></p>';
+            return;
+          }
+          // Make sure cart functions can find it
+          if (!getProduct(p.id)) PRODUCTS.push(p);
+          renderProductDetail(p);
+        })
+        .catch(function (err) {
+          console.error('[GIMPZ] Product fetch failed:', err);
+          detailContainer.innerHTML = '<p style="text-align:center;padding:60px 20px;">Could not load product. <a href="index.html" style="color:#2563eb;">Back to store</a></p>';
+        });
+
+      // Quietly preload full list for cart navigation
+      fetchProducts();
+      return;
+    }
+
+    /* ─────────── NORMAL PATH: other pages ─────────── */
     fetchProducts().then(function () {
-      // Home page
       if ($('productGrid')) applyFilters();
-
-      // Product detail
-      if ($('productDetail')) renderProductDetail();
-
-      // Cart page
       if ($('cartList')) renderCartPage();
-
-      // Order success
       if ($('orderSuccessContent')) renderOrderSuccess();
 
-      // Setup listeners
       var searchInput = $('searchInput');
       if (searchInput) searchInput.addEventListener('input', applyFilters);
 
