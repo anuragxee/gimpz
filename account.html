@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://qyzevydprpkjslnesrxq.supabase.co" crossorigin>
+<link rel="preconnect" href="https://qyzevydprpkjslnesrxq.supabase.co" crossorigin>
 <link rel="dns-prefetch" href="https://qyzevydprpkjslnesrxq.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -80,14 +80,30 @@
 
       <div class="account-tabs">
         <button class="account-tab active" data-tab="orders">My Orders</button>
+        <button class="account-tab" data-tab="addresses">Addresses</button>
         <button class="account-tab" data-tab="profile">Profile</button>
       </div>
 
+      <!-- ORDERS TAB -->
       <section class="account-panel" id="panel-orders">
         <div id="ordersLoading" style="text-align:center;padding:40px;color:#64748b;">Loading orders...</div>
         <div id="ordersList"></div>
       </section>
 
+      <!-- ADDRESSES TAB -->
+      <section class="account-panel" id="panel-addresses" style="display:none;">
+        <div class="admin-card" style="padding:22px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+            <h2 style="font-size:1.05rem;color:#0a2540;">Saved Addresses</h2>
+            <button class="btn btn-primary" id="addAddressBtn" style="padding:9px 16px;font-size:.86rem;">+ Add New Address</button>
+          </div>
+          <div id="addressesList" class="addr-list">
+            <p style="color:#94a3b8;text-align:center;padding:30px 0;">Loading...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROFILE TAB -->
       <section class="account-panel" id="panel-profile" style="display:none;">
         <div class="admin-card" style="padding:26px;">
           <h2 style="font-size:1.05rem;margin-bottom:20px;color:#0a2540;">Your Profile</h2>
@@ -105,24 +121,6 @@
             <div class="form-field">
               <label for="profileEmail">Email</label>
               <input type="email" id="profileEmail" disabled style="background:#f1f5f9;cursor:not-allowed;">
-            </div>
-            <div class="form-field">
-              <label for="profileAddress">Default Address</label>
-              <textarea id="profileAddress" rows="2" placeholder="House no., street, landmark"></textarea>
-            </div>
-            <div class="form-row">
-              <div class="form-field">
-                <label for="profileCity">City</label>
-                <input type="text" id="profileCity" placeholder="City">
-              </div>
-              <div class="form-field">
-                <label for="profileState">State</label>
-                <input type="text" id="profileState" placeholder="State">
-              </div>
-            </div>
-            <div class="form-field">
-              <label for="profilePincode">Pincode</label>
-              <input type="tel" id="profilePincode" placeholder="6-digit pincode" pattern="[1-9][0-9]{5}">
             </div>
             <button type="submit" class="btn btn-primary" id="saveProfileBtn">Save Profile</button>
             <p class="form-status" id="profileStatus" role="status"></p>
@@ -171,6 +169,65 @@
   </div>
 </footer>
 
+<!-- ADDRESS MODAL -->
+<div class="addr-modal" id="addressModal">
+  <div class="addr-modal-inner">
+    <div class="addr-modal-head">
+      <h3 id="addressModalTitle">Add Address</h3>
+      <button type="button" class="addr-modal-close" id="addressModalClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form id="addressForm" class="addr-form">
+      <input type="hidden" id="addr-id">
+
+      <div class="form-field">
+        <label for="addr-label">Address Label *</label>
+        <input type="text" id="addr-label" placeholder="e.g. Home, Office, Parents" maxlength="20" required>
+        <small style="font-size:.72rem;color:#94a3b8;">A short name to identify this address</small>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="addr-name">Full Name *</label>
+          <input type="text" id="addr-name" placeholder="Recipient name" required>
+        </div>
+        <div class="form-field">
+          <label for="addr-phone">Phone *</label>
+          <input type="tel" id="addr-phone" placeholder="10-digit mobile" pattern="[6-9][0-9]{9}" required>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="addr-address">Address *</label>
+        <textarea id="addr-address" rows="2" placeholder="House no., street, landmark" required></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="addr-city">City *</label>
+          <input type="text" id="addr-city" placeholder="City" required>
+        </div>
+        <div class="form-field">
+          <label for="addr-state">State *</label>
+          <input type="text" id="addr-state" placeholder="State" required>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="addr-pincode">Pincode *</label>
+        <input type="tel" id="addr-pincode" placeholder="6-digit pincode" pattern="[1-9][0-9]{5}" required>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;padding-top:16px;border-top:1px solid #f1f5f9;">
+        <button type="button" class="btn btn-outline" id="addressCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="addressSaveBtn">Save Address</button>
+      </div>
+      <p class="form-status" id="addressStatus" role="status"></p>
+    </form>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -211,6 +268,7 @@ function statusPill(status) {
 }
 
 let currentUser = null;
+let addresses = [];
 
 /* Tab switching */
 document.querySelectorAll('.account-tab').forEach(tab => {
@@ -219,6 +277,7 @@ document.querySelectorAll('.account-tab').forEach(tab => {
     tab.classList.add('active');
     const target = tab.getAttribute('data-tab');
     $('panel-orders').style.display = target === 'orders' ? 'block' : 'none';
+    $('panel-addresses').style.display = target === 'addresses' ? 'block' : 'none';
     $('panel-profile').style.display = target === 'profile' ? 'block' : 'none';
   });
 });
@@ -230,13 +289,12 @@ $('signOutBtn').addEventListener('click', async () => {
   window.location.href = 'index.html';
 });
 
-/* Load orders — single request for orders + single request for all items */
+/* ============ ORDERS ============ */
 async function loadOrders(uid) {
   $('ordersLoading').style.display = 'block';
   $('ordersList').innerHTML = '';
 
   try {
-    // 1) All orders in one request
     const r = await fetch(
       SB_URL + '/rest/v1/orders?user_id=eq.' + encodeURIComponent(uid) + '&order=created_at.desc',
       { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
@@ -249,7 +307,6 @@ async function loadOrders(uid) {
       return;
     }
 
-    // 2) All items for ALL orders in ONE request (avoids N+1)
     const ids = orders.map(o => o.id).join(',');
     const itemsRes = await fetch(
       SB_URL + '/rest/v1/order_items?order_id=in.(' + ids + ')&order=id.asc',
@@ -257,14 +314,12 @@ async function loadOrders(uid) {
     );
     const allItems = await itemsRes.json();
 
-    // 3) Group items by order_id
     const itemsByOrder = {};
     (Array.isArray(allItems) ? allItems : []).forEach(it => {
       if (!itemsByOrder[it.order_id]) itemsByOrder[it.order_id] = [];
       itemsByOrder[it.order_id].push(it);
     });
 
-    // 4) Render
     let html = '';
     for (const o of orders) {
       const items = itemsByOrder[o.id] || [];
@@ -317,7 +372,199 @@ async function loadOrders(uid) {
   }
 }
 
-/* Load profile */
+/* ============ ADDRESSES ============ */
+async function loadAddresses(uid) {
+  const list = $('addressesList');
+  try {
+    const r = await fetch(
+      SB_URL + '/rest/v1/addresses?user_id=eq.' + encodeURIComponent(uid) + '&order=created_at.desc',
+      { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+    );
+    const rows = await r.json();
+    addresses = Array.isArray(rows) ? rows : [];
+    renderAddresses();
+  } catch (e) {
+    console.error('Load addresses failed:', e);
+    list.innerHTML = '<p style="color:#dc2626;text-align:center;padding:30px 0;">Failed to load addresses.</p>';
+  }
+}
+
+function renderAddresses() {
+  const list = $('addressesList');
+
+  if (!addresses.length) {
+    list.innerHTML = '<div style="text-align:center;padding:34px 20px;">' +
+      '<div style="font-size:2.5rem;margin-bottom:10px;">📍</div>' +
+      '<h3 style="font-size:1rem;color:#0a2540;margin-bottom:6px;">No saved addresses</h3>' +
+      '<p style="color:#64748b;font-size:.88rem;margin-bottom:16px;">Add your first address to make checkout faster.</p>' +
+      '<button class="btn btn-primary" id="emptyAddAddressBtn" style="padding:10px 20px;">+ Add Address</button>' +
+    '</div>';
+    const btn = $('emptyAddAddressBtn');
+    if (btn) btn.addEventListener('click', () => openAddressModal(null));
+    return;
+  }
+
+  let html = '';
+  addresses.forEach(a => {
+    html += '<div class="addr-card">' +
+      '<div class="addr-card-head">' +
+        '<span class="addr-label">🏠 ' + esc(a.label || 'Address') + '</span>' +
+      '</div>' +
+      '<div class="addr-card-body">' +
+        '<strong>' + esc(a.full_name) + '</strong><br>' +
+        '<span style="color:#64748b;">' + esc(a.phone) + '</span><br>' +
+        esc(a.address) + ', ' + esc(a.city) + ', ' + esc(a.state) + ' — ' + esc(a.pincode) +
+      '</div>' +
+      '<div class="addr-card-actions">' +
+        '<button type="button" class="addr-btn" data-addr-edit="' + a.id + '">Edit</button>' +
+        '<button type="button" class="addr-btn addr-btn-danger" data-addr-delete="' + a.id + '">Delete</button>' +
+      '</div>' +
+    '</div>';
+  });
+  list.innerHTML = html;
+
+  list.querySelectorAll('[data-addr-edit]').forEach(b => {
+    b.addEventListener('click', () => {
+      const id = parseInt(b.getAttribute('data-addr-edit'), 10);
+      openAddressModal(id);
+    });
+  });
+  list.querySelectorAll('[data-addr-delete]').forEach(b => {
+    b.addEventListener('click', () => {
+      const id = parseInt(b.getAttribute('data-addr-delete'), 10);
+      deleteAddress(id);
+    });
+  });
+}
+
+function openAddressModal(id) {
+  const modal = $('addressModal');
+  const form = $('addressForm');
+  form.reset();
+  $('addressStatus').textContent = '';
+  $('addressStatus').className = 'form-status';
+
+  if (id) {
+    const a = addresses.find(x => x.id === id);
+    if (!a) return;
+    $('addressModalTitle').textContent = 'Edit Address';
+    $('addr-id').value = a.id;
+    $('addr-label').value = a.label || '';
+    $('addr-name').value = a.full_name || '';
+    $('addr-phone').value = a.phone || '';
+    $('addr-address').value = a.address || '';
+    $('addr-city').value = a.city || '';
+    $('addr-state').value = a.state || '';
+    $('addr-pincode').value = a.pincode || '';
+  } else {
+    $('addressModalTitle').textContent = 'Add New Address';
+    $('addr-id').value = '';
+  }
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => { const el = $('addr-label'); if (el) el.focus(); }, 200);
+}
+
+function closeAddressModal() {
+  $('addressModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+$('addAddressBtn').addEventListener('click', () => openAddressModal(null));
+$('addressModalClose').addEventListener('click', closeAddressModal);
+$('addressCancelBtn').addEventListener('click', closeAddressModal);
+$('addressModal').addEventListener('click', (e) => {
+  if (e.target === $('addressModal')) closeAddressModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeAddressModal();
+});
+
+$('addressForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('addressSaveBtn');
+  const status = $('addressStatus');
+
+  const id = $('addr-id').value;
+  const data = {
+    user_id: currentUser.uid,
+    label: $('addr-label').value.trim().slice(0, 20) || 'Home',
+    full_name: $('addr-name').value.trim(),
+    phone: $('addr-phone').value.trim(),
+    address: $('addr-address').value.trim(),
+    city: $('addr-city').value.trim(),
+    state: $('addr-state').value.trim(),
+    pincode: $('addr-pincode').value.trim()
+  };
+
+  if (!data.full_name) { status.textContent = 'Enter name'; status.className = 'form-status err'; return; }
+  if (!/^[6-9][0-9]{9}$/.test(data.phone)) { status.textContent = 'Enter valid mobile number'; status.className = 'form-status err'; return; }
+  if (data.address.length < 10) { status.textContent = 'Enter full address'; status.className = 'form-status err'; return; }
+  if (!/^[A-Za-z\s]{3,}$/.test(data.city)) { status.textContent = 'Enter valid city'; status.className = 'form-status err'; return; }
+  if (!/^[A-Za-z\s]{3,}$/.test(data.state)) { status.textContent = 'Enter valid state'; status.className = 'form-status err'; return; }
+  if (!/^[1-9][0-9]{5}$/.test(data.pincode)) { status.textContent = 'Enter valid pincode'; status.className = 'form-status err'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  status.textContent = '';
+
+  try {
+    const url = id
+      ? SB_URL + '/rest/v1/addresses?id=eq.' + id
+      : SB_URL + '/rest/v1/addresses';
+    const method = id ? 'PATCH' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(txt || 'Save failed');
+    }
+
+    status.textContent = '✓ Saved';
+    status.className = 'form-status ok';
+
+    await loadAddresses(currentUser.uid);
+    setTimeout(closeAddressModal, 500);
+
+  } catch (err) {
+    console.error('Save address failed:', err);
+    status.textContent = 'Could not save. Try again.';
+    status.className = 'form-status err';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Address';
+  }
+});
+
+async function deleteAddress(id) {
+  const a = addresses.find(x => x.id === id);
+  if (!a) return;
+  if (!confirm('Delete address "' + (a.label || 'Address') + '"?')) return;
+
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/addresses?id=eq.' + id, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!res.ok) throw new Error('Delete failed');
+    await loadAddresses(currentUser.uid);
+  } catch (e) {
+    alert('Could not delete. Try again.');
+  }
+}
+
+/* ============ PROFILE ============ */
 async function loadProfile(uid) {
   try {
     const r = await fetch(SB_URL + '/rest/v1/profiles?id=eq.' + encodeURIComponent(uid) + '&select=*', {
@@ -329,16 +576,11 @@ async function loadProfile(uid) {
     $('profileName').value = p.full_name || '';
     $('profilePhone').value = p.phone || '';
     $('profileEmail').value = p.email || (currentUser && currentUser.email) || '';
-    $('profileAddress').value = p.default_address || '';
-    $('profileCity').value = p.default_city || '';
-    $('profileState').value = p.default_state || '';
-    $('profilePincode').value = p.default_pincode || '';
   } catch (e) {
     console.warn('Profile load failed', e);
   }
 }
 
-/* Save profile */
 $('profileForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = $('saveProfileBtn');
@@ -352,10 +594,6 @@ $('profileForm').addEventListener('submit', async (e) => {
     email: currentUser.email,
     full_name: $('profileName').value.trim(),
     phone: $('profilePhone').value.trim(),
-    default_address: $('profileAddress').value.trim(),
-    default_city: $('profileCity').value.trim(),
-    default_state: $('profileState').value.trim(),
-    default_pincode: $('profilePincode').value.trim(),
     updated_at: new Date().toISOString()
   };
 
@@ -380,7 +618,7 @@ $('profileForm').addEventListener('submit', async (e) => {
   btn.textContent = 'Save Profile';
 });
 
-/* Auth state */
+/* ============ AUTH STATE ============ */
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   if (user && user.emailVerified) {
@@ -398,6 +636,7 @@ onAuthStateChanged(auth, (user) => {
     $('accountAvatar').textContent = user.email.charAt(0).toUpperCase();
 
     loadOrders(user.uid);
+    loadAddresses(user.uid);
     loadProfile(user.uid);
   } else {
     $('notSignedIn').style.display = 'block';
