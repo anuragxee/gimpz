@@ -156,10 +156,14 @@
     }
     if (!session || !session.access_token) return;
 
-    supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false }
-    });
+    // Create the client only once per page load
+    if (!supaClient) {
+      supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false }
+      });
+    }
 
+    // Update session on every init (so realtime picks up the fresh token)
     supaClient.auth.setSession({
       access_token: session.access_token,
       refresh_token: session.refresh_token
