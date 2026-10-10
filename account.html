@@ -106,24 +106,67 @@
       <!-- PROFILE TAB -->
       <section class="account-panel" id="panel-profile" style="display:none;">
         <div class="admin-card" style="padding:26px;">
-          <h2 style="font-size:1.05rem;margin-bottom:20px;color:#0a2540;">Your Profile</h2>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h2 style="font-size:1.1rem;color:#0a2540;margin-bottom:4px;">Personal Information</h2>
+              <p style="font-size:.84rem;color:#64748b;">Keep your details up to date for a smoother experience</p>
+            </div>
+            <span id="profileAgeBadge" class="profile-age-badge" style="display:none;"></span>
+          </div>
+
           <form id="profileForm" class="checkout-form">
+
             <div class="form-row">
               <div class="form-field">
                 <label for="profileName">Full Name</label>
-                <input type="text" id="profileName" placeholder="Your full name">
+                <input type="text" id="profileName" placeholder="Your full name" maxlength="60" autocomplete="name">
               </div>
               <div class="form-field">
-                <label for="profilePhone">Phone</label>
-                <input type="tel" id="profilePhone" placeholder="10-digit mobile" pattern="[6-9][0-9]{9}">
+                <label for="profileGender">Gender</label>
+                <select id="profileGender">
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </select>
               </div>
             </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label for="profileDob">Date of Birth</label>
+                <input type="date" id="profileDob" max="">
+                <small style="font-size:.72rem;color:#94a3b8;">Used to show your age</small>
+              </div>
+              <div class="form-field">
+                <label>Age</label>
+                <input type="text" id="profileAgeDisplay" disabled placeholder="—" style="background:#f1f5f9;cursor:not-allowed;">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-field">
+                <label for="profilePhone">Phone</label>
+                <input type="tel" id="profilePhone" placeholder="10-digit mobile" pattern="[6-9][0-9]{9}" maxlength="10" autocomplete="tel">
+              </div>
+              <div class="form-field">
+                <label for="profileAltPhone">Alternate Phone</label>
+                <input type="tel" id="profileAltPhone" placeholder="Optional" pattern="[6-9][0-9]{9}" maxlength="10">
+              </div>
+            </div>
+
             <div class="form-field">
               <label for="profileEmail">Email</label>
               <input type="email" id="profileEmail" disabled style="background:#f1f5f9;cursor:not-allowed;">
+              <small style="font-size:.72rem;color:#94a3b8;">Contact support to change your email</small>
             </div>
-            <button type="submit" class="btn btn-primary" id="saveProfileBtn">Save Profile</button>
-            <p class="form-status" id="profileStatus" role="status"></p>
+
+            <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
+              <span class="form-status" id="profileStatus" role="status" style="margin:0;"></span>
+            </div>
           </form>
         </div>
       </section>
@@ -265,6 +308,20 @@ function statusPill(status) {
   else if (s === 'delivered') cls = 'status-delivered';
   else if (s === 'cancelled') cls = 'status-cancelled';
   return '<span class="status-pill ' + cls + '">' + esc(status || 'Pending') + '</span>';
+}
+
+function calcAge(dobStr) {
+  if (!dobStr) return null;
+  try {
+    const dob = new Date(dobStr);
+    if (isNaN(dob.getTime())) return null;
+    const now = new Date();
+    let age = now.getFullYear() - dob.getFullYear();
+    const m = now.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+    if (age < 0 || age > 130) return null;
+    return age;
+  } catch (e) { return null; }
 }
 
 let currentUser = null;
@@ -565,6 +622,25 @@ async function deleteAddress(id) {
 }
 
 /* ============ PROFILE ============ */
+function updateAgeDisplay() {
+  const dob = $('profileDob').value;
+  const age = calcAge(dob);
+  const display = $('profileAgeDisplay');
+  const badge = $('profileAgeBadge');
+
+  if (age === null) {
+    if (display) display.value = '';
+    if (badge) badge.style.display = 'none';
+    return;
+  }
+
+  if (display) display.value = age + ' years';
+  if (badge) {
+    badge.textContent = age + ' yrs';
+    badge.style.display = 'inline-block';
+  }
+}
+
 async function loadProfile(uid) {
   try {
     const r = await fetch(SB_URL + '/rest/v1/profiles?id=eq.' + encodeURIComponent(uid) + '&select=*', {
@@ -574,31 +650,81 @@ async function loadProfile(uid) {
     const p = Array.isArray(rows) && rows[0] ? rows[0] : {};
 
     $('profileName').value = p.full_name || '';
+    $('profileGender').value = p.gender || '';
     $('profilePhone').value = p.phone || '';
+    $('profileAltPhone').value = p.alternate_phone || '';
     $('profileEmail').value = p.email || (currentUser && currentUser.email) || '';
+
+    if (p.date_of_birth) {
+      // Supabase returns date as "YYYY-MM-DD"
+      $('profileDob').value = String(p.date_of_birth).slice(0, 10);
+    }
+
+    // Update header greeting with real name if available
+    if (p.full_name) {
+      $('accountName').textContent = 'Hello, ' + p.full_name.split(' ')[0];
+    }
+
+    updateAgeDisplay();
   } catch (e) {
     console.warn('Profile load failed', e);
   }
 }
 
+// Set the DOB max date to today (can't be born in future)
+(function () {
+  const dob = $('profileDob');
+  if (dob) {
+    const today = new Date();
+    const maxDate = today.getFullYear() + '-' +
+      String(today.getMonth() + 1).padStart(2, '0') + '-' +
+      String(today.getDate()).padStart(2, '0');
+    dob.max = maxDate;
+  }
+})();
+
+$('profileDob').addEventListener('change', updateAgeDisplay);
+$('profileDob').addEventListener('input', updateAgeDisplay);
+
 $('profileForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = $('saveProfileBtn');
   const status = $('profileStatus');
+
+  const name = $('profileName').value.trim();
+  const gender = $('profileGender').value;
+  const dob = $('profileDob').value;
+  const phone = $('profilePhone').value.trim();
+  const altPhone = $('profileAltPhone').value.trim();
+
+  // Validation
+  if (name && name.length < 2) { status.textContent = 'Name too short'; status.className = 'form-status err'; return; }
+  if (phone && !/^[6-9][0-9]{9}$/.test(phone)) { status.textContent = 'Enter valid 10-digit phone'; status.className = 'form-status err'; return; }
+  if (altPhone && !/^[6-9][0-9]{9}$/.test(altPhone)) { status.textContent = 'Enter valid alternate phone'; status.className = 'form-status err'; return; }
+  if (dob) {
+    const age = calcAge(dob);
+    if (age === null) { status.textContent = 'Invalid date of birth'; status.className = 'form-status err'; return; }
+    if (age < 13) { status.textContent = 'You must be at least 13 years old'; status.className = 'form-status err'; return; }
+  }
+
   btn.disabled = true;
   btn.textContent = 'Saving...';
   status.textContent = '';
+  status.className = 'form-status';
 
   const payload = {
     id: currentUser.uid,
     email: currentUser.email,
-    full_name: $('profileName').value.trim(),
-    phone: $('profilePhone').value.trim(),
+    full_name: name || null,
+    gender: gender || null,
+    date_of_birth: dob || null,
+    phone: phone || null,
+    alternate_phone: altPhone || null,
     updated_at: new Date().toISOString()
   };
 
   try {
-    await fetch(SB_URL + '/rest/v1/profiles', {
+    const res = await fetch(SB_URL + '/rest/v1/profiles', {
       method: 'POST',
       headers: {
         'apikey': SB_KEY,
@@ -608,14 +734,31 @@ $('profileForm').addEventListener('submit', async (e) => {
       },
       body: JSON.stringify(payload)
     });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(txt || 'Save failed');
+    }
+
     status.textContent = '✓ Profile saved';
     status.className = 'form-status ok';
+
+    // Update greeting immediately
+    if (name) {
+      $('accountName').textContent = 'Hello, ' + name.split(' ')[0];
+    }
+    updateAgeDisplay();
+
+    setTimeout(() => { status.textContent = ''; status.className = 'form-status'; }, 3000);
+
   } catch (err) {
+    console.error('Profile save failed:', err);
     status.textContent = 'Failed to save. Try again.';
     status.className = 'form-status err';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Changes';
   }
-  btn.disabled = false;
-  btn.textContent = 'Save Profile';
 });
 
 /* ============ AUTH STATE ============ */
