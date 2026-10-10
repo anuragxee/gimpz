@@ -1311,3 +1311,70 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+  /* ============ IMAGE ZOOM ============ */
+  function openImageZoom(src) {
+    var existing = document.querySelector('.img-zoom-overlay');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.className = 'img-zoom-overlay';
+    overlay.innerHTML =
+      '<button class="img-zoom-close" aria-label="Close">×</button>' +
+      '<div class="img-zoom-hint">Pinch or scroll to zoom · Tap outside to close</div>' +
+      '<img src="' + src + '" class="img-zoom-img" alt="Zoomed product image">';
+
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay || e.target.classList.contains('img-zoom-close')) {
+        overlay.remove();
+        document.body.style.overflow = '';
+      }
+    });
+
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
+
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+  }
+
+  /* Attach zoom on product detail page */
+  document.addEventListener('click', function (e) {
+    var img = e.target.closest('#pdMainImage');
+    if (img && img.src) {
+      openImageZoom(img.src);
+    }
+  });
+
+  /* ============ PWA — Register Service Worker ============ */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js')
+        .then(function (reg) { console.log('[GIMPZ] PWA service worker ready'); })
+        .catch(function (err) { console.log('[GIMPZ] SW registration skipped:', err.message); });
+    });
+  }
+
+  /* ============ PWA — Install Prompt ============ */
+  var deferredInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    var btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'inline-flex';
+  });
+
+  // Expose a global function so any "Install App" button can trigger it
+  window.gimpzInstallApp = function () {
+    if (!deferredInstallPrompt) return false;
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(function (choice) {
+      console.log('[GIMPZ] Install choice:', choice.outcome);
+      deferredInstallPrompt = null;
+    });
+    return true;
+  };
