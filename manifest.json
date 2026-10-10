@@ -28,24 +28,37 @@
       "purpose": "maskable"
     }
   ],
+  "screenshots": [
+    {
+      "src": "assets/screenshot-mobile.png",
+      "sizes": "800x10396",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Browse GIMPZ on mobile"
+    },
+    {
+      "src": "assets/screenshot-desktop.png",
+      "sizes": "1350x3097",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Shop the full GIMPZ catalog"
+    }
+  ],
   "categories": ["shopping", "lifestyle"],
   "shortcuts": [
     {
       "name": "New Arrivals",
       "url": "/gimpz/new-arrivals.html",
-      "description": "See the newest products",
       "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Best Sellers",
       "url": "/gimpz/best-sellers.html",
-      "description": "Shop top-rated products",
       "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "My Cart",
       "url": "/gimpz/cart.html",
-      "description": "View your cart",
       "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
