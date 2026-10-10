@@ -1,5 +1,5 @@
 /* ============================================================
-   GIMPZ — MAIN SCRIPT (standalone + cache + instant cart + addresses)
+   GIMPZ — MAIN SCRIPT (standalone + cache + instant cart + analytics)
    ============================================================ */
 (function () {
   'use strict';
@@ -15,6 +15,33 @@
   var PRODUCTS = [];
   var SAVED_ADDRESSES = [];
 
+  /* ============ ANALYTICS ============ */
+  function track(eventName, params) {
+    try {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', eventName, params || {});
+      }
+    } catch (e) {}
+  }
+
+  function trackViewItemList(listName, products) {
+    if (!products || !products.length) return;
+    track('view_item_list', {
+      item_list_name: listName,
+      items: products.slice(0, 10).map(function (p, i) {
+        return {
+          item_id: String(p.id),
+          item_name: p.name,
+          item_brand: p.brand || '',
+          item_category: p.category || '',
+          price: Number(p.price) || 0,
+          index: i
+        };
+      })
+    });
+  }
+
+  /* ============ HELPERS ============ */
   function $(id) { return document.getElementById(id); }
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -131,7 +158,6 @@
       });
     });
 
-    // Auto-fill the first address
     if (SAVED_ADDRESSES.length) {
       fillAddressForm(SAVED_ADDRESSES[0]);
       var first = list.querySelector('.saved-address-card');
@@ -148,7 +174,7 @@
     set('cstate', a.state);
     set('cpincode', a.pincode);
     var label = $('addressLabel');
-    if (label) label.value = ''; // Don't re-save; already saved
+    if (label) label.value = '';
   }
 
   function saveAddressToDb(user, name, phone, address, city, state, pincode, label) {
@@ -175,7 +201,6 @@
     }).catch(function (e) { console.warn('Address save failed:', e); });
   }
 
-  // Expose for cart.html to call when auth is ready
   window.gimpzLoadAddresses = function (uid) { loadAddresses(uid); };
 
   /* ============ CART ============ */
@@ -207,10 +232,28 @@
       });
     }
     saveCart(cart);
+
+    // Analytics
+    track('add_to_cart', {
+      currency: 'INR',
+      value: (Number(product.price) || 0) * qty,
+      items: [{
+        item_id: String(product.id),
+        item_name: product.name,
+        item_brand: product.brand || '',
+        item_category: product.category || '',
+        price: Number(product.price) || 0,
+        quantity: qty
+      }]
+    });
   }
   function removeFromCart(productId) {
     var cart = getCart().filter(function (item) { return item.id !== productId; });
     saveCart(cart);
+    track('remove_from_cart', {
+      currency: 'INR',
+      items: [{ item_id: String(productId) }]
+    });
   }
   function clearCart() { saveCart([]); }
   function getProduct(id) {
@@ -334,6 +377,11 @@
     else if (s === 'price-desc') filtered.sort(function (a, b) { return b.price - a.price; });
     else if (s === 'rating') filtered.sort(function (a, b) { return b.rating - a.rating; });
     renderGrid(grid, filtered);
+
+    // Track visible list
+    if (filtered.length) {
+      trackViewItemList(cat === 'all' ? 'All Products' : cat, filtered);
+    }
   }
 
   function showToast(msg) {
@@ -372,6 +420,21 @@
     }
     if (!p) { container.innerHTML = '<p style="text-align:center;padding:60px 20px;">Product not found. <a href="index.html" style="color:#2563eb;">Back to store</a></p>'; return; }
     document.title = p.name + ' — GIMPZ';
+
+    // Analytics: view_item
+    track('view_item', {
+      currency: 'INR',
+      value: Number(p.price) || 0,
+      items: [{
+        item_id: String(p.id),
+        item_name: p.name,
+        item_brand: p.brand || '',
+        item_category: p.category || '',
+        price: Number(p.price) || 0,
+        quantity: 1
+      }]
+    });
+
     var discount = p.mrp > p.price ? Math.round(((p.mrp - p.price) / p.mrp) * 100) : 0;
     var cover = getCoverImage(p);
     var rating = typeof p.rating === 'number' ? p.rating : parseFloat(p.rating || 4.5);
@@ -427,7 +490,15 @@
     var addBtn = $('pdAddCart');
     if (addBtn) addBtn.addEventListener('click', function () { addToCart(p, 1); showToast('Added to cart'); });
     var buyBtn = $('pdBuyNow');
-    if (buyBtn) buyBtn.addEventListener('click', function () { addToCart(p, 1); window.location.href = 'cart.html'; });
+    if (buyBtn) buyBtn.addEventListener('click', function () {
+      addToCart(p, 1);
+      track('begin_checkout', {
+        currency: 'INR',
+        value: Number(p.price) || 0,
+        items: [{ item_id: String(p.id), item_name: p.name, price: Number(p.price) || 0, quantity: 1 }]
+      });
+      window.location.href = 'cart.html';
+    });
   }
 
   function renderCartPage() {
@@ -483,6 +554,21 @@
       btn.addEventListener('click', function () { removeFromCart(parseInt(btn.getAttribute('data-id'), 10)); renderCartPage(); });
     });
     updateSummary();
+
+    // Analytics: begin_checkout
+    track('begin_checkout', {
+      currency: 'INR',
+      value: cartTotal(),
+      items: cart.map(function (it) {
+        return {
+          item_id: String(it.id),
+          item_name: it.name,
+          item_brand: it.brand || '',
+          price: Number(it.price) || 0,
+          quantity: it.qty
+        };
+      })
+    });
   }
 
   function updateSummary() {
@@ -570,7 +656,24 @@
           }).then(function () { return orderId; });
         })
         .then(function () {
-          // Save new address if user gave it a label
+          // Analytics: purchase
+          track('purchase', {
+            transaction_id: orderNo,
+            currency: 'INR',
+            value: total,
+            shipping: shipping,
+            tax: 0,
+            items: items.map(function (it) {
+              return {
+                item_id: String(it.product_id),
+                item_name: it.product_name,
+                item_brand: it.product_brand || '',
+                price: Number(it.price_at_time) || 0,
+                quantity: it.quantity
+              };
+            })
+          });
+
           if (label) {
             return saveAddressToDb(user, name, phone, address, city, state, pincode, label);
           }
@@ -640,7 +743,6 @@
       var cachedCart = readCache();
       if (cachedCart) { PRODUCTS = cachedCart; renderCartPage(); } else { renderCartPage(); }
       fetchProducts().then(function () { renderCartPage(); });
-      // If user already signed in, load addresses immediately
       var u = getUser();
       if (u && u.uid) loadAddresses(u.uid);
       setupCheckout();
