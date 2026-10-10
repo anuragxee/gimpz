@@ -218,5 +218,19 @@
     obs.observe(grid, { childList: true });
   }
 </script>
+  <script>
+  (function () {
+    var toggle = document.getElementById('searchToggle');
+    var bar = document.getElementById('searchBar');
+    if (!toggle || !bar) return;
+    toggle.addEventListener('click', function () {
+      bar.classList.toggle('open');
+      if (bar.classList.contains('open')) {
+        var input = bar.querySelector('input');
+        if (input) setTimeout(function () { input.focus(); }, 50);
+      }
+    });
+  })();
+</script>
 </body>
 </html>
