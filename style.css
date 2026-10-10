@@ -1174,3 +1174,113 @@ body, .cat-nav-inner, .pd-thumbs, .admin-table-wrap {
 @media (max-width: 640px) {
   .cat-nav { top: 60px; }
 }
+/* ============================================================
+   SAFE SCROLL OPTIMIZATION
+   ============================================================ */
+
+/* Smooth momentum on iOS without locking */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Reduce repaint cost on product cards — safe contain only */
+.product-card {
+  contain: layout style;
+  transform: translateZ(0);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+/* Kill hover transforms on touch devices (no repaints) */
+@media (hover: none) {
+  .product-card:hover { transform: none; }
+  .product-card:hover .product-card-thumb img { transform: none; }
+  .cat-card:hover { transform: none; }
+  .btn-primary:hover { transform: none; }
+}
+
+/* Images decode async so they don't block scroll */
+img { decoding: async; }
+
+/* Marquee — GPU-promoted + backface hidden */
+.topbar-marquee-track {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+@media (max-width: 640px) {
+  .topbar-marquee-track { animation-duration: 40s; }
+}
+
+/* Sticky header — contain paint only (NOT size) */
+.site-header {
+  contain: layout paint;
+  transform: translateZ(0);
+}
+.cat-nav {
+  contain: layout paint;
+  transform: translateZ(0);
+}
+.cat-nav-inner {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+/* Disable expensive blur on mobile (real perf win) */
+@media (max-width: 900px) {
+  .hero-featured {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(255,255,255,.12);
+  }
+}
+
+/* Cart items — contain only, no size lock */
+.cart-item {
+  contain: layout style;
+}
+
+/* Toast — GPU-promoted, no layout thrash */
+.toast {
+  transform: translate3d(-50%, 100px, 0);
+  will-change: transform;
+}
+.toast.show {
+  transform: translate3d(-50%, 0, 0);
+}
+
+/* Reduce hover shadow cost (no layout change, just lighter) */
+.product-card:hover {
+  box-shadow: 0 10px 24px rgba(15,23,42,.09);
+}
+.cat-card:hover {
+  box-shadow: 0 6px 16px rgba(37,99,235,.1);
+}
+
+/* Horizontal navs — momentum without locking vertical scroll */
+.pd-thumbs,
+.cat-nav-inner,
+.account-tabs {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Admin table scroll — momentum only */
+.admin-table-wrap {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .topbar-marquee-track { animation: none !important; }
+}
+
+/* Print — hide chrome */
+@media print {
+  .topbar, .site-header, .cat-nav, .site-footer,
+  .header-actions, .cart-summary, .trust-strip {
+    display: none !important;
+  }
+}
