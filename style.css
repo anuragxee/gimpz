@@ -1120,3 +1120,218 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
     font-size: .82rem;
   }
 }
+/* ============================================================
+   ADDRESSES TAB — account.html
+   ============================================================ */
+.addr-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.addr-card {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  transition: .2s;
+}
+
+.addr-card:hover {
+  border-color: #bfdbfe;
+  background: #f8fbff;
+}
+
+.addr-card-head {
+  margin-bottom: 10px;
+}
+
+.addr-label {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.addr-card-body {
+  font-size: .86rem;
+  color: #475569;
+  line-height: 1.6;
+  flex: 1;
+  margin-bottom: 12px;
+}
+
+.addr-card-body strong {
+  color: #0a2540;
+  font-weight: 700;
+}
+
+.addr-card-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.addr-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #0a2540;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: .15s;
+}
+
+.addr-btn:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.addr-btn-danger:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+/* Modal */
+.addr-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 10, 22, .7);
+  z-index: 999;
+  display: none;
+  place-items: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.addr-modal.open {
+  display: grid;
+}
+
+.addr-modal-inner {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .4);
+  animation: addrModalIn .28s cubic-bezier(.2, .9, .3, 1.1);
+}
+
+@keyframes addrModalIn {
+  from { opacity: 0; transform: translateY(20px) scale(.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.addr-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+
+.addr-modal-head h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0a2540;
+  margin: 0;
+}
+
+.addr-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #f1f5f9;
+  border: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: #64748b;
+  transition: .15s;
+}
+
+.addr-modal-close:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.addr-form {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.addr-form .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.addr-form .form-field label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: #0a2540;
+}
+
+.addr-form .form-field input,
+.addr-form .form-field textarea {
+  padding: 11px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 9px;
+  background: #fbfcfe;
+  font-size: .9rem;
+  font-family: inherit;
+  transition: .2s;
+  resize: vertical;
+}
+
+.addr-form .form-field input:focus,
+.addr-form .form-field textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, .09);
+}
+
+.addr-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .addr-list {
+    grid-template-columns: 1fr;
+  }
+  .addr-form .form-row {
+    grid-template-columns: 1fr;
+  }
+  .addr-modal-inner {
+    border-radius: 14px;
+  }
+  .addr-modal-head,
+  .addr-form {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
