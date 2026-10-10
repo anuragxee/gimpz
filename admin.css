@@ -1139,3 +1139,37 @@
   .msg-head{flex-direction:column;align-items:stretch}
   .msg-meta{flex-direction:row;align-items:center;justify-content:space-between}
 }
+/* ---------- LIVE AUTO-REFRESH BADGE ---------- */
+.live-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 12px;
+  border-radius:999px;
+  background:#dcfce7;
+  color:#166534;
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  margin-left:auto;
+  margin-right:16px;
+}
+.live-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#16a34a;
+  animation:livePulse 1.6s ease-in-out infinite;
+}
+@keyframes livePulse{
+  0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(22,163,74,.5)}
+  50%{opacity:.85;box-shadow:0 0 0 6px rgba(22,163,74,0)}
+}
+@media (max-width:640px){
+  .live-badge{
+    font-size:.65rem;
+    padding:4px 9px;
+    margin-right:8px;
+  }
+}
