@@ -1210,6 +1210,7 @@
         tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">Failed: ' + esc(err.message) + '</td></tr>';
       });
     loadAllCustomerEmails();
+   loadNewsletterSubscribers();
   }
 
   function renderMarketingTable(rows) {
@@ -1263,6 +1264,33 @@
     });
   }
 
+     function loadNewsletterSubscribers() {
+    var el = $('newsletterList');
+    var count = $('newsletterCount');
+    if (!el) return;
+
+    authFetch(SUPABASE_URL + '/rest/v1/newsletter_subscribers?select=email,subscribed_at&unsubscribed=eq.false&order=subscribed_at.desc&limit=500', {
+      headers: apiHeaders(true)
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        if (!Array.isArray(rows)) rows = [];
+        if (count) count.textContent = rows.length + ' subscriber' + (rows.length === 1 ? '' : 's');
+
+        if (!rows.length) {
+          el.innerHTML = '<p class="admin-empty">No newsletter subscribers yet</p>';
+          return;
+        }
+
+        el.innerHTML = rows.map(function (r) {
+          return '<div style="padding:6px 0;font-family:monospace;font-size:.82rem;border-bottom:1px solid #f1f5f9;">' +
+            esc(r.email) +
+            ' <span style="color:#94a3b8;font-size:.72rem;margin-left:6px;">' + fmtDateOnly(r.subscribed_at) + '</span>' +
+          '</div>';
+        }).join('');
+      })
+      .catch(function () { el.innerHTML = '<p class="admin-empty">Failed to load subscribers</p>'; });
+  }
   function loadAllCustomerEmails() {
     var el = $('allEmailsList');
     if (!el) return;
@@ -1840,7 +1868,20 @@
         setTimeout(function () { btn.textContent = 'Copy All'; }, 1500);
       });
     });
-
+    var cnlb = $('copyNewsletterBtn');
+    if (cnlb) cnlb.addEventListener('click', function () {
+      var el = $('newsletterList');
+      if (!el) return;
+      var emails = Array.prototype.slice.call(el.querySelectorAll('div')).map(function (d) {
+        return d.textContent.trim().split(' ')[0];
+      }).filter(function (e) { return /@/.test(e); });
+      if (!emails.length) return;
+      var btn = this;
+      navigator.clipboard.writeText(emails.join(', ')).then(function () {
+        btn.textContent = '✓ Copied';
+        setTimeout(function () { btn.textContent = 'Copy All'; }, 1500);
+      });
+    });
     var rmb = $('refreshMessagesBtn'); if (rmb) rmb.addEventListener('click', loadMessages);
     var mf = $('messageFilter'); if (mf) mf.addEventListener('change', loadMessages);
 
