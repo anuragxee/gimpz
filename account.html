@@ -210,6 +210,7 @@ function statusPill(status) {
 
 let currentUser = null;
 
+/* Tab switching */
 document.querySelectorAll('.account-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.account-tab').forEach(t => t.classList.remove('active'));
@@ -220,20 +221,24 @@ document.querySelectorAll('.account-tab').forEach(tab => {
   });
 });
 
+/* Sign out */
 $('signOutBtn').addEventListener('click', async () => {
   await signOut(auth);
   localStorage.removeItem('gimpz_user');
   window.location.href = 'index.html';
 });
 
+/* Load orders — single request for orders + single request for all items */
 async function loadOrders(uid) {
   $('ordersLoading').style.display = 'block';
   $('ordersList').innerHTML = '';
 
   try {
-    const r = await fetch(SB_URL + '/rest/v1/orders?user_id=eq.' + encodeURIComponent(uid) + '&order=created_at.desc', {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-    });
+    // 1) All orders in one request
+    const r = await fetch(
+      SB_URL + '/rest/v1/orders?user_id=eq.' + encodeURIComponent(uid) + '&order=created_at.desc',
+      { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+    );
     const orders = await r.json();
     $('ordersLoading').style.display = 'none';
 
@@ -242,30 +247,57 @@ async function loadOrders(uid) {
       return;
     }
 
+    // 2) All items for ALL orders in ONE request (avoids N+1)
+    const ids = orders.map(o => o.id).join(',');
+    const itemsRes = await fetch(
+      SB_URL + '/rest/v1/order_items?order_id=in.(' + ids + ')&order=id.asc',
+      { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+    );
+    const allItems = await itemsRes.json();
+
+    // 3) Group items by order_id
+    const itemsByOrder = {};
+    (Array.isArray(allItems) ? allItems : []).forEach(it => {
+      if (!itemsByOrder[it.order_id]) itemsByOrder[it.order_id] = [];
+      itemsByOrder[it.order_id].push(it);
+    });
+
+    // 4) Render
     let html = '';
     for (const o of orders) {
-      const ir = await fetch(SB_URL + '/rest/v1/order_items?order_id=eq.' + o.id + '&order=id.asc', {
-        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-      });
-      const items = await ir.json();
+      const items = itemsByOrder[o.id] || [];
+      const itemCount = items.reduce((sum, it) => sum + Number(it.quantity || 0), 0);
 
       html += '<div class="order-card">' +
         '<div class="order-card-head">' +
           '<div>' +
             '<span class="order-num">' + esc(o.order_number) + '</span>' +
-            '<span class="order-date">' + formatDate(o.created_at) + '</span>' +
+            '<span class="order-date">' + formatDate(o.created_at) + ' · ' + itemCount + ' item' + (itemCount === 1 ? '' : 's') + '</span>' +
           '</div>' +
           statusPill(o.status) +
         '</div>' +
         '<div class="order-card-items">';
 
-      (Array.isArray(items) ? items : []).forEach(it => {
-        html += '<div class="order-item-row">' +
-          '<div><strong>' + esc(it.product_name) + '</strong>' + (it.product_brand ? '<br><small>' + esc(it.product_brand) + '</small>' : '') + '</div>' +
-          '<div>× ' + it.quantity + '</div>' +
-          '<div>' + formatPrice(it.line_total) + '</div>' +
-        '</div>';
-      });
+      if (items.length) {
+        items.forEach(it => {
+          const imgSrc = it.image_folder
+            ? ('assets/products/' + it.image_folder + '/1.jpg')
+            : 'assets/products/placeholder.svg';
+          html += '<div class="order-item-row order-item-with-img">' +
+            '<div class="order-item-thumb">' +
+              '<img src="' + imgSrc + '" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'assets/products/placeholder.svg\'">' +
+            '</div>' +
+            '<div class="order-item-info">' +
+              '<strong>' + esc(it.product_name) + '</strong>' +
+              (it.product_brand ? '<small>' + esc(it.product_brand) + '</small>' : '') +
+            '</div>' +
+            '<div class="order-item-qty">× ' + it.quantity + '</div>' +
+            '<div class="order-item-price">' + formatPrice(it.line_total) + '</div>' +
+          '</div>';
+        });
+      } else {
+        html += '<div class="order-item-row" style="color:#94a3b8;justify-content:center;">No items</div>';
+      }
 
       html += '</div>' +
         '<div class="order-card-foot">' +
@@ -277,11 +309,13 @@ async function loadOrders(uid) {
     $('ordersList').innerHTML = html;
 
   } catch (e) {
+    console.error('Load orders failed:', e);
     $('ordersLoading').style.display = 'none';
     $('ordersList').innerHTML = '<p style="text-align:center;color:#dc2626;">Failed to load orders.</p>';
   }
 }
 
+/* Load profile */
 async function loadProfile(uid) {
   try {
     const r = await fetch(SB_URL + '/rest/v1/profiles?id=eq.' + encodeURIComponent(uid) + '&select=*', {
@@ -302,6 +336,7 @@ async function loadProfile(uid) {
   }
 }
 
+/* Save profile */
 $('profileForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = $('saveProfileBtn');
@@ -343,6 +378,7 @@ $('profileForm').addEventListener('submit', async (e) => {
   btn.textContent = 'Save Profile';
 });
 
+/* Auth state */
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   if (user && user.emailVerified) {
