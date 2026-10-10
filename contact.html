@@ -8,7 +8,17 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://qyzevydprpkjslnesrxq.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://qyzevydprpkjslnesrxq.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JSHQ0GHMHV"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JSHQ0GHMHV', { send_page_view: true });
+</script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -193,17 +203,14 @@
 <script>
 (function () {
   'use strict';
-
   var SUPABASE_URL = 'https://qyzevydprpkjslnesrxq.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5emV2eWRwcnBranNsbmVzcnhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1MTk2NDksImV4cCI6MjEwNzA5NTY0OX0.BE-ijSGGNmkQjaeSZ8RX6mQGMW5dY2Y2Gzj9vitRK0g';
 
   function $(id) { return document.getElementById(id); }
-
   document.getElementById('year').textContent = new Date().getFullYear();
 
   $('contactPageForm').addEventListener('submit', function (e) {
     e.preventDefault();
-
     var name = $('cName').value.trim();
     var phone = $('cPhone').value.trim();
     var email = $('cEmail').value.trim();
@@ -211,7 +218,6 @@
     var message = $('cMessage').value.trim();
     var btn = $('contactSubmitBtn');
     var status = $('contactStatus');
-
     status.textContent = '';
     status.className = 'form-status';
 
@@ -243,12 +249,8 @@
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify({
-        name: name,
-        phone: phone,
-        email: email,
-        subject: subject,
-        message: message,
-        status: 'New'
+        name: name, phone: phone, email: email,
+        subject: subject, message: message, status: 'New'
       })
     })
       .then(function (r) {
@@ -258,6 +260,10 @@
         $('contactPageForm').reset();
         btn.disabled = false;
         btn.textContent = 'Send Message →';
+
+        if (typeof window.gtag === 'function') {
+          window.gtag('event', 'contact_form_submit', { subject: subject });
+        }
       })
       .catch(function (err) {
         console.error('[GIMPZ] Contact failed:', err);
@@ -267,7 +273,6 @@
         btn.textContent = 'Send Message →';
       });
   });
-
 })();
 </script>
 </body>
