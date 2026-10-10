@@ -85,8 +85,20 @@
           </section>
 
           <section class="cart-block" id="checkoutBlock">
-            <h2 class="block-title">Shipping Details</h2>
+            <h2 class="block-title">Shipping Address</h2>
+
+            <!-- Saved addresses -->
+            <div id="savedAddressesSection" style="display:none;margin-bottom:18px;">
+              <p style="font-size:.82rem;font-weight:600;color:#0a2540;margin-bottom:10px;">Use a saved address</p>
+              <div id="savedAddressesList" class="saved-address-list"></div>
+            </div>
+
+            <!-- Address form -->
             <form id="checkoutForm" class="checkout-form" novalidate>
+              <div id="addressFormHeading" style="font-size:.82rem;font-weight:600;color:#0a2540;margin-bottom:6px;display:none;">
+                Enter a new address
+              </div>
+
               <div class="form-row">
                 <div class="form-field"><label for="cname">Full Name *</label><input type="text" id="cname" name="cname" placeholder="Your full name" required></div>
                 <div class="form-field"><label for="cphone">Phone *</label><input type="tel" id="cphone" name="cphone" placeholder="10-digit mobile" pattern="[6-9][0-9]{9}" required></div>
@@ -100,12 +112,20 @@
                 <div class="form-field"><label for="ccity">City *</label><input type="text" id="ccity" name="ccity" placeholder="City" required></div>
                 <div class="form-field"><label for="cstate">State *</label><input type="text" id="cstate" name="cstate" placeholder="State" required></div>
               </div>
+
+              <div class="form-field">
+                <label for="addressLabel">Save this address as (optional)</label>
+                <input type="text" id="addressLabel" name="addressLabel" placeholder="e.g. Home, Office" maxlength="20" autocomplete="off">
+                <small style="font-size:.72rem;color:#94a3b8;">Give it a name to save for future orders</small>
+              </div>
+
               <div class="form-field">
                 <label>Payment Method</label>
                 <div class="payment-options">
                   <label class="pay-opt"><input type="radio" name="cpayment" value="Cash on Delivery" checked><span>💵 Cash on Delivery</span></label>
                 </div>
               </div>
+
               <p class="checkout-note">Your order will be placed securely. You'll see confirmation immediately.</p>
               <button type="submit" class="btn btn-primary btn-lg btn-block" id="placeOrderBtn">Place Order →</button>
               <p class="form-status" id="orderStatus" role="status"></p>
@@ -200,7 +220,7 @@ onAuthStateChanged(auth, (user) => {
     localStorage.setItem('gimpz_user', JSON.stringify({ uid: user.uid, email: user.email }));
     const emailField = document.getElementById('cemail');
     if (emailField) emailField.value = user.email;
-    if (typeof window.gimpzRefreshCart === 'function') window.gimpzRefreshCart();
+    if (typeof window.gimpzLoadAddresses === 'function') window.gimpzLoadAddresses(user.uid);
   } else {
     gate.style.display = 'block';
     content.style.display = 'none';
