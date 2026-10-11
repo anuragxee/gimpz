@@ -1948,3 +1948,16 @@ h1,h2,h3,h4{font-family:'Plus Jakarta Sans','Inter',sans-serif;color:#0a2540;lin
   .newsletter-form input { min-width: 0; width: 100%; padding: 11px 14px; font-size: .88rem; }
   .newsletter-form button { width: 100%; padding: 11px 20px; }
 }
+/* Center the PWA install button */
+.pwa-install-btn {
+  margin: 16px auto;
+  width: fit-content;
+  display: none;
+}
+
+.pwa-install-btn.show,
+.pwa-install-btn[style*="flex"] {
+  display: flex;
+  margin-left: auto;
+  margin-right: auto;
+}
