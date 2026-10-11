@@ -1,6 +1,6 @@
 /* ============================================================
-   GIMPZ — MAIN SCRIPT (everything: coupons, reviews, wishlist,
-   recently viewed, abandoned cart, PWA, newsletter)
+   GIMPZ — MAIN SCRIPT
+   (guest checkout + everything else)
    ============================================================ */
 (function () {
   'use strict';
@@ -631,7 +631,7 @@
   /* ============ ABANDONED CART ============ */
   function saveAbandonedCartSnapshot(cart) {
     var user = getUser();
-    if (!user || !user.uid) return;
+    if (!user || !user.uid) return;  // skip for guests
     if (!cart || !cart.length) return;
 
     var items = cart.map(function (it) {
@@ -1096,6 +1096,7 @@
     return 'GIMPZ-' + stamp + '-' + Math.floor(Math.random() * 9000 + 1000);
   }
 
+  /* ============ CHECKOUT (guest + signed-in) ============ */
   function setupCheckout() {
     var form = $('checkoutForm');
     if (!form) return;
@@ -1103,14 +1104,12 @@
       e.preventDefault();
       var cart = getCart();
       if (!cart.length) { showToast('Cart is empty'); return; }
-      var user = getUser();
-      if (!user || !user.uid) {
-        alert('Please sign in to place an order.');
-        window.location.href = 'login.html?redirect=cart.html';
-        return;
-      }
+
+      var user = getUser();  // optional — guest allowed
+
       var name = form.cname.value.trim();
       var phone = form.cphone.value.trim();
+      var guestEmail = (form.cemail && form.cemail.value ? form.cemail.value.trim().toLowerCase() : '');
       var address = form.caddress.value.trim();
       var city = form.ccity.value.trim();
       var state = form.cstate.value.trim();
@@ -1118,8 +1117,10 @@
       var payment = form.cpayment.value;
       var label = (form.addressLabel && form.addressLabel.value) ? form.addressLabel.value.trim() : '';
 
+      // Validation
       if (!name || name.length < 2) { alert('Enter your name'); return; }
       if (!/^[6-9][0-9]{9}$/.test(phone)) { alert('Enter valid mobile number'); return; }
+      if (!guestEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) { alert('Enter a valid email address'); return; }
       if (address.length < 10) { alert('Enter full address'); return; }
       if (!/^[A-Za-z\s]{3,}$/.test(city)) { alert('Enter valid city'); return; }
       if (!/^[A-Za-z\s]{3,}$/.test(state)) { alert('Enter valid state'); return; }
@@ -1147,10 +1148,23 @@
       btn.disabled = true;
       btn.textContent = 'Placing order...';
 
+      var customerEmail = user && user.email ? user.email : guestEmail;
+
       var orderPayload = {
-        order_number: orderNo, user_id: user.uid, customer_name: name, phone: phone,
-        email: user.email, address: address, city: city, state: state, pincode: pincode,
-        payment_method: payment, subtotal: subtotal, shipping: shipping, total: total, status: 'Pending',
+        order_number: orderNo,
+        user_id: user && user.uid ? user.uid : null,
+        customer_name: name,
+        phone: phone,
+        email: customerEmail,
+        address: address,
+        city: city,
+        state: state,
+        pincode: pincode,
+        payment_method: payment,
+        subtotal: subtotal,
+        shipping: shipping,
+        total: total,
+        status: 'Pending',
         coupon_code: ACTIVE_COUPON ? ACTIVE_COUPON.code : null,
         discount_amount: discountAmount
       };
@@ -1188,17 +1202,20 @@
               return { item_id: String(it.product_id), item_name: it.product_name, item_brand: it.product_brand || '', price: Number(it.price_at_time) || 0, quantity: it.quantity };
             })
           });
-          if (label) return saveAddressToDb(user, name, phone, address, city, state, pincode, label);
+          if (label && user && user.uid) {
+            return saveAddressToDb(user, name, phone, address, city, state, pincode, label);
+          }
         })
         .then(function () {
-          // Clear abandoned cart (order completed)
+          // Clear abandoned cart (only for signed-in)
+          if (!user || !user.uid) return;
           fetch(SUPABASE_URL + '/rest/v1/abandoned_carts?user_id=eq.' + encodeURIComponent(user.uid), {
             method: 'DELETE',
             headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
           }).catch(function () {});
         })
         .then(function () {
-          try { localStorage.setItem('gimpz_last_order', JSON.stringify({ orderNumber: orderNo, total: total, name: name })); } catch (err) {}
+          try { localStorage.setItem('gimpz_last_order', JSON.stringify({ orderNumber: orderNo, total: total, name: name, email: customerEmail })); } catch (err) {}
           ACTIVE_COUPON = null;
           saveCoupon(null);
           clearCart();
