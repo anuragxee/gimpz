@@ -18,7 +18,6 @@
   gtag('js', new Date());
   gtag('config', 'G-JSHQ0GHMHV', { send_page_view: true });
 </script>
-  <!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a2540">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -77,20 +76,20 @@
   <div class="container">
     <h1 class="page-title">Shopping Cart &amp; Checkout</h1>
 
-    <div id="signInGate" class="signin-gate" style="display:none;">
-      <div class="signin-gate-icon">
-        <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <!-- Sign-in suggestion (optional, not required) -->
+    <div id="signInHint" class="signin-hint" style="display:none;">
+      <div class="signin-hint-inner">
+        <div class="signin-hint-text">
+          <strong>Sign in for faster checkout</strong>
+          <span>Auto-fill your address and track your orders</span>
+        </div>
+        <div class="signin-hint-actions">
+          <a class="btn btn-outline btn-sm" href="login.html?redirect=cart.html">Sign In</a>
+        </div>
       </div>
-      <h2>Sign in to continue</h2>
-      <p>You need an account to place an order.<br>Sign in or create one — takes 30 seconds.</p>
-      <div class="signin-gate-actions">
-        <a class="btn btn-primary btn-lg" href="login.html?redirect=cart.html">Sign In</a>
-        <a class="btn btn-outline btn-lg" href="login.html?redirect=cart.html">Create Account</a>
-      </div>
-      <p class="signin-gate-note">Your cart is saved and will still be here after you sign in.</p>
     </div>
 
-    <div id="cartContent" style="display:none;">
+    <div id="cartContent">
       <div class="cart-layout">
         <div class="cart-main">
           <section class="cart-block">
@@ -107,16 +106,12 @@
             </div>
 
             <form id="checkoutForm" class="checkout-form" novalidate>
-              <div id="addressFormHeading" style="font-size:.82rem;font-weight:600;color:#0a2540;margin-bottom:6px;display:none;">
-                Enter a new address
-              </div>
-
               <div class="form-row">
                 <div class="form-field"><label for="cname">Full Name *</label><input type="text" id="cname" name="cname" placeholder="Your full name" required></div>
                 <div class="form-field"><label for="cphone">Phone *</label><input type="tel" id="cphone" name="cphone" placeholder="10-digit mobile" pattern="[6-9][0-9]{9}" required></div>
               </div>
               <div class="form-row">
-                <div class="form-field"><label for="cemail">Email (from account)</label><input type="email" id="cemail" name="cemail" disabled style="background:#f1f5f9;"></div>
+                <div class="form-field"><label for="cemail">Email *</label><input type="email" id="cemail" name="cemail" placeholder="you@example.com" required></div>
                 <div class="form-field"><label for="cpincode">Pincode *</label><input type="tel" id="cpincode" name="cpincode" placeholder="6-digit pincode" pattern="[1-9][0-9]{5}" required></div>
               </div>
               <div class="form-field"><label for="caddress">Address *</label><textarea id="caddress" name="caddress" rows="3" placeholder="House no., street, landmark" required></textarea></div>
@@ -128,10 +123,9 @@
               <div class="form-field">
                 <label for="addressLabel">Save this address as (optional)</label>
                 <input type="text" id="addressLabel" name="addressLabel" placeholder="e.g. Home, Office" maxlength="20" autocomplete="off">
-                <small style="font-size:.72rem;color:#94a3b8;">Give it a name to save for future orders</small>
+                <small style="font-size:.72rem;color:#94a3b8;">Give it a name to save for future orders (requires sign-in)</small>
               </div>
 
-              <!-- COUPON INPUT -->
               <div class="coupon-block">
                 <label class="coupon-label">Have a coupon code?</label>
                 <div class="coupon-row">
@@ -241,18 +235,29 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 onAuthStateChanged(auth, (user) => {
-  const gate = document.getElementById('signInGate');
-  const content = document.getElementById('cartContent');
+  const hint = document.getElementById('signInHint');
+  const emailField = document.getElementById('cemail');
+
   if (user && user.emailVerified) {
-    gate.style.display = 'none';
-    content.style.display = 'block';
+    // Signed in — hide hint, lock email field
+    if (hint) hint.style.display = 'none';
+    if (emailField) {
+      emailField.value = user.email;
+      emailField.disabled = true;
+      emailField.style.background = '#f1f5f9';
+      emailField.style.cursor = 'not-allowed';
+    }
     localStorage.setItem('gimpz_user', JSON.stringify({ uid: user.uid, email: user.email }));
-    const emailField = document.getElementById('cemail');
-    if (emailField) emailField.value = user.email;
     if (typeof window.gimpzLoadAddresses === 'function') window.gimpzLoadAddresses(user.uid);
   } else {
-    gate.style.display = 'block';
-    content.style.display = 'none';
+    // Guest — show sign-in hint, enable email field
+    if (hint) hint.style.display = 'block';
+    if (emailField) {
+      emailField.value = '';
+      emailField.disabled = false;
+      emailField.style.background = '';
+      emailField.style.cursor = '';
+    }
     localStorage.removeItem('gimpz_user');
   }
 });
