@@ -1371,7 +1371,7 @@
     e.preventDefault();
     deferredInstallPrompt = e;
     var btn = document.getElementById('pwaInstallBtn');
-    if (btn) btn.style.display = 'inline-flex';
+    if (btn) btn.style.display = 'flex';
   });
   window.gimpzInstallApp = function () {
     if (!deferredInstallPrompt) return false;
