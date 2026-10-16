@@ -839,7 +839,7 @@ ul{list-style:none;padding:0;margin:0;}
   .add-cart-btn{margin:0 12px 12px;padding:9px;font-size:.78rem;}
   .footer-grid{grid-template-columns:1fr;gap:26px;}
   .footer-bottom{flex-direction:column;align-items:flex-start;gap:4px;}
-  .trust-grid{grid-template-columns:1fr;}
+  .trust-grid{grid-template-columns:1fr 1fr;gap:16px 14px;padding:0 16px;}
   .info-section{padding:22px 18px;}
   .info-table{font-size:.8rem;}
   .info-table th,.info-table td{padding:10px;}
