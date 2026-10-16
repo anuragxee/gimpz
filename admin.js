@@ -1800,10 +1800,14 @@
       return;
     }
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: function (results) {
+  Papa.parse(file, {
+  header: true,
+  skipEmptyLines: true,
+  bom: true,
+  transformHeader: function (h) {
+    return String(h).replace(/^\uFEFF/, '').trim().toLowerCase();
+  },
+  complete: function (results) {
         var rows = results.data || [];
         var errors = [];
         var valid = [];
