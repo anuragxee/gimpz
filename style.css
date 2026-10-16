@@ -931,3 +931,37 @@ ul{list-style:none;padding:0;margin:0;}
 .social-note{text-align:center;}
 .footer-bottom{text-align:center;align-items:center;}
    }
+/* ============ PASSWORD FIELD WITH TOGGLE ============ */
+.password-wrap{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+.password-wrap input{
+  padding-right:44px !important;
+  width:100%;
+}
+.password-toggle{
+  position:absolute;
+  right:6px;
+  top:50%;
+  transform:translateY(-50%);
+  width:36px;
+  height:36px;
+  border-radius:8px;
+  border:0;
+  background:transparent;
+  color:#94a3b8;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transition:.15s;
+}
+.password-toggle:hover{
+  background:#f1f5f9;
+  color:#0a2540;
+}
+.password-toggle svg{
+  width:18px;
+  height:18px;
+}
