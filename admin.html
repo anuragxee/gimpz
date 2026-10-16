@@ -155,8 +155,13 @@
       <div class="admin-card">
         <div class="admin-card-head">
           <h2>All Products</h2>
-          <button class="btn btn-primary admin-btn-sm" id="addProductBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
+          <div style="display:flex;gap:8px;">
+            <button class="admin-btn-sm" id="importCsvBtn" type="button">Import CSV</button>
+            <input type="file" id="csvFileInput" accept=".csv" style="display:none">
+            <button class="btn btn-primary admin-btn-sm" id="addProductBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
+          </div>
         </div>
+        <div id="csvImportStatus" style="margin:10px 22px 0;font-size:.85rem;color:#475569;"></div>
         <div class="admin-table-wrap">
           <table class="admin-table"><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="productsBody"><tr><td colspan="6" class="admin-empty">Loading products...</td></tr></tbody></table>
         </div>
@@ -240,7 +245,7 @@
         <div class="admin-card-head"><h2>All Customer Emails</h2><button class="admin-btn-sm" id="copyAllEmailsBtn">Copy All</button></div>
         <div id="allEmailsList" style="padding:16px 22px;font-size:.85rem;line-height:1.8;color:#475569;max-height:400px;overflow-y:auto;"><p class="admin-empty">Loading...</p></div>
       </div>
-            <div class="admin-card">
+      <div class="admin-card">
         <div class="admin-card-head">
           <h2>📬 Newsletter Subscribers</h2>
           <div style="display:flex;align-items:center;gap:10px;">
@@ -252,10 +257,6 @@
       </div>
     </section>
 
-        <!-- NEWSLETTER -->
-    <section class="admin-tab" id="tab-marketing" style="display:none;">
-      <!-- this tab already has marketing lists -->
-    </section>
     <!-- MESSAGES -->
     <section class="admin-tab" id="tab-messages" style="display:none;">
       <div class="admin-card">
@@ -478,8 +479,9 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script src="admin.js?v=3"></script>
+<script src="admin.js?v=4"></script>
   <script>
 (function(){
   var EYE_OPEN = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>';
