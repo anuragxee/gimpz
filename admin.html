@@ -153,14 +153,15 @@
     <!-- PRODUCTS -->
     <section class="admin-tab" id="tab-products" style="display:none;">
       <div class="admin-card">
-        <div class="admin-card-head">
-          <h2>All Products</h2>
-          <div style="display:flex;gap:8px;">
-            <button class="admin-btn-sm" id="importCsvBtn" type="button">Import CSV</button>
-            <input type="file" id="csvFileInput" accept=".csv" style="display:none">
-            <button class="btn btn-primary admin-btn-sm" id="addProductBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
-          </div>
-        </div>
+    <div class="admin-card-head">
+  <h2>All Products</h2>
+  <div style="display:flex;gap:8px;">
+    <button class="admin-btn-sm" id="exportCsvBtn" type="button">Export CSV</button>
+    <button class="admin-btn-sm" id="importCsvBtn" type="button">Import CSV</button>
+    <input type="file" id="csvFileInput" accept=".csv" style="display:none">
+    <button class="btn btn-primary admin-btn-sm" id="addProductBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
+  </div>
+</div>
         <div id="csvImportStatus" style="margin:10px 22px 0;font-size:.85rem;color:#475569;"></div>
         <div class="admin-table-wrap">
           <table class="admin-table"><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="productsBody"><tr><td colspan="6" class="admin-empty">Loading products...</td></tr></tbody></table>
