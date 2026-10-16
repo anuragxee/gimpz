@@ -18,7 +18,6 @@
   gtag('js', new Date());
   gtag('config', 'G-JSHQ0GHMHV', { send_page_view: true });
 </script>
-  <!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a2540">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -195,18 +194,18 @@
 </footer>
 
 <script src="script.js"></script>
-  <script>
-/* ============ JSON-LD: Dynamic Product Schema ============ */
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+
+<!-- JSON-LD: Dynamic Product Schema (auto-generated per product) -->
+<script>
 (function(){
-  // Wait for product data to load from script.js
   var attempts = 0;
-  var maxAttempts = 40; // 20 seconds max
+  var maxAttempts = 40;
   var timer = setInterval(function(){
     attempts++;
     var detail = document.getElementById('productDetail');
     if (!detail) return;
 
-    // Try to grab product name from title
     var titleEl = detail.querySelector('.pd-title');
     var priceEl = detail.querySelector('.pd-now');
     var ratingEl = detail.querySelector('.rating-pill');
@@ -228,7 +227,7 @@
     var ratingText = ratingEl ? ratingEl.textContent.trim() : '';
     var ratingMatch = ratingText.match(/[\d.]+/);
     var rating = ratingMatch ? parseFloat(ratingMatch[0]) : null;
-    var stock = stockEl ? stockEl.textContent.trim() : 'InStock';
+    var stock = stockEl ? stockEl.textContent.trim() : 'In Stock';
     var description = descEl ? descEl.textContent.trim().slice(0, 300) : '';
     var brand = brandEl ? brandEl.textContent.trim() : 'GIMPZ';
     var img = imgEl ? imgEl.src : '';
@@ -273,8 +272,8 @@
   }, 500);
 })();
 </script>
-<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
-  <!--Start of Tawk.to Script-->
+
+<!--Start of Tawk.to Script-->
 <script type="text/javascript">
 var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
 (function(){
