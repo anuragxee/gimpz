@@ -11,7 +11,6 @@
 <link rel="preconnect" href="https://qyzevydprpkjslnesrxq.supabase.co" crossorigin>
 <link rel="dns-prefetch" href="https://qyzevydprpkjslnesrxq.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-<!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JSHQ0GHMHV"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -19,7 +18,6 @@
   gtag('js', new Date());
   gtag('config', 'G-JSHQ0GHMHV', { send_page_view: true });
 </script>
-  <!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a2540">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -100,13 +98,11 @@
         <button class="account-tab" data-tab="profile">Profile</button>
       </div>
 
-      <!-- ORDERS TAB -->
       <section class="account-panel" id="panel-orders">
         <div id="ordersLoading" style="text-align:center;padding:40px;color:#64748b;">Loading orders...</div>
         <div id="ordersList"></div>
       </section>
 
-      <!-- WISHLIST TAB -->
       <section class="account-panel" id="panel-wishlist" style="display:none;">
         <div class="admin-card" style="padding:22px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
@@ -121,7 +117,6 @@
         </div>
       </section>
 
-      <!-- ADDRESSES TAB -->
       <section class="account-panel" id="panel-addresses" style="display:none;">
         <div class="admin-card" style="padding:22px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
@@ -134,7 +129,6 @@
         </div>
       </section>
 
-      <!-- PROFILE TAB -->
       <section class="account-panel" id="panel-profile" style="display:none;">
         <div class="admin-card" style="padding:26px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;">
@@ -241,7 +235,6 @@
   </div>
 </footer>
 
-<!-- ADDRESS MODAL -->
 <div class="addr-modal" id="addressModal">
   <div class="addr-modal-inner">
     <div class="addr-modal-head">
@@ -252,13 +245,11 @@
     </div>
     <form id="addressForm" class="addr-form">
       <input type="hidden" id="addr-id">
-
       <div class="form-field">
         <label for="addr-label">Address Label *</label>
         <input type="text" id="addr-label" placeholder="e.g. Home, Office, Parents" maxlength="20" required>
         <small style="font-size:.72rem;color:#94a3b8;">A short name to identify this address</small>
       </div>
-
       <div class="form-row">
         <div class="form-field">
           <label for="addr-name">Full Name *</label>
@@ -269,12 +260,10 @@
           <input type="tel" id="addr-phone" placeholder="10-digit mobile" pattern="[6-9][0-9]{9}" required>
         </div>
       </div>
-
       <div class="form-field">
         <label for="addr-address">Address *</label>
         <textarea id="addr-address" rows="2" placeholder="House no., street, landmark" required></textarea>
       </div>
-
       <div class="form-row">
         <div class="form-field">
           <label for="addr-city">City *</label>
@@ -285,12 +274,10 @@
           <input type="text" id="addr-state" placeholder="State" required>
         </div>
       </div>
-
       <div class="form-field">
         <label for="addr-pincode">Pincode *</label>
         <input type="tel" id="addr-pincode" placeholder="6-digit pincode" pattern="[1-9][0-9]{5}" required>
       </div>
-
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;padding-top:16px;border-top:1px solid #f1f5f9;">
         <button type="button" class="btn btn-outline" id="addressCancelBtn">Cancel</button>
         <button type="submit" class="btn btn-primary" id="addressSaveBtn">Save Address</button>
@@ -300,7 +287,6 @@
   </div>
 </div>
 
-<!-- Load script.js first so window.gimpzRenderGrid and PRODUCTS cache are available -->
 <script src="script.js"></script>
 
 <script type="module">
@@ -356,7 +342,22 @@ function calcAge(dobStr) {
   } catch (e) { return null; }
 }
 
-/* Wishlist helpers (mirror of script.js so we can render on this page) */
+/* ============ INSTANT CACHE HELPERS ============ */
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+function readCache(key) {
+  try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+}
+function writeCache(key, data) {
+  try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data: data })); } catch (e) {}
+}
+function isFresh(obj) {
+  return obj && obj.ts && (Date.now() - obj.ts) < CACHE_TTL;
+}
+function kOrders(uid) { return 'gimpz_orders_' + uid; }
+function kProfile(uid) { return 'gimpz_profile_' + uid; }
+function kAddr(uid) { return 'gimpz_addresses_' + uid; }
+
+/* ============ WISHLIST HELPERS ============ */
 const WISHLIST_KEY = 'gimpz_wishlist';
 function getWishlist() {
   try { var raw = localStorage.getItem(WISHLIST_KEY); return raw ? JSON.parse(raw) : []; }
@@ -383,7 +384,6 @@ function toggleWishlist(id) {
 let currentUser = null;
 let addresses = [];
 
-/* Tab switching */
 document.querySelectorAll('.account-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.account-tab').forEach(t => t.classList.remove('active'));
@@ -397,7 +397,6 @@ document.querySelectorAll('.account-tab').forEach(tab => {
   });
 });
 
-/* Sign out */
 $('signOutBtn').addEventListener('click', async () => {
   await signOut(auth);
   localStorage.removeItem('gimpz_user');
@@ -405,17 +404,66 @@ $('signOutBtn').addEventListener('click', async () => {
 });
 
 /* ============ ORDERS ============ */
+function renderOrders(orders, itemsByOrder) {
+  $('ordersLoading').style.display = 'none';
+  if (!Array.isArray(orders) || !orders.length) {
+    $('ordersList').innerHTML = '<div class="empty-orders"><h3>No orders yet</h3><p>When you place your first order, it will appear here.</p><a class="btn btn-primary" href="index.html">Start Shopping</a></div>';
+    return;
+  }
+  let html = '';
+  for (const o of orders) {
+    const items = itemsByOrder[o.id] || [];
+    const itemCount = items.reduce((sum, it) => sum + Number(it.quantity || 0), 0);
+    html += '<div class="order-card">' +
+      '<div class="order-card-head">' +
+        '<div>' +
+          '<span class="order-num">' + esc(o.order_number) + '</span>' +
+          '<span class="order-date">' + formatDate(o.created_at) + ' · ' + itemCount + ' item' + (itemCount === 1 ? '' : 's') + '</span>' +
+        '</div>' + statusPill(o.status) +
+      '</div>' +
+      '<div class="order-card-items">';
+    if (items.length) {
+      items.forEach(it => {
+        const imgSrc = it.image_folder ? ('assets/products/' + it.image_folder + '/1.jpg') : 'assets/products/placeholder.svg';
+        html += '<div class="order-item-row order-item-with-img">' +
+          '<div class="order-item-thumb"><img src="' + imgSrc + '" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'assets/products/placeholder.svg\'"></div>' +
+          '<div class="order-item-info"><strong>' + esc(it.product_name) + '</strong>' +
+            (it.product_brand ? '<small>' + esc(it.product_brand) + '</small>' : '') + '</div>' +
+          '<div class="order-item-qty">× ' + it.quantity + '</div>' +
+          '<div class="order-item-price">' + formatPrice(it.line_total) + '</div>' +
+        '</div>';
+      });
+    } else {
+      html += '<div class="order-item-row" style="color:#94a3b8;justify-content:center;">No items</div>';
+    }
+    html += '</div>' +
+      '<div class="order-card-foot">' +
+        '<div><strong>Total:</strong> ' + formatPrice(o.total) + '</div>' +
+        '<div style="color:#64748b;font-size:.8rem;">' + esc(o.payment_method || '') + '</div>' +
+      '</div>' +
+    '</div>';
+  }
+  $('ordersList').innerHTML = html;
+}
+
 async function loadOrders(uid) {
-  $('ordersLoading').style.display = 'block';
-  $('ordersList').innerHTML = '';
+  // 1. Show cached instantly (no flicker)
+  const cached = readCache(kOrders(uid));
+  if (isFresh(cached)) {
+    renderOrders(cached.data.orders, cached.data.itemsByOrder);
+  } else {
+    $('ordersLoading').style.display = 'block';
+    $('ordersList').innerHTML = '';
+  }
+  // 2. Fetch fresh in background
   try {
     const r = await fetch(SB_URL + '/rest/v1/orders?user_id=eq.' + encodeURIComponent(uid) + '&order=created_at.desc', {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     });
     const orders = await r.json();
-    $('ordersLoading').style.display = 'none';
     if (!Array.isArray(orders) || !orders.length) {
-      $('ordersList').innerHTML = '<div class="empty-orders"><h3>No orders yet</h3><p>When you place your first order, it will appear here.</p><a class="btn btn-primary" href="index.html">Start Shopping</a></div>';
+      renderOrders([], {});
+      writeCache(kOrders(uid), { orders: [], itemsByOrder: {} });
       return;
     }
     const ids = orders.map(o => o.id).join(',');
@@ -428,44 +476,14 @@ async function loadOrders(uid) {
       if (!itemsByOrder[it.order_id]) itemsByOrder[it.order_id] = [];
       itemsByOrder[it.order_id].push(it);
     });
-    let html = '';
-    for (const o of orders) {
-      const items = itemsByOrder[o.id] || [];
-      const itemCount = items.reduce((sum, it) => sum + Number(it.quantity || 0), 0);
-      html += '<div class="order-card">' +
-        '<div class="order-card-head">' +
-          '<div>' +
-            '<span class="order-num">' + esc(o.order_number) + '</span>' +
-            '<span class="order-date">' + formatDate(o.created_at) + ' · ' + itemCount + ' item' + (itemCount === 1 ? '' : 's') + '</span>' +
-          '</div>' + statusPill(o.status) +
-        '</div>' +
-        '<div class="order-card-items">';
-      if (items.length) {
-        items.forEach(it => {
-          const imgSrc = it.image_folder ? ('assets/products/' + it.image_folder + '/1.jpg') : 'assets/products/placeholder.svg';
-          html += '<div class="order-item-row order-item-with-img">' +
-            '<div class="order-item-thumb"><img src="' + imgSrc + '" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=\'assets/products/placeholder.svg\'"></div>' +
-            '<div class="order-item-info"><strong>' + esc(it.product_name) + '</strong>' +
-              (it.product_brand ? '<small>' + esc(it.product_brand) + '</small>' : '') + '</div>' +
-            '<div class="order-item-qty">× ' + it.quantity + '</div>' +
-            '<div class="order-item-price">' + formatPrice(it.line_total) + '</div>' +
-          '</div>';
-        });
-      } else {
-        html += '<div class="order-item-row" style="color:#94a3b8;justify-content:center;">No items</div>';
-      }
-      html += '</div>' +
-        '<div class="order-card-foot">' +
-          '<div><strong>Total:</strong> ' + formatPrice(o.total) + '</div>' +
-          '<div style="color:#64748b;font-size:.8rem;">' + esc(o.payment_method || '') + '</div>' +
-        '</div>' +
-      '</div>';
-    }
-    $('ordersList').innerHTML = html;
+    renderOrders(orders, itemsByOrder);
+    writeCache(kOrders(uid), { orders: orders, itemsByOrder: itemsByOrder });
   } catch (e) {
     console.error('Load orders failed:', e);
-    $('ordersLoading').style.display = 'none';
-    $('ordersList').innerHTML = '<p style="text-align:center;color:#dc2626;">Failed to load orders.</p>';
+    if (!isFresh(cached)) {
+      $('ordersLoading').style.display = 'none';
+      $('ordersList').innerHTML = '<p style="text-align:center;color:#dc2626;">Failed to load orders.</p>';
+    }
   }
 }
 
@@ -474,7 +492,6 @@ function renderWishlistPage() {
   const container = $('wishlistContainer');
   if (!container) return;
   const ids = getWishlist();
-
   if (!ids.length) {
     container.innerHTML = '<div class="wishlist-empty" id="wishlistEmpty">' +
       '<div class="wishlist-empty-icon">❤️</div>' +
@@ -484,42 +501,25 @@ function renderWishlistPage() {
     '</div>';
     return;
   }
-
-  // Rebuild grid container if it was replaced
   if (!$('wishlistGrid')) {
     container.innerHTML = '<div class="product-grid" id="wishlistGrid"></div>';
   }
   const grid = $('wishlistGrid');
-
-  // Grab products from the shared PRODUCTS array populated by script.js
-  const products = (typeof window.gimpzAllProducts === 'function')
-    ? window.gimpzAllProducts()
-    : (window.PRODUCTS_CACHE || []);
-
-  // Filter to wishlist IDs
-  const items = ids
-    .map(function (id) {
-      // Prefer shared cache; fallback to a scan of PRODUCTS if exposed
-      if (typeof window.gimpzFindProduct === 'function') return window.gimpzFindProduct(id);
-      return null;
-    })
-    .filter(Boolean);
-
+  const items = ids.map(function (id) {
+    if (typeof window.gimpzFindProduct === 'function') return window.gimpzFindProduct(id);
+    return null;
+  }).filter(Boolean);
   if (!items.length) {
     container.innerHTML = '<div class="wishlist-empty">' +
       '<div class="wishlist-empty-icon">⏳</div>' +
       '<h3>Loading your wishlist...</h3>' +
       '<p>Hang tight — products are loading.</p>' +
     '</div>';
-    // Retry shortly
-    setTimeout(renderWishlistPage, 500);
+    setTimeout(renderWishlistPage, 400);
     return;
   }
-
-  // Use the shared grid renderer from script.js
   if (typeof window.gimpzRenderGrid === 'function' && grid) {
     window.gimpzRenderGrid(grid, items);
-    // Re-bind wishlist toggle on the newly rendered cards
     grid.querySelectorAll('[data-wishlist-id]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
@@ -532,18 +532,9 @@ function renderWishlistPage() {
 }
 
 /* ============ ADDRESSES ============ */
-async function loadAddresses(uid) {
-  try {
-    const r = await fetch(SB_URL + '/rest/v1/addresses?user_id=eq.' + encodeURIComponent(uid) + '&order=created_at.desc', {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-    });
-    const rows = await r.json();
-    addresses = Array.isArray(rows) ? rows : [];
-    renderAddresses();
-  } catch (e) {
-    console.error('Load addresses failed:', e);
-    $('addressesList').innerHTML = '<p style="color:#dc2626;text-align:center;padding:30px 0;">Failed to load addresses.</p>';
-  }
+function renderAddressesList(rows) {
+  addresses = rows;
+  renderAddresses();
 }
 
 function renderAddresses() {
@@ -580,6 +571,27 @@ function renderAddresses() {
   list.querySelectorAll('[data-addr-delete]').forEach(b => {
     b.addEventListener('click', () => deleteAddress(parseInt(b.getAttribute('data-addr-delete'), 10)));
   });
+}
+
+async function loadAddresses(uid) {
+  const cached = readCache(kAddr(uid));
+  if (isFresh(cached) && Array.isArray(cached.data)) {
+    renderAddressesList(cached.data);
+  }
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/addresses?user_id=eq.' + encodeURIComponent(uid) + '&order=created_at.desc', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    const rows = await r.json();
+    const list = Array.isArray(rows) ? rows : [];
+    renderAddressesList(list);
+    writeCache(kAddr(uid), list);
+  } catch (e) {
+    console.error('Load addresses failed:', e);
+    if (!isFresh(cached)) {
+      $('addressesList').innerHTML = '<p style="color:#dc2626;text-align:center;padding:30px 0;">Failed to load addresses.</p>';
+    }
+  }
 }
 
 function openAddressModal(id) {
@@ -704,21 +716,33 @@ function updateAgeDisplay() {
   }
 }
 
+function applyProfileToForm(p) {
+  p = p || {};
+  $('profileName').value = p.full_name || '';
+  $('profileGender').value = p.gender || '';
+  $('profilePhone').value = p.phone || '';
+  $('profileAltPhone').value = p.alternate_phone || '';
+  $('profileEmail').value = p.email || (currentUser && currentUser.email) || '';
+  if (p.date_of_birth) $('profileDob').value = String(p.date_of_birth).slice(0, 10);
+  if (p.full_name) $('accountName').textContent = 'Hello, ' + p.full_name.split(' ')[0];
+  if (p.email) $('accountEmail').textContent = p.email;
+  if (p.full_name) $('accountAvatar').textContent = p.full_name.charAt(0).toUpperCase();
+  updateAgeDisplay();
+}
+
 async function loadProfile(uid) {
+  const cached = readCache(kProfile(uid));
+  if (isFresh(cached) && cached.data) {
+    applyProfileToForm(cached.data);
+  }
   try {
     const r = await fetch(SB_URL + '/rest/v1/profiles?id=eq.' + encodeURIComponent(uid) + '&select=*', {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     });
     const rows = await r.json();
     const p = Array.isArray(rows) && rows[0] ? rows[0] : {};
-    $('profileName').value = p.full_name || '';
-    $('profileGender').value = p.gender || '';
-    $('profilePhone').value = p.phone || '';
-    $('profileAltPhone').value = p.alternate_phone || '';
-    $('profileEmail').value = p.email || (currentUser && currentUser.email) || '';
-    if (p.date_of_birth) $('profileDob').value = String(p.date_of_birth).slice(0, 10);
-    if (p.full_name) $('accountName').textContent = 'Hello, ' + p.full_name.split(' ')[0];
-    updateAgeDisplay();
+    applyProfileToForm(p);
+    writeCache(kProfile(uid), p);
   } catch (e) {
     console.warn('Profile load failed', e);
   }
@@ -782,6 +806,8 @@ $('profileForm').addEventListener('submit', async (e) => {
     status.className = 'form-status ok';
     if (name) $('accountName').textContent = 'Hello, ' + name.split(' ')[0];
     updateAgeDisplay();
+    // Refresh cache
+    writeCache(kProfile(currentUser.uid), payload);
     setTimeout(() => { status.textContent = ''; status.className = 'form-status'; }, 3000);
   } catch (err) {
     console.error('Profile save failed:', err);
@@ -797,13 +823,24 @@ $('profileForm').addEventListener('submit', async (e) => {
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   if (user && user.emailVerified) {
+    // 1. Show cached identity instantly — zero wait
+    const cachedProfile = readCache(kProfile(user.uid));
+    if (isFresh(cachedProfile) && cachedProfile.data && cachedProfile.data.full_name) {
+      $('accountName').textContent = 'Hello, ' + cachedProfile.data.full_name.split(' ')[0];
+      $('accountAvatar').textContent = cachedProfile.data.full_name.charAt(0).toUpperCase();
+    } else {
+      const fallback = user.email.split('@')[0];
+      $('accountName').textContent = 'Hello, ' + fallback.charAt(0).toUpperCase() + fallback.slice(1);
+      $('accountAvatar').textContent = user.email.charAt(0).toUpperCase();
+    }
+    $('accountEmail').textContent = user.email;
+
     $('notSignedIn').style.display = 'none';
     $('signedIn').style.display = 'block';
+
     localStorage.setItem('gimpz_user', JSON.stringify({ uid: user.uid, email: user.email }));
-    const name = user.email.split('@')[0];
-    $('accountName').textContent = 'Hello, ' + name.charAt(0).toUpperCase() + name.slice(1);
-    $('accountEmail').textContent = user.email;
-    $('accountAvatar').textContent = user.email.charAt(0).toUpperCase();
+
+    // 2. Load all sections (each renders cache first, then refreshes)
     loadOrders(user.uid);
     loadAddresses(user.uid);
     loadProfile(user.uid);
