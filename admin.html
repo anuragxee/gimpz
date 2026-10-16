@@ -153,27 +153,37 @@
     <!-- PRODUCTS -->
     <section class="admin-tab" id="tab-products" style="display:none;">
       <div class="admin-card">
-    <div class="admin-card-head">
-  <h2>All Products</h2>
-  <div style="display:flex;gap:8px;">
-    <button class="admin-btn-sm" id="exportCsvBtn" type="button">Export CSV</button>
-    <button class="admin-btn-sm" id="importCsvBtn" type="button">Import CSV</button>
-    <input type="file" id="csvFileInput" accept=".csv" style="display:none">
-    <button class="btn btn-primary admin-btn-sm" id="addProductBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
-  </div>
-</div>
+        <div class="admin-card-head">
+          <h2>All Products</h2>
+          <div style="display:flex;gap:8px;">
+            <button class="admin-btn-sm" id="exportCsvBtn" type="button">Export CSV</button>
+            <button class="admin-btn-sm" id="importCsvBtn" type="button">Import CSV</button>
+            <input type="file" id="csvFileInput" accept=".csv" style="display:none">
+            <button class="btn btn-primary admin-btn-sm" id="addProductBtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
+          </div>
+        </div>
         <div id="csvImportStatus" style="margin:10px 22px 0;font-size:.85rem;color:#475569;"></div>
-        <div id="bulkActionsBar" style="display:none;margin:10px 22px 0;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;display:none;align-items:center;gap:12px;flex-wrap:wrap;">
-  <strong style="color:#1e40af;font-size:.85rem;"><span id="bulkCount">0</span> selected</strong>
-  <button class="admin-btn-sm" data-bulk="in-stock">Mark In Stock</button>
-  <button class="admin-btn-sm" data-bulk="out-stock">Mark Out of Stock</button>
-  <button class="admin-btn-sm" data-bulk="discount-10">−10% Price</button>
-  <button class="admin-btn-sm" data-bulk="discount-20">−20% Price</button>
-  <button class="admin-btn-sm" data-bulk="clear">Clear Selection</button>
-  <button class="admin-btn-sm" data-bulk="delete" style="background:#fee2e2;color:#b91c1c;border-color:#fecaca;margin-left:auto;">Delete Selected</button>
-</div>
+        <div id="bulkActionsBar" style="display:none;margin:10px 22px 0;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;align-items:center;gap:8px;flex-wrap:wrap;">
+          <strong style="color:#1e40af;font-size:.85rem;"><span id="bulkCount">0</span> selected</strong>
+          <button class="admin-btn-sm" data-bulk="in-stock">Mark In Stock</button>
+          <button class="admin-btn-sm" data-bulk="out-stock">Mark Out of Stock</button>
+          <button class="admin-btn-sm" data-bulk="discount-10">−10% Price</button>
+          <button class="admin-btn-sm" data-bulk="discount-20">−20% Price</button>
+          <button class="admin-btn-sm" data-bulk="clear">Clear Selection</button>
+          <button class="admin-btn-sm" data-bulk="delete" style="background:#fee2e2;color:#b91c1c;border-color:#fecaca;margin-left:auto;">Delete Selected</button>
+        </div>
         <div class="admin-table-wrap">
-        <table class="admin-table"><thead><tr><th style="width:36px;"><input type="checkbox" id="selectAllProducts"></th><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="productsBody">...
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="width:36px;"><input type="checkbox" id="selectAllProducts"></th>
+                <th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productsBody"><tr><td colspan="7" class="admin-empty">Loading products...</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -490,7 +500,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script src="admin.js?v=4"></script>
+<script src="admin.js?v=5"></script>
   <script>
 (function(){
   var EYE_OPEN = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>';
