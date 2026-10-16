@@ -156,14 +156,12 @@
     }
     if (!session || !session.access_token) return;
 
-    // Create the client only once per page load
     if (!supaClient) {
       supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: { persistSession: false, autoRefreshToken: false }
       });
     }
 
-    // Update session on every init (so realtime picks up the fresh token)
     supaClient.auth.setSession({
       access_token: session.access_token,
       refresh_token: session.refresh_token
@@ -517,7 +515,6 @@
 
     if (!pendingImages.length) return;
 
-    // Drag hint
     var hint = document.createElement('div');
     hint.className = 'upload-reorder-hint';
     hint.textContent = '🖐️ Drag to reorder · First image is the cover';
@@ -537,7 +534,6 @@
             '<button type="button" class="upload-prev-remove" data-idx="' + i + '" aria-label="Remove">×</button>';
           preview.appendChild(div);
 
-          // Bind remove
           var rm = div.querySelector('.upload-prev-remove');
           if (rm) rm.addEventListener('click', function (ev) {
             ev.preventDefault();
@@ -547,7 +543,6 @@
             renderUploadPreview();
           });
 
-          // Bind drag
           div.addEventListener('dragstart', function (ev) {
             ev.dataTransfer.setData('text/plain', i);
             div.classList.add('dragging');
@@ -1270,7 +1265,7 @@
         tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">Failed: ' + esc(err.message) + '</td></tr>';
       });
     loadAllCustomerEmails();
-   loadNewsletterSubscribers();
+    loadNewsletterSubscribers();
   }
 
   function renderMarketingTable(rows) {
@@ -1324,7 +1319,7 @@
     });
   }
 
-     function loadNewsletterSubscribers() {
+  function loadNewsletterSubscribers() {
     var el = $('newsletterList');
     var count = $('newsletterCount');
     if (!el) return;
@@ -1351,6 +1346,7 @@
       })
       .catch(function () { el.innerHTML = '<p class="admin-empty">Failed to load subscribers</p>'; });
   }
+
   function loadAllCustomerEmails() {
     var el = $('allEmailsList');
     if (!el) return;
@@ -1483,7 +1479,7 @@
     }
     var html = '';
     rows.forEach(function (m) {
-      var statusPill = m.status === 'New'
+      var statusPillHtml = m.status === 'New'
         ? '<span class="status-pill status-pending">New</span>'
         : m.status === 'Resolved'
           ? '<span class="status-pill status-delivered">Resolved</span>'
@@ -1504,7 +1500,7 @@
             '</div>' +
           '</div>' +
           '<div class="msg-meta">' +
-            statusPill +
+            statusPillHtml +
             '<small>' + fmtDate(m.created_at) + '</small>' +
           '</div>' +
         '</div>' +
@@ -1791,6 +1787,111 @@
     setTimeout(function () { win.print(); }, 300);
   }
 
+  /* ============ BULK CSV PRODUCT IMPORT ============ */
+  function handleCsvImport(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+
+    var statusEl = $('csvImportStatus');
+    if (statusEl) statusEl.textContent = '⏳ Parsing CSV...';
+
+    if (typeof Papa === 'undefined') {
+      if (statusEl) statusEl.textContent = '❌ Papa Parse not loaded. Check admin.html.';
+      return;
+    }
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: function (results) {
+        var rows = results.data || [];
+        var errors = [];
+        var valid = [];
+
+        rows.forEach(function (row, i) {
+          var name  = (row.name  || '').trim();
+          var price = parseFloat(row.price);
+          var stock = parseInt(row.stock, 10);
+          var line  = i + 2;
+
+          if (!name)                          { errors.push('Line ' + line + ': missing name');   return; }
+          if (isNaN(price) || price <= 0)     { errors.push('Line ' + line + ': bad price');      return; }
+          if (isNaN(stock) || stock < 0)      { errors.push('Line ' + line + ': bad stock');      return; }
+
+          valid.push({
+            name: name,
+            brand:        (row.brand        || '').trim(),
+            category:     (row.category     || '').trim(),
+            price:        price,
+            mrp:          parseFloat(row.mrp) || price,
+            rating:       parseFloat(row.rating) || 4.5,
+            stock:        stock,
+            description:  (row.description  || '').trim(),
+            image_folder: (row.image_folder || '').trim(),
+            active:       true
+          });
+        });
+
+        if (!valid.length) {
+          if (statusEl) statusEl.innerHTML = '❌ No valid rows. First errors:<br>' + errors.slice(0, 5).join('<br>');
+          return;
+        }
+
+        batchInsertProducts(valid, statusEl, errors);
+      },
+      error: function (err) {
+        if (statusEl) statusEl.textContent = '❌ CSV parse error: ' + err.message;
+      }
+    });
+  }
+
+  function batchInsertProducts(rows, statusEl, errors) {
+    var BATCH = 50;
+    var inserted = 0, failed = 0;
+    var index = 0;
+
+    function nextBatch() {
+      if (index >= rows.length) {
+        var msg = '✅ Imported <strong>' + inserted + '</strong> product(s).';
+        if (failed) msg += ' ❌ <strong>' + failed + '</strong> failed.';
+        if (errors && errors.length) msg += '<br>⚠️ Skipped ' + errors.length + ' row(s): ' + errors.slice(0, 3).join(' • ');
+        if (statusEl) statusEl.innerHTML = msg;
+        var input = $('csvFileInput');
+        if (input) input.value = '';
+        if (typeof loadProducts === 'function') loadProducts();
+        if (typeof loadOverview === 'function') loadOverview();
+        if (typeof checkStockAlerts === 'function') checkStockAlerts();
+        return;
+      }
+
+      var batch = rows.slice(index, index + BATCH);
+      index += BATCH;
+
+      var headers = apiHeaders(true);
+      headers['Prefer'] = 'return=minimal';
+
+      authFetch(SUPABASE_URL + '/rest/v1/products', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(batch)
+      }).then(function (res) {
+        if (!res.ok) {
+          failed += batch.length;
+          return res.text().then(function (t) { console.error('Batch failed:', t); });
+        }
+        inserted += batch.length;
+      }).catch(function (err) {
+        failed += batch.length;
+        console.error('Batch error:', err);
+      }).then(function () {
+        if (statusEl) statusEl.textContent = '⏳ Importing... ' + (inserted + failed) + '/' + rows.length;
+        nextBatch();
+      });
+    }
+
+    nextBatch();
+  }
+
   /* ============ INIT ============ */
   function init() {
     loadSession();
@@ -1836,6 +1937,14 @@
     var pm = $('productModal');
     if (pm) pm.addEventListener('click', function (e) { if (e.target === pm) closeProductModal(); });
     var pf = $('productForm'); if (pf) pf.addEventListener('submit', saveProduct);
+
+    /* CSV import buttons */
+    var importBtn = $('importCsvBtn');
+    var csvInput = $('csvFileInput');
+    if (importBtn && csvInput) {
+      importBtn.addEventListener('click', function () { csvInput.click(); });
+      csvInput.addEventListener('change', handleCsvImport);
+    }
 
     var upload = $('adminUpload'), input = $('pf-images');
     if (upload && input) {
@@ -1978,91 +2087,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
-
-   /* ============ BULK CSV PRODUCT IMPORT ============ */
-
-document.getElementById('importCsvBtn')?.addEventListener('click', () => {
-  document.getElementById('csvFileInput').click();
-});
-
-document.getElementById('csvFileInput')?.addEventListener('change', handleCsvImport);
-
-function handleCsvImport(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const statusEl = document.getElementById('csvImportStatus');
-  statusEl.textContent = '⏳ Parsing CSV...';
-
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    complete: async (results) => {
-      const rows = results.data;
-      const errors = [];
-      const valid = [];
-
-      rows.forEach((row, i) => {
-        const name  = (row.name  || '').trim();
-        const price = parseFloat(row.price);
-        const stock = parseInt(row.stock, 10);
-        const line  = i + 2;
-
-        if (!name)                          { errors.push(`Line ${line}: missing name`);   return; }
-        if (isNaN(price) || price <= 0)     { errors.push(`Line ${line}: bad price`);      return; }
-        if (isNaN(stock) || stock < 0)      { errors.push(`Line ${line}: bad stock`);      return; }
-
-        valid.push({
-          name,
-          brand:        (row.brand        || '').trim(),
-          category:     (row.category     || '').trim(),
-          price,
-          mrp:          parseFloat(row.mrp) || price,
-          rating:       parseFloat(row.rating) || 4.5,
-          stock,
-          description:  (row.description  || '').trim(),
-          image_folder: (row.image_folder || '').trim()
-        });
-      });
-
-      if (!valid.length) {
-        statusEl.innerHTML = `❌ No valid rows. First errors:<br>` + errors.slice(0,5).join('<br>');
-        return;
-      }
-
-      await batchInsertProducts(valid, statusEl, errors);
-    },
-    error: (err) => {
-      document.getElementById('csvImportStatus').textContent = '❌ CSV parse error: ' + err.message;
-    }
-  });
-}
-
-async function batchInsertProducts(rows, statusEl, errors) {
-  const BATCH = 50;
-  let inserted = 0, failed = 0;
-
-  for (let i = 0; i < rows.length; i += BATCH) {
-    const batch = rows.slice(i, i + BATCH);
-    const { error } = await supabase.from('products').insert(batch);
-
-    if (error) {
-      failed += batch.length;
-      console.error('Batch insert failed:', error);
-    } else {
-      inserted += batch.length;
-    }
-    statusEl.textContent = `⏳ Importing... ${inserted + failed}/${rows.length}`;
-  }
-
-  let msg = `✅ Imported <strong>${inserted}</strong> product(s).`;
-  if (failed)               msg += ` ❌ <strong>${failed}</strong> failed.`;
-  if (errors && errors.length) msg += `<br>⚠️ Skipped ${errors.length} row(s): ` + errors.slice(0,3).join(' • ');
-
-  statusEl.innerHTML = msg;
-  document.getElementById('csvFileInput').value = ''; // reset
-
-  if (typeof loadProducts === 'function') loadProducts();
-}
 
 })();
