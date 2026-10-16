@@ -919,4 +919,15 @@ ul{list-style:none;padding:0;margin:0;}
 
   /* PWA button */
   .pwa-install-btn{bottom:14px;left:14px;padding:11px 16px;font-size:.8rem;}
-}
+
+/* FOOTER — centered on mobile */
+.footer-grid{text-align:center;}
+.footer-brand{text-align:center;}
+.footer-brand .logo{justify-content:center;}
+.footer-desc{margin-left:auto;margin-right:auto;text-align:center;}
+.footer-col{text-align:center;}
+.footer-col:nth-child(4){text-align:center;}
+.social-row{justify-content:center;}
+.social-note{text-align:center;}
+.footer-bottom{text-align:center;align-items:center;}
+   }
