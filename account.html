@@ -9,8 +9,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://qyzevydprpkjslnesrxq.supabase.co" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://qyzevydprpkjslnesrxq.supabase.co">
+<link rel="dns-prefetch" href="https://www.gstatic.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JSHQ0GHMHV"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -24,8 +28,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GIMPZ">
 <link rel="apple-touch-icon" href="assets/favicon.svg">
-  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
-<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -344,8 +346,8 @@ function calcAge(dobStr) {
   } catch (e) { return null; }
 }
 
-/* ============ INSTANT CACHE HELPERS ============ */
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+/* ============ CACHE HELPERS ============ */
+const CACHE_TTL = 10 * 60 * 1000;
 function readCache(key) {
   try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
 }
@@ -400,7 +402,7 @@ document.querySelectorAll('.account-tab').forEach(tab => {
 });
 
 $('signOutBtn').addEventListener('click', async () => {
-  await signOut(auth);
+  try { await signOut(auth); } catch (e) {}
   localStorage.removeItem('gimpz_user');
   window.location.href = 'index.html';
 });
@@ -449,7 +451,6 @@ function renderOrders(orders, itemsByOrder) {
 }
 
 async function loadOrders(uid) {
-  // 1. Show cached instantly (no flicker)
   const cached = readCache(kOrders(uid));
   if (isFresh(cached)) {
     renderOrders(cached.data.orders, cached.data.itemsByOrder);
@@ -457,7 +458,6 @@ async function loadOrders(uid) {
     $('ordersLoading').style.display = 'block';
     $('ordersList').innerHTML = '';
   }
-  // 2. Fetch fresh in background
   try {
     const r = await fetch(SB_URL + '/rest/v1/orders?user_id=eq.' + encodeURIComponent(uid) + '&order=created_at.desc', {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
@@ -672,6 +672,7 @@ $('addressForm').addEventListener('submit', async (e) => {
     if (!res.ok) { const txt = await res.text(); throw new Error(txt || 'Save failed'); }
     status.textContent = '✓ Saved';
     status.className = 'form-status ok';
+    localStorage.removeItem(kAddr(currentUser.uid));
     await loadAddresses(currentUser.uid);
     setTimeout(closeAddressModal, 500);
   } catch (err) {
@@ -694,6 +695,7 @@ async function deleteAddress(id) {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     });
     if (!res.ok) throw new Error('Delete failed');
+    localStorage.removeItem(kAddr(currentUser.uid));
     await loadAddresses(currentUser.uid);
   } catch (e) {
     alert('Could not delete. Try again.');
@@ -808,7 +810,6 @@ $('profileForm').addEventListener('submit', async (e) => {
     status.className = 'form-status ok';
     if (name) $('accountName').textContent = 'Hello, ' + name.split(' ')[0];
     updateAgeDisplay();
-    // Refresh cache
     writeCache(kProfile(currentUser.uid), payload);
     setTimeout(() => { status.textContent = ''; status.className = 'form-status'; }, 3000);
   } catch (err) {
@@ -821,20 +822,58 @@ $('profileForm').addEventListener('submit', async (e) => {
   }
 });
 
-/* ============ AUTH STATE ============ */
+/* ============ INSTANT BOOT (fires before Firebase SDK loads) ============ */
+(function instantBoot(){
+  try {
+    const raw = localStorage.getItem('gimpz_user');
+    if (!raw) return;
+    const cachedUser = JSON.parse(raw);
+    if (!cachedUser || !cachedUser.uid) return;
+
+    const notSignedIn = document.getElementById('notSignedIn');
+    const signedIn = document.getElementById('signedIn');
+    if (notSignedIn) notSignedIn.style.display = 'none';
+    if (signedIn) signedIn.style.display = 'block';
+
+    const profCache = readCache(kProfile(cachedUser.uid));
+    if (isFresh(profCache) && profCache.data && profCache.data.full_name) {
+      document.getElementById('accountName').textContent = 'Hello, ' + profCache.data.full_name.split(' ')[0];
+      document.getElementById('accountAvatar').textContent = profCache.data.full_name.charAt(0).toUpperCase();
+    } else if (cachedUser.email) {
+      const fallback = cachedUser.email.split('@')[0];
+      document.getElementById('accountName').textContent = 'Hello, ' + fallback.charAt(0).toUpperCase() + fallback.slice(1);
+      document.getElementById('accountAvatar').textContent = cachedUser.email.charAt(0).toUpperCase();
+    }
+    if (cachedUser.email) document.getElementById('accountEmail').textContent = cachedUser.email;
+
+    const ordersCache = readCache(kOrders(cachedUser.uid));
+    if (isFresh(ordersCache) && ordersCache.data) {
+      renderOrders(ordersCache.data.orders, ordersCache.data.itemsByOrder);
+    }
+    const addrCache = readCache(kAddr(cachedUser.uid));
+    if (isFresh(addrCache) && Array.isArray(addrCache.data)) {
+      renderAddressesList(addrCache.data);
+    }
+    const profileCache = readCache(kProfile(cachedUser.uid));
+    if (isFresh(profileCache) && profileCache.data) {
+      applyProfileToForm(profileCache.data);
+    }
+  } catch (e) {
+    console.warn('[GIMPZ] Instant boot skipped:', e);
+  }
+})();
+
+/* ============ AUTH STATE (confirms + refreshes in background) ============ */
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   if (user && user.emailVerified) {
-    // 1. Show cached identity instantly — zero wait
     const cachedProfile = readCache(kProfile(user.uid));
-    if (isFresh(cachedProfile) && cachedProfile.data && cachedProfile.data.full_name) {
-      $('accountName').textContent = 'Hello, ' + cachedProfile.data.full_name.split(' ')[0];
-      $('accountAvatar').textContent = cachedProfile.data.full_name.charAt(0).toUpperCase();
-    } else {
-      const fallback = user.email.split('@')[0];
-      $('accountName').textContent = 'Hello, ' + fallback.charAt(0).toUpperCase() + fallback.slice(1);
-      $('accountAvatar').textContent = user.email.charAt(0).toUpperCase();
-    }
+    const name = (isFresh(cachedProfile) && cachedProfile.data && cachedProfile.data.full_name)
+      ? cachedProfile.data.full_name
+      : user.email.split('@')[0];
+
+    $('accountName').textContent = 'Hello, ' + name.split(' ')[0];
+    $('accountAvatar').textContent = name.charAt(0).toUpperCase();
     $('accountEmail').textContent = user.email;
 
     $('notSignedIn').style.display = 'none';
@@ -842,11 +881,11 @@ onAuthStateChanged(auth, (user) => {
 
     localStorage.setItem('gimpz_user', JSON.stringify({ uid: user.uid, email: user.email }));
 
-    // 2. Load all sections (each renders cache first, then refreshes)
     loadOrders(user.uid);
     loadAddresses(user.uid);
     loadProfile(user.uid);
   } else {
+    localStorage.removeItem('gimpz_user');
     $('notSignedIn').style.display = 'block';
     $('signedIn').style.display = 'none';
   }
