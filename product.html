@@ -195,6 +195,84 @@
 </footer>
 
 <script src="script.js"></script>
+  <script>
+/* ============ JSON-LD: Dynamic Product Schema ============ */
+(function(){
+  // Wait for product data to load from script.js
+  var attempts = 0;
+  var maxAttempts = 40; // 20 seconds max
+  var timer = setInterval(function(){
+    attempts++;
+    var detail = document.getElementById('productDetail');
+    if (!detail) return;
+
+    // Try to grab product name from title
+    var titleEl = detail.querySelector('.pd-title');
+    var priceEl = detail.querySelector('.pd-now');
+    var ratingEl = detail.querySelector('.rating-pill');
+    var stockEl = detail.querySelector('.pd-stock');
+    var descEl = detail.querySelector('.pd-desc');
+    var brandEl = detail.querySelector('.pd-brand');
+    var imgEl = detail.querySelector('#pdMainImage');
+
+    if (!titleEl || !priceEl) {
+      if (attempts >= maxAttempts) clearInterval(timer);
+      return;
+    }
+
+    clearInterval(timer);
+
+    var name = titleEl.textContent.trim();
+    var priceText = priceEl.textContent.replace(/[^0-9]/g, '');
+    var price = Number(priceText) || 0;
+    var ratingText = ratingEl ? ratingEl.textContent.trim() : '';
+    var ratingMatch = ratingText.match(/[\d.]+/);
+    var rating = ratingMatch ? parseFloat(ratingMatch[0]) : null;
+    var stock = stockEl ? stockEl.textContent.trim() : 'InStock';
+    var description = descEl ? descEl.textContent.trim().slice(0, 300) : '';
+    var brand = brandEl ? brandEl.textContent.trim() : 'GIMPZ';
+    var img = imgEl ? imgEl.src : '';
+
+    var url = window.location.href;
+    var sku = new URLSearchParams(location.search).get('id') || '0';
+
+    var schema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": name,
+      "image": img,
+      "description": description,
+      "brand": { "@type": "Brand", "name": brand },
+      "sku": "GIMPZ-" + sku,
+      "offers": {
+        "@type": "Offer",
+        "url": url,
+        "priceCurrency": "INR",
+        "price": price,
+        "availability": stock.toLowerCase().indexOf('out') === -1
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+        "seller": { "@type": "Organization", "name": "GIMPZ" }
+      }
+    };
+
+    if (rating) {
+      schema.aggregateRating = {
+        "@type": "AggregateRating",
+        "ratingValue": rating,
+        "bestRating": 5,
+        "worstRating": 1,
+        "reviewCount": 10
+      };
+    }
+
+    var script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+  }, 500);
+})();
+</script>
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
   <!--Start of Tawk.to Script-->
 <script type="text/javascript">
