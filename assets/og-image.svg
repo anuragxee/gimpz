@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a2540"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+    <linearGradient id="logo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g transform="translate(600 260)">
+    <rect x="-60" y="-60" width="120" height="120" rx="28" fill="url(#logo)"/>
+    <text x="0" y="20" font-family="Arial,sans-serif" font-weight="900" font-size="72" fill="#fff" text-anchor="middle">G</text>
+  </g>
+  <text x="600" y="410" font-family="Arial,sans-serif" font-weight="800" font-size="52" fill="#fff" text-anchor="middle" letter-spacing="-1">GIMPZ</text>
+  <text x="600" y="465" font-family="Arial,sans-serif" font-weight="500" font-size="26" fill="#cbd5e1" text-anchor="middle">Everything You Need, One Store.</text>
+  <text x="600" y="550" font-family="Arial,sans-serif" font-weight="600" font-size="20" fill="#94a3b8" text-anchor="middle">Fast delivery across India · 7-day returns · Secure payments</text>
+</svg>
