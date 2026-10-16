@@ -1896,6 +1896,55 @@
     nextBatch();
   }
 
+   /* ============ CSV EXPORT ============ */
+function exportProductsToCsv() {
+  var btn = $('exportCsvBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Exporting...'; }
+
+  authFetch(SUPABASE_URL + '/rest/v1/products?select=*&order=id.asc', { headers: apiHeaders(true) })
+    .then(function (r) { return r.json(); })
+    .then(function (rows) {
+      if (!Array.isArray(rows) || !rows.length) {
+        alert('No products to export.');
+        return;
+      }
+
+      var headers = ['name','brand','category','price','mrp','rating','stock','description','image_folder'];
+      var csvLines = [headers.join(',')];
+
+      rows.forEach(function (p) {
+        var line = headers.map(function (h) {
+          var v = p[h];
+          if (v === null || v === undefined) v = '';
+          v = String(v).replace(/"/g, '""');           // escape quotes
+          if (/[",\n]/.test(v)) v = '"' + v + '"';     // wrap if contains , " or newline
+          return v;
+        }).join(',');
+        csvLines.push(line);
+      });
+
+      // Prepend BOM so Excel opens it correctly
+      var csv = '\uFEFF' + csvLines.join('\n');
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+
+      var today = new Date().toISOString().split('T')[0];
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'gimpz-products-' + today + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      logActivity('product_export', 'product', '', rows.length + ' products exported');
+    })
+    .catch(function (err) { alert('Export failed: ' + err.message); })
+    .then(function () {
+      if (btn) { btn.disabled = false; btn.textContent = 'Export CSV'; }
+    });
+}
+   
   /* ============ INIT ============ */
   function init() {
     loadSession();
@@ -1950,6 +1999,10 @@
       csvInput.addEventListener('change', handleCsvImport);
     }
 
+     /* CSV export button */
+var exportBtn = $('exportCsvBtn');
+if (exportBtn) exportBtn.addEventListener('click', exportProductsToCsv);
+     
     var upload = $('adminUpload'), input = $('pf-images');
     if (upload && input) {
       upload.addEventListener('click', function () { input.click(); });
