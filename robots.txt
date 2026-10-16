@@ -1,5 +1,13 @@
 User-agent: *
 Allow: /
-Disallow: /admin.html
 
+# Block admin panel from search engines
+Disallow: /admin.html
+Disallow: /admin.css
+Disallow: /admin.js
+
+# Block order confirmation page (no SEO value)
+Disallow: /order-success.html
+
+# Sitemap location
 Sitemap: https://anuragxee.github.io/gimpz/sitemap.xml
