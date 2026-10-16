@@ -1979,4 +1979,90 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
+   /* ============ BULK CSV PRODUCT IMPORT ============ */
+
+document.getElementById('importCsvBtn')?.addEventListener('click', () => {
+  document.getElementById('csvFileInput').click();
+});
+
+document.getElementById('csvFileInput')?.addEventListener('change', handleCsvImport);
+
+function handleCsvImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('csvImportStatus');
+  statusEl.textContent = '⏳ Parsing CSV...';
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: async (results) => {
+      const rows = results.data;
+      const errors = [];
+      const valid = [];
+
+      rows.forEach((row, i) => {
+        const name  = (row.name  || '').trim();
+        const price = parseFloat(row.price);
+        const stock = parseInt(row.stock, 10);
+        const line  = i + 2;
+
+        if (!name)                          { errors.push(`Line ${line}: missing name`);   return; }
+        if (isNaN(price) || price <= 0)     { errors.push(`Line ${line}: bad price`);      return; }
+        if (isNaN(stock) || stock < 0)      { errors.push(`Line ${line}: bad stock`);      return; }
+
+        valid.push({
+          name,
+          brand:        (row.brand        || '').trim(),
+          category:     (row.category     || '').trim(),
+          price,
+          mrp:          parseFloat(row.mrp) || price,
+          rating:       parseFloat(row.rating) || 4.5,
+          stock,
+          description:  (row.description  || '').trim(),
+          image_folder: (row.image_folder || '').trim()
+        });
+      });
+
+      if (!valid.length) {
+        statusEl.innerHTML = `❌ No valid rows. First errors:<br>` + errors.slice(0,5).join('<br>');
+        return;
+      }
+
+      await batchInsertProducts(valid, statusEl, errors);
+    },
+    error: (err) => {
+      document.getElementById('csvImportStatus').textContent = '❌ CSV parse error: ' + err.message;
+    }
+  });
+}
+
+async function batchInsertProducts(rows, statusEl, errors) {
+  const BATCH = 50;
+  let inserted = 0, failed = 0;
+
+  for (let i = 0; i < rows.length; i += BATCH) {
+    const batch = rows.slice(i, i + BATCH);
+    const { error } = await supabase.from('products').insert(batch);
+
+    if (error) {
+      failed += batch.length;
+      console.error('Batch insert failed:', error);
+    } else {
+      inserted += batch.length;
+    }
+    statusEl.textContent = `⏳ Importing... ${inserted + failed}/${rows.length}`;
+  }
+
+  let msg = `✅ Imported <strong>${inserted}</strong> product(s).`;
+  if (failed)               msg += ` ❌ <strong>${failed}</strong> failed.`;
+  if (errors && errors.length) msg += `<br>⚠️ Skipped ${errors.length} row(s): ` + errors.slice(0,3).join(' • ');
+
+  statusEl.innerHTML = msg;
+  document.getElementById('csvFileInput').value = ''; // reset
+
+  if (typeof loadProducts === 'function') loadProducts();
+}
+
 })();
