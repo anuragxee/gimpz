@@ -15,7 +15,7 @@
   var MAX_IMAGES_PER_PRODUCT = 10;
 
   var CACHE_KEY = 'gimpz_products_cache_v1';
-  var CACHE_TTL = 30 * 60 * 1000;
+  var CACHE_TTL = 30 * 60 * 1000;   /* 30 min */
 
   var PRODUCTS = [];
   var SAVED_ADDRESSES = [];
@@ -1272,7 +1272,12 @@
       var cached = readCache();
       var cachedProduct = null;
       if (cached) for (var i = 0; i < cached.length; i++) if (cached[i].id === id) { cachedProduct = cached[i]; break; }
-     if (cachedProduct) { PRODUCTS = cached; renderProductDetail(cachedProduct); setTimeout(fetchProducts, 400); return; }
+      if (cachedProduct) {
+        PRODUCTS = cached;
+        renderProductDetail(cachedProduct);
+        setTimeout(fetchProducts, 600);
+        return;
+      }
       showProductSkeleton(detailContainer);
       fetchSingleProduct(id)
         .then(function (p) {
@@ -1457,30 +1462,41 @@
         });
     });
   })();
-   /* ============ HOVER PREFETCH ============ */
-(function(){
-  function bind(){
-    document.querySelectorAll('a[href^="product.html?id="], a[href="account.html"], a[href="cart.html"]').forEach(function(a){
-      if (a.dataset.pfBound) return;
-      a.dataset.pfBound = '1';
-      function go(){
-        if (a.dataset.pfDone) return;
-        a.dataset.pfDone = '1';
-        var l = document.createElement('link');
-        l.rel = 'prefetch';
-        l.href = a.getAttribute('href');
-        document.head.appendChild(l);
-      }
-      a.addEventListener('mouseenter', go, { passive: true });
-      a.addEventListener('touchstart', go, { passive: true });
-      a.addEventListener('focus', go, { passive: true });
-    });
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bind);
-  } else { bind(); }
-  // re-bind after grids render
-  var obs = new MutationObserver(bind);
-  obs.observe(document.body, { childList: true, subtree: true });
-})();
+
+  /* ============ HOVER PREFETCH ============ */
+  /* Start downloading a page as soon as the user hovers/touches its link
+     so the next click feels instant. */
+  (function () {
+    var prefetched = {};
+    function prefetch(href) {
+      if (!href || prefetched[href]) return;
+      prefetched[href] = 1;
+      var link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = href;
+      document.head.appendChild(link);
+    }
+    function bind(el) {
+      if (el.dataset.pfBound) return;
+      el.dataset.pfBound = '1';
+      function go() { prefetch(el.getAttribute('href')); }
+      el.addEventListener('mouseenter', go, { passive: true });
+      el.addEventListener('touchstart', go, { passive: true });
+      el.addEventListener('focus', go, { passive: true });
+    }
+    function scan() {
+      document.querySelectorAll(
+        'a[href^="product.html?id="], a[href="cart.html"], a[href="account.html"], a[href="login.html"]'
+      ).forEach(bind);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', scan);
+    } else {
+      scan();
+    }
+    // Re-scan when product grids re-render (after filter/sort)
+    var mo = new MutationObserver(scan);
+    mo.observe(document.body, { childList: true, subtree: true });
+  })();
+
 })();
