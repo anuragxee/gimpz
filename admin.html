@@ -163,9 +163,17 @@
   </div>
 </div>
         <div id="csvImportStatus" style="margin:10px 22px 0;font-size:.85rem;color:#475569;"></div>
+        <div id="bulkActionsBar" style="display:none;margin:10px 22px 0;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;display:none;align-items:center;gap:12px;flex-wrap:wrap;">
+  <strong style="color:#1e40af;font-size:.85rem;"><span id="bulkCount">0</span> selected</strong>
+  <button class="admin-btn-sm" data-bulk="in-stock">Mark In Stock</button>
+  <button class="admin-btn-sm" data-bulk="out-stock">Mark Out of Stock</button>
+  <button class="admin-btn-sm" data-bulk="discount-10">−10% Price</button>
+  <button class="admin-btn-sm" data-bulk="discount-20">−20% Price</button>
+  <button class="admin-btn-sm" data-bulk="clear">Clear Selection</button>
+  <button class="admin-btn-sm" data-bulk="delete" style="background:#fee2e2;color:#b91c1c;border-color:#fecaca;margin-left:auto;">Delete Selected</button>
+</div>
         <div class="admin-table-wrap">
-          <table class="admin-table"><thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="productsBody"><tr><td colspan="6" class="admin-empty">Loading products...</td></tr></tbody></table>
-        </div>
+        <table class="admin-table"><thead><tr><th style="width:36px;"><input type="checkbox" id="selectAllProducts"></th><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="productsBody">...
       </div>
     </section>
 
