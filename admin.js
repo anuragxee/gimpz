@@ -417,7 +417,7 @@
   function loadProducts() {
     var tbody = $('productsBody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">Loading products...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">Loading products...</td></tr>';
     authFetch(SUPABASE_URL + '/rest/v1/products?select=*&order=id.desc', { headers: apiHeaders(true) })
       .then(function (r) { return r.json(); })
       .then(function (rows) {
@@ -426,7 +426,7 @@
         renderProductsTable(rows);
       })
       .catch(function (err) {
-        tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">Failed: ' + esc(err.message) + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">Failed: ' + esc(err.message) + '</td></tr>';
       });
   }
 
@@ -434,7 +434,8 @@
     var tbody = $('productsBody');
     if (!tbody) return;
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">No products yet. Click "Add Product".</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">No products yet. Click "Add Product".</td></tr>';
+      updateBulkBar();
       return;
     }
     var html = '';
@@ -442,6 +443,7 @@
       var img = p.image_folder ? ('assets/products/' + p.image_folder + '/1.jpg') : 'assets/products/placeholder.svg';
       var stockCls = p.stock === 0 ? 'status-cancelled' : (p.stock <= LOW_STOCK_THRESHOLD ? 'status-pending' : 'status-delivered');
       html += '<tr data-id="' + p.id + '">' +
+        '<td><input type="checkbox" class="product-check" data-id="' + p.id + '"></td>' +
         '<td><img class="admin-product-thumb" src="' + img + '" onerror="this.src=\'assets/products/placeholder.svg\'"></td>' +
         '<td><strong>' + esc(p.name) + '</strong><br><small style="color:#64748b;">' + esc(p.brand) + '</small></td>' +
         '<td>' + esc(p.category) + '</td>' +
@@ -454,6 +456,7 @@
       '</tr>';
     });
     tbody.innerHTML = html;
+
     tbody.querySelectorAll('[data-action]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var id = parseInt(btn.getAttribute('data-id'), 10);
@@ -462,6 +465,11 @@
         if (a === 'delete') deleteProduct(id);
       });
     });
+
+    tbody.querySelectorAll('.product-check').forEach(function (cb) {
+      cb.addEventListener('change', updateBulkBar);
+    });
+    updateBulkBar();
   }
 
   function openProductModal(id) {
@@ -660,7 +668,90 @@
       .catch(function (err) { alert(err.message); });
   }
 
-  /* ============ ORDERS ============ */
+  /* ============ BULK ACTIONS ============ */
+  function getSelectedProductIds() {
+    var ids = [];
+    document.querySelectorAll('.product-check:checked').forEach(function (cb) {
+      ids.push(parseInt(cb.getAttribute('data-id'), 10));
+    });
+    return ids;
+  }
+
+  function updateBulkBar() {
+    var bar = $('bulkActionsBar');
+    var countEl = $('bulkCount');
+    var all = document.querySelectorAll('.product-check');
+    var checked = document.querySelectorAll('.product-check:checked');
+    if (bar) bar.style.display = checked.length ? 'flex' : 'none';
+    if (countEl) countEl.textContent = checked.length;
+
+    var selectAll = $('selectAllProducts');
+    if (selectAll) {
+      selectAll.checked = all.length > 0 && checked.length === all.length;
+      selectAll.indeterminate = checked.length > 0 && checked.length < all.length;
+    }
+  }
+
+  function bulkAction(action) {
+    var ids = getSelectedProductIds();
+    if (!ids.length) return;
+
+    if (action === 'clear') {
+      document.querySelectorAll('.product-check').forEach(function (cb) { cb.checked = false; });
+      var sa = $('selectAllProducts'); if (sa) sa.checked = false;
+      updateBulkBar();
+      return;
+    }
+
+    if (action === 'delete') {
+      if (!confirm('Delete ' + ids.length + ' product(s)? This cannot be undone.')) return;
+      var filter = 'id=in.(' + ids.join(',') + ')';
+      authFetch(SUPABASE_URL + '/rest/v1/products?' + filter, { method: 'DELETE', headers: apiHeaders(true) })
+        .then(function (r) {
+          if (!r.ok) throw new Error('Delete failed');
+          logActivity('product_delete', 'product', '', ids.length + ' products deleted');
+          loadProducts(); loadOverview(); checkStockAlerts();
+        })
+        .catch(function (err) { alert(err.message); });
+      return;
+    }
+
+    if (action === 'discount-10' || action === 'discount-20') {
+      var pct = action === 'discount-10' ? 0.10 : 0.20;
+      var selected = currentProducts.filter(function (p) { return ids.indexOf(p.id) !== -1; });
+      var updates = selected.map(function (p) {
+        var newPrice = Math.max(1, Math.round(p.price * (1 - pct)));
+        return authFetch(SUPABASE_URL + '/rest/v1/products?id=eq.' + p.id, {
+          method: 'PATCH',
+          headers: apiHeaders(true),
+          body: JSON.stringify({ price: newPrice })
+        });
+      });
+      Promise.all(updates).then(function () {
+        logActivity('product_edit', 'product', '', ids.length + ' products discounted ' + (pct * 100) + '%');
+        loadProducts(); loadOverview();
+      }).catch(function (err) { alert(err.message); });
+      return;
+    }
+
+    var payload = null;
+    if (action === 'in-stock')  payload = { stock: 10 };
+    if (action === 'out-stock') payload = { stock: 0 };
+
+    if (payload) {
+      var filter2 = 'id=in.(' + ids.join(',') + ')';
+      authFetch(SUPABASE_URL + '/rest/v1/products?' + filter2, {
+        method: 'PATCH',
+        headers: apiHeaders(true),
+        body: JSON.stringify(payload)
+      }).then(function (r) {
+        if (!r.ok) throw new Error('Update failed');
+        logActivity('product_edit', 'product', '', ids.length + ' products updated');
+        loadProducts(); loadOverview(); checkStockAlerts();
+      }).catch(function (err) { alert(err.message); });
+    }
+  }
+     /* ============ ORDERS ============ */
   function loadOrders() {
     var tbody = $('ordersBody');
     if (!tbody) return;
@@ -1689,6 +1780,7 @@
     }
     var actionLabels = {
       product_add: '➕ Product Added', product_edit: '✏️ Product Edited', product_delete: '🗑️ Product Deleted',
+      product_export: '📤 Products Exported',
       order_status: '📦 Order Status Changed',
       coupon_add: '🎟️ Coupon Added', coupon_edit: '✏️ Coupon Edited',
       category_add: '📁 Category Added', category_edit: '✏️ Category Edited', category_delete: '🗑️ Category Deleted',
@@ -1787,66 +1879,140 @@
     setTimeout(function () { win.print(); }, 300);
   }
 
-  /* ============ BULK CSV PRODUCT IMPORT ============ */
+  /* ============ CSV EXPORT ============ */
+  function exportProductsToCsv() {
+    var btn = $('exportCsvBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Exporting...'; }
+
+    authFetch(SUPABASE_URL + '/rest/v1/products?select=*&order=id.asc', { headers: apiHeaders(true) })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        if (!Array.isArray(rows) || !rows.length) {
+          alert('No products to export.');
+          return;
+        }
+
+        var headers = ['name','brand','category','price','mrp','rating','stock','description','image_folder'];
+        var csvLines = [headers.join(',')];
+
+        rows.forEach(function (p) {
+          var line = headers.map(function (h) {
+            var v = p[h];
+            if (v === null || v === undefined) v = '';
+            v = String(v).replace(/"/g, '""');
+            if (/[",\n]/.test(v)) v = '"' + v + '"';
+            return v;
+          }).join(',');
+          csvLines.push(line);
+        });
+
+        var csv = '\uFEFF' + csvLines.join('\n');
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+
+        var today = new Date().toISOString().split('T')[0];
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'gimpz-products-' + today + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        logActivity('product_export', 'product', '', rows.length + ' products exported');
+      })
+      .catch(function (err) { alert('Export failed: ' + err.message); })
+      .then(function () {
+        if (btn) { btn.disabled = false; btn.textContent = 'Export CSV'; }
+      });
+  }
+
+  /* ============ CSV IMPORT ============ */
   function handleCsvImport(event) {
     var file = event.target.files[0];
     if (!file) return;
 
     var statusEl = $('csvImportStatus');
-    if (statusEl) statusEl.textContent = '⏳ Parsing CSV...';
+    if (statusEl) statusEl.textContent = '⏳ Reading file...';
 
     if (typeof Papa === 'undefined') {
       if (statusEl) statusEl.textContent = '❌ Papa Parse not loaded. Check admin.html.';
       return;
     }
 
-  Papa.parse(file, {
-  header: true,
-  skipEmptyLines: true,
-  bom: true,
-  transformHeader: function (h) {
-    return String(h).replace(/^\uFEFF/, '').trim().toLowerCase();
-  },
-  complete: function (results) {
-        var rows = results.data || [];
-        var errors = [];
-        var valid = [];
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var text = e.target.result || '';
 
-        rows.forEach(function (row, i) {
-          var name  = (row.name  || '').trim();
-          var price = parseFloat(row.price);
-          var stock = parseInt(row.stock, 10);
-          var line  = i + 2;
+      text = text.replace(/^\uFEFF/, '');
 
-          if (!name)                          { errors.push('Line ' + line + ': missing name');   return; }
-          if (isNaN(price) || price <= 0)     { errors.push('Line ' + line + ': bad price');      return; }
-          if (isNaN(stock) || stock < 0)      { errors.push('Line ' + line + ': bad stock');      return; }
-
-          valid.push({
-            name: name,
-            brand:        (row.brand        || '').trim(),
-            category:     (row.category     || '').trim(),
-            price:        price,
-            mrp:          parseFloat(row.mrp) || price,
-            rating:       parseFloat(row.rating) || 4.5,
-            stock:        stock,
-            description:  (row.description  || '').trim(),
-            image_folder: (row.image_folder || '').trim(),
-            active:       true
-          });
-        });
-
-        if (!valid.length) {
-          if (statusEl) statusEl.innerHTML = '❌ No valid rows. First errors:<br>' + errors.slice(0, 5).join('<br>');
-          return;
+      text = text.split(/\r?\n/).map(function (line) {
+        var t = line.trim();
+        if (
+          t.length >= 2 &&
+          t.charAt(0) === '"' &&
+          t.charAt(t.length - 1) === '"' &&
+          t.indexOf('","') === -1
+        ) {
+          return t.slice(1, -1);
         }
+        return line;
+      }).join('\n');
 
-        batchInsertProducts(valid, statusEl, errors);
-      },
-      error: function (err) {
-        if (statusEl) statusEl.textContent = '❌ CSV parse error: ' + err.message;
-      }
-    });
+      Papa.parse(text, {
+        header: true,
+        skipEmptyLines: true,
+        bom: true,
+        transformHeader: function (h) {
+          return String(h).replace(/^\uFEFF/, '').trim().toLowerCase();
+        },
+        complete: function (results) {
+          var rows = results.data || [];
+          var errors = [];
+          var valid = [];
+
+          rows.forEach(function (row, i) {
+            var name  = (row.name  || '').trim();
+            var price = parseFloat(row.price);
+            var stock = parseInt(row.stock, 10);
+            var line  = i + 2;
+
+            if (!name)                          { errors.push('Line ' + line + ': missing name');   return; }
+            if (isNaN(price) || price <= 0)     { errors.push('Line ' + line + ': bad price');      return; }
+            if (isNaN(stock) || stock < 0)      { errors.push('Line ' + line + ': bad stock');      return; }
+
+            valid.push({
+              name: name,
+              brand:        (row.brand        || '').trim(),
+              category:     (row.category     || '').trim(),
+              price:        price,
+              mrp:          parseFloat(row.mrp) || price,
+              rating:       parseFloat(row.rating) || 4.5,
+              stock:        stock,
+              description:  (row.description  || '').trim(),
+              image_folder: (row.image_folder || '').trim(),
+              active:       true
+            });
+          });
+
+          if (!valid.length) {
+            if (statusEl) statusEl.innerHTML = '❌ No valid rows. First errors:<br>' + errors.slice(0, 5).join('<br>');
+            return;
+          }
+
+          batchInsertProducts(valid, statusEl, errors);
+        },
+        error: function (err) {
+          if (statusEl) statusEl.textContent = '❌ CSV parse error: ' + err.message;
+        }
+      });
+    };
+
+    reader.onerror = function () {
+      if (statusEl) statusEl.textContent = '❌ Could not read file.';
+    };
+
+    reader.readAsText(file);
   }
 
   function batchInsertProducts(rows, statusEl, errors) {
@@ -1896,55 +2062,6 @@
     nextBatch();
   }
 
-   /* ============ CSV EXPORT ============ */
-function exportProductsToCsv() {
-  var btn = $('exportCsvBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Exporting...'; }
-
-  authFetch(SUPABASE_URL + '/rest/v1/products?select=*&order=id.asc', { headers: apiHeaders(true) })
-    .then(function (r) { return r.json(); })
-    .then(function (rows) {
-      if (!Array.isArray(rows) || !rows.length) {
-        alert('No products to export.');
-        return;
-      }
-
-      var headers = ['name','brand','category','price','mrp','rating','stock','description','image_folder'];
-      var csvLines = [headers.join(',')];
-
-      rows.forEach(function (p) {
-        var line = headers.map(function (h) {
-          var v = p[h];
-          if (v === null || v === undefined) v = '';
-          v = String(v).replace(/"/g, '""');           // escape quotes
-          if (/[",\n]/.test(v)) v = '"' + v + '"';     // wrap if contains , " or newline
-          return v;
-        }).join(',');
-        csvLines.push(line);
-      });
-
-      // Prepend BOM so Excel opens it correctly
-      var csv = '\uFEFF' + csvLines.join('\n');
-      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      var url = URL.createObjectURL(blob);
-
-      var today = new Date().toISOString().split('T')[0];
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = 'gimpz-products-' + today + '.csv';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      logActivity('product_export', 'product', '', rows.length + ' products exported');
-    })
-    .catch(function (err) { alert('Export failed: ' + err.message); })
-    .then(function () {
-      if (btn) { btn.disabled = false; btn.textContent = 'Export CSV'; }
-    });
-}
-   
   /* ============ INIT ============ */
   function init() {
     loadSession();
@@ -1999,10 +2116,21 @@ function exportProductsToCsv() {
       csvInput.addEventListener('change', handleCsvImport);
     }
 
-     /* CSV export button */
-var exportBtn = $('exportCsvBtn');
-if (exportBtn) exportBtn.addEventListener('click', exportProductsToCsv);
-     
+    /* CSV export button */
+    var exportBtn = $('exportCsvBtn');
+    if (exportBtn) exportBtn.addEventListener('click', exportProductsToCsv);
+
+    /* Bulk actions */
+    document.querySelectorAll('[data-bulk]').forEach(function (btn) {
+      btn.addEventListener('click', function () { bulkAction(btn.getAttribute('data-bulk')); });
+    });
+    var selectAllCb = $('selectAllProducts');
+    if (selectAllCb) selectAllCb.addEventListener('change', function () {
+      var checked = this.checked;
+      document.querySelectorAll('.product-check').forEach(function (cb) { cb.checked = checked; });
+      updateBulkBar();
+    });
+
     var upload = $('adminUpload'), input = $('pf-images');
     if (upload && input) {
       upload.addEventListener('click', function () { input.click(); });
