@@ -24,17 +24,17 @@
     <form id="loginForm">
       <div class="admin-field"><label for="adminEmail">Email</label><input type="email" id="adminEmail" placeholder="admin@example.com" autocomplete="username" required></div>
       <div class="admin-field">
-  <label for="adminPassword">Password</label>
-  <div class="password-wrap">
-    <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password" required>
-    <button type="button" class="password-toggle" data-target="adminPassword" aria-label="Show password">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
-        <circle cx="12" cy="12" r="3"/>
-      </svg>
-    </button>
-  </div>
-</div>
+        <label for="adminPassword">Password</label>
+        <div class="password-wrap">
+          <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password" required>
+          <button type="button" class="password-toggle" data-target="adminPassword" aria-label="Show password">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
       <button type="submit" class="btn btn-primary btn-lg btn-block" id="loginBtn">Sign In</button>
       <p class="login-status" id="loginStatus"></p>
     </form>
@@ -177,7 +177,11 @@
             <thead>
               <tr>
                 <th style="width:36px;"><input type="checkbox" id="selectAllProducts"></th>
-                <th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
                 <th style="text-align:right;">Actions</th>
               </tr>
             </thead>
@@ -500,7 +504,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script src="admin.js?v=5"></script>
+<script src="admin.js?v=6"></script>
   <script>
 (function(){
   var EYE_OPEN = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>';
